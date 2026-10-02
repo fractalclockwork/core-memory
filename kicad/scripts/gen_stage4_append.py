@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 4 gate drive (TC4427/TC4426) without touching Stages 1–3."""
+"""Append Drive FWD gate drive (TC4427/TC4426); FET matrix is gen_stage3."""
 from __future__ import annotations
 
 import re
@@ -152,10 +152,11 @@ def strip_stage4(sch: str) -> str:
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing — schematic truncated?")
-    if "STAGE 4" not in sch and '(property "Reference" "U5"' not in sch:
+    if "DRIVE FWD — gate" not in sch and "STAGE 4" not in sch and '(property "Reference" "U5"' not in sch:
         return sch
     starts = []
     for needle in (
+        '\t(text "DRIVE FWD — gate',
         '\t(text "STAGE 4',
         '\t(rectangle\n\t\t(start 370.00 110.00)',
         '(property "Reference" "U5"',
@@ -167,7 +168,7 @@ def strip_stage4(sch: str) -> str:
         if 0 <= i < end:
             starts.append(i)
     if not starts:
-        raise SystemExit("STAGE 4 present but cannot locate block")
+        raise SystemExit("Drive FWD gate drive present but cannot locate block")
     start = min(starts)
     while start > 0 and sch[start - 1] == "\n":
         start -= 1
@@ -243,7 +244,7 @@ def driver_block(
     nc8 = pin_xy(ux, uy, 7.62, 0)
     o += [no_connect(nc1), no_connect(nc8)]
 
-    # Outputs → gate labels (Stage 3)
+    # Outputs → gate labels (Drive FWD FETs)
     o += [
         wire(outa, (round(outa[0] + 10.16, 2), outa[1])),
         label(out_a, (round(outa[0] + 10.16, 2), outa[1])),
@@ -314,7 +315,7 @@ def main() -> None:
 
     o: list[str] = []
 
-    # Below Stage 3 box (ends y≈98)
+    # Below Drive FWD FET box (ends y≈98)
     driver_block(
         o,
         uref="U5",
@@ -362,7 +363,7 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 4 — Gate drive (fail-safe pull-ups)", 375.0, 115.0, 1.524),
+        text("DRIVE FWD — gate drive (TC442x; fail-safe pull-ups)", 375.0, 115.0, 1.524),
         text(
             "TC4427A → X/Y_HS0; TC4426A → X/Y_LS0; 10k to +3V3 on *_n; VDRIVE power; headers J1–J4",
             375.0, 305.0,
@@ -371,7 +372,7 @@ def main() -> None:
 
     sch = sch.replace("\t(sheet_instances", "\n".join(o) + "\n\t(sheet_instances", 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 4 gate drive to {SCH}")
+    print(f"Appended Drive FWD gate drive to {SCH}")
 
 
 if __name__ == "__main__":

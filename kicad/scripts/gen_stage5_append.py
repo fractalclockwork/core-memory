@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 5 inhibit FETs + gate drive without touching Stages 1–4."""
+"""Append Inhibit FETs + gate drive without touching Sense/CCS/Drive."""
 from __future__ import annotations
 
 import re
@@ -129,10 +129,11 @@ def strip_stage5(sch: str) -> str:
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
-    if "STAGE 5" not in sch and '(property "Reference" "Q4"' not in sch:
+    if "INHIBIT" not in sch and "STAGE 5" not in sch and '(property "Reference" "Q4"' not in sch:
         return sch
     starts = []
     for needle in (
+        '\t(text "INHIBIT',
         '\t(text "STAGE 5',
         '\t(rectangle\n\t\t(start 12.70 205.00)',
         '(property "Reference" "Q4"',
@@ -144,7 +145,7 @@ def strip_stage5(sch: str) -> str:
         if 0 <= i < end:
             starts.append(i)
     if not starts:
-        raise SystemExit("STAGE 5 present but cannot locate block")
+        raise SystemExit("Inhibit present but cannot locate block")
     start = min(starts)
     while start > 0 and sch[start - 1] == "\n":
         start -= 1
@@ -229,7 +230,7 @@ def main() -> None:
     sch = SCH.read_text()
     if "sheet_instances" not in sch:
         raise SystemExit("schematic truncated — abort")
-    # Libs already embedded from Stages 3–4
+    # Libs already embedded from Drive FWD
     for need in ("core_memory:FDS8958A", "Driver_FET:TC4427xOA", "Driver_FET:TC4426xOA", "Connector:Conn_01x01"):
         if f'(symbol "{need}"' not in sch:
             raise SystemExit(f"missing lib embed {need}")
@@ -241,7 +242,7 @@ def main() -> None:
     FP_J = "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 
     # ---- Inhibit half-bridge Q4 (FDS8958A), no steering diodes ----
-    # Below Stage 2; left side near YB plane labels
+    # Below CCS; left side near YB plane labels
     qx, qy = 80.0, 260.0
     o.append(symbol_inst("core_memory:FDS8958A", "Q4", "FDS8958A", qx, qy,
                          ["1", "2", "3", "4", "5", "6", "7", "8"], footprint=FP_Q))
@@ -343,7 +344,7 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 5 — Inhibit (series YB65→bowtie→YB66→CCS)", 15.24, 210.0, 1.524),
+        text("INHIBIT — series YB65→fold→YB66→CCS", 15.24, 210.0, 1.524),
         text(
             "Inhibit for WRITE/RESTORE 0 only. P: VDRIVE→YB65; N: YB66→CCS_RET. "
             "TC4427/4426 from INH_EN_n (10k to +3V3). Do not dump into AGND or SENSE_*.",
@@ -353,7 +354,7 @@ def main() -> None:
 
     sch = sch.replace("\t(sheet_instances", "\n".join(o) + "\n\t(sheet_instances", 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 5 inhibit to {SCH}")
+    print(f"Appended Inhibit block to {SCH}")
 
 
 if __name__ == "__main__":

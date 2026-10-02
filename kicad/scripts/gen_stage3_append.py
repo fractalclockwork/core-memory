@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 3 X/Y forward drive to core.kicad_sch without touching Stages 1–2."""
+"""Append Drive FWD FET matrix to core.kicad_sch (Sense/CCS untouched)."""
 from __future__ import annotations
 
 import re
@@ -146,25 +146,26 @@ def strip_stage3_instances(sch: str) -> str:
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
-    if "STAGE 3" not in sch and '(property "Reference" "Q2"' not in sch:
+    if "DRIVE FWD" not in sch and "STAGE 3" not in sch and '(property "Reference" "Q2"' not in sch:
         return sch
     starts = []
     for needle in (
         '\t(symbol\n\t\t(lib_id "core_memory:FDS8958A")\n\t\t(at 420.0',
+        '\t(text "DRIVE FWD',
         '\t(text "STAGE 3',
         '\t(rectangle\n\t\t(start 370.00',
     ):
         i = sch.find(needle)
         if 0 <= i < end:
             starts.append(i)
-    # also match Q2 wherever Stage 3 put it
+    # also match Q2 wherever Drive FWD put it
     i = sch.find('(property "Reference" "Q2"')
     if i > 0:
         sym = sch.rfind("\t(symbol\n", 0, i)
         if 0 <= sym < end:
             starts.append(sym)
     if not starts:
-        raise SystemExit("STAGE 3 present but cannot locate instance block")
+        raise SystemExit("Drive FWD present but cannot locate instance block")
     start = min(starts)
     while start > 0 and sch[start - 1] == "\n":
         start -= 1
@@ -300,7 +301,7 @@ def main() -> None:
 
     o: list[str] = []
 
-    # Stage 3 region: right of Stage 1 (ends x≈355)
+    # Drive FWD region: right of Sense (ends x≈355)
     # QX upper, QY lower — spaced for hand moves
     half_bridge(
         o, qref="Q2", d_hs="D3", d_ls="D4", qx=450.0, qy=50.0,
@@ -330,9 +331,9 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 3 — X/Y forward drive", 375.0, 20.0, 1.524),
+        text("DRIVE FWD — X0/Y0 matrix + gate", 375.0, 20.0, 1.524),
         text(
-            "QX/QY FDS8958A + SS14 → XA0/XB0 & YA0/YB0; LS → CCS_RET; gates labeled for Stage 4",
+            "QX/QY FDS8958A + SS14 → XA0/XB0 & YA0/YB0; LS → CCS_RET; TC442x below",
             375.0, 195.0,
         ),
     ]
@@ -340,7 +341,7 @@ def main() -> None:
     marker = "\t(sheet_instances"
     sch = sch.replace(marker, "\n".join(o) + "\n" + marker, 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 3 drive to {SCH}")
+    print(f"Appended Drive FWD matrix to {SCH}")
 
 
 if __name__ == "__main__":

@@ -486,7 +486,7 @@ def main() -> None:
         power("power:GND", "#PWR_GNDMAIN", "GND", main_gnd[0], main_gnd[1]),
         *pwr_flag_below(main_gnd, "#FLG_GND", gap=10.16),
         text(
-            "Stage 1 — Bowtie / split-sense + amp\\n"
+            "SENSE — Bowtie / split-sense + amp\\n"
             "Clamps: BAT54S rot90 — +3V3 (K) above, GND (A) below\\n"
             "C1/C2 at U1; C3/C4 at U2; blocks spaced for hand placement",
             25.4, 55.88,
@@ -501,7 +501,7 @@ def main() -> None:
 \t(uuid "{SHEET_UUID}")
 \t(paper "A1")
 \t(title_block
-\t\t(title "Core Memory Driver — Stage 1 Sense / Bowtie")
+\t\t(title "Core Memory Driver")
 \t\t(comment 1 "Bowtie FB_A/FB_B; soft YA mid; iso + clamps; TLV3501; 74AHC74")
 \t)
 \t(lib_symbols

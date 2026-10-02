@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 7 reverse gate drive without touching Stages 1–6."""
+"""Append Drive REV gate drive; FET matrix is gen_stage6."""
 from __future__ import annotations
 
 import re
@@ -129,10 +129,11 @@ def strip_stage7(sch: str) -> str:
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
-    if "STAGE 7" not in sch and '(property "Reference" "U9"' not in sch:
+    if "DRIVE REV — gate" not in sch and "STAGE 7" not in sch and '(property "Reference" "U9"' not in sch:
         return sch
     starts = []
     for needle in (
+        '\t(text "DRIVE REV — gate',
         '\t(text "STAGE 7',
         '\t(rectangle\n\t\t(start 540.00 106.00)',
         '(property "Reference" "U9"',
@@ -144,7 +145,7 @@ def strip_stage7(sch: str) -> str:
         if 0 <= i < end:
             starts.append(i)
     if not starts:
-        raise SystemExit("STAGE 7 present but cannot locate block")
+        raise SystemExit("Drive REV gate drive present but cannot locate block")
     start = min(starts)
     while start > 0 and sch[start - 1] == "\n":
         start -= 1
@@ -260,7 +261,7 @@ def main() -> None:
 
     o: list[str] = []
 
-    # Right of Stage 4 (ends ~x=540)
+    # Right of Drive FWD (ends ~x=540)
     driver_block(
         o,
         uref="U9",
@@ -308,7 +309,7 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 7 — Reverse gate drive (fail-safe pull-ups)", 545.0, 111.0, 1.524),
+        text("DRIVE REV — gate drive (TC442x; fail-safe pull-ups)", 545.0, 111.0, 1.524),
         text(
             "TC4427A → X/Y_HS0r; TC4426A → X/Y_LS0r; 10k to +3V3 on *r_n; headers J6–J9",
             545.0,
@@ -318,7 +319,7 @@ def main() -> None:
 
     sch = sch.replace("\t(sheet_instances", "\n".join(o) + "\n\t(sheet_instances", 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 7 reverse gate drive to {SCH}")
+    print(f"Appended Drive REV gate drive to {SCH}")
 
 
 if __name__ == "__main__":

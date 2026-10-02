@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 2 CCS block to core.kicad_sch without touching Stage 1."""
+"""Append CCS (Ic/2 sink) block to core.kicad_sch without touching Sense."""
 from __future__ import annotations
 
 import re
@@ -150,25 +150,26 @@ def text(s, x, y, size=1.27):
 
 
 def strip_stage2_instances(sch: str) -> str:
-    """Remove prior Stage 2 sheet objects (keep lib embeds)."""
+    """Remove prior CCS sheet objects (keep lib embeds)."""
     marker = "\t(sheet_instances"
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
-    # Prefer unique R7 placement; fall back to STAGE 2 title / old R7 coords
+    # Prefer unique R7 placement; fall back to CCS / legacy STAGE 2 title
     starts = []
     for needle in (
         '\t(symbol\n\t\t(lib_id "Device:R")\n\t\t(at 40.64 122.0 0)',
         '\t(symbol\n\t\t(lib_id "Device:R")\n\t\t(at 40.64 130.0 0)',
+        '\t(text "CCS —',
         '\t(text "STAGE 2',
     ):
         i = sch.find(needle)
         if 0 <= i < end:
             starts.append(i)
-    if "STAGE 2" not in sch and not starts:
+    if "CCS —" not in sch and "STAGE 2" not in sch and not starts:
         return sch
     if not starts:
-        raise SystemExit("STAGE 2 present but cannot locate instance block")
+        raise SystemExit("CCS block present but cannot locate instance block")
     start = min(starts)
     # Include any leading newline
     while start > 0 and sch[start - 1] == "\n":
@@ -222,7 +223,7 @@ def main() -> None:
     FP_POT = "Potentiometer_THT:Potentiometer_Bourns_3296W_Vertical"
     o: list[str] = []
 
-    # ========== STAGE 2 region below Stage 1 box (ends y=100.33) ==========
+    # ========== CCS region below Sense box (ends y=100.33) ==========
     y0 = 130.0
 
     # --- Reference: TL431 2.5V shunt + pot divider → VSET ---
@@ -376,9 +377,9 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 2 — CCS (Ic/2 sink)", 15.24, 115.0, 1.524),
+        text("CCS — Ic/2 sink", 15.24, 115.0, 1.524),
         text(
-            "TL431 2.5V + pot divider → VSET; OPA192 drives IRLZ44N via R8; R9=1Ω; CCS_RET → Stage 3/5",
+            "TL431 2.5V + pot divider → VSET; OPA192 drives IRLZ44N via R8; R9=1Ω; CCS_RET → Drive FWD/REV + Inhibit",
             15.24, 195.0,
         ),
     ]
@@ -388,7 +389,7 @@ def main() -> None:
         raise SystemExit("sheet_instances missing")
     sch = sch.replace(marker, "\n".join(o) + "\n" + marker, 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 2 CCS to {SCH}")
+    print(f"Appended CCS block to {SCH}")
 
 
 if __name__ == "__main__":

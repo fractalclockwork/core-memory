@@ -1,46 +1,51 @@
 # Major Regions
 
-Logical blocks of the driver system, mapped to schematic stages and the core-plane interface. Normative connector geometry is in [design_spec.md](design_spec.md).
+Functional blocks of the driver system and the core-plane interface. Normative connector geometry is in [design_spec.md](design_spec.md). Schematic ground truth: [kicad/core/core.kicad_sch](../kicad/core/core.kicad_sch).
 
 ## Block overview
 
 ```mermaid
 flowchart TB
   PIO[Timing controller RP2040 PIO]
-  Decode[Address decode Stage 8]
-  Gate[Gate drivers TC442x Stages 4 and 7]
-  Matrix[X/Y fwd+rev matrix Stages 3 and 6]
-  CCS[CCS Ic/2 sink Stage 2]
-  Sense[Sense bowtie latch Stage 1]
-  Inhibit[Inhibit drive Stage 5]
+  Decode[Decode FWD/REV 138 banks]
+  DriveFwd[Drive FWD matrix plus gate]
+  DriveRev[Drive REV matrix plus gate]
+  CCS[CCS Ic/2 sink]
+  Sense[Sense bowtie latch]
+  Inhibit[Inhibit drive]
   Plane[Core plane XA/XB YA/YB]
 
   PIO --> Decode
-  Decode --> Gate
-  Gate --> Matrix
-  Matrix --> Plane
-  Matrix --> CCS
+  Decode --> DriveFwd
+  Decode --> DriveRev
+  DriveFwd --> Plane
+  DriveRev --> Plane
+  DriveFwd --> CCS
+  DriveRev --> CCS
   Plane --> Sense
   PIO --> Sense
   PIO --> Inhibit
   Inhibit --> Plane
+  Inhibit --> CCS
 ```
+
 ## Region map
 
-| Region | Schematic status | Primary parts | Role |
-|--------|------------------|---------------|------|
-| Sense / bowtie / latch | **Stage 1** on sheet | TLV3501, BAT54S, 74AHC74, soft mid bias | Differential sense across YB65/66; clamp; strobe latch to DOUT |
-| CCS (\(I_c/2\) sink) | **Stage 2** on sheet | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
-| Address decode | **Stage 8** on sheet (Y0 only) | 74AHC138 ×4 + 74AHC125 ×2 | Address → `DEC_*0`; FWD/REV buffers into Stage-4/7 `*_n` / `*r_n` |
-| X/Y drive + gate drive | **Stages 3–4** fwd, **6–7** rev (1×1) | FDS8958A, SS14, TC4427A/TC4426A | Forward READ + reverse WRITE half-bridges on XA0/XB0 & YA0/YB0 |
-| Inhibit drive | **Stage 5** on sheet | FDS8958A, TC4427A/TC4426A on `INH_EN_n` | Series \(-I_c/2\) on folded sense (YB65→bowtie→YB66→CCS); no 4th inhibit wire |
+| Block | On sheet | Primary parts | Role |
+|-------|----------|---------------|------|
+| **Sense** | Upper left | TLV3501, BAT54S, 74AHC74, soft mid bias | Differential sense across YB65/66; clamp; strobe latch to DOUT |
+| **CCS** | Below Sense | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
+| **Inhibit** | Below CCS | FDS8958A, TC4427A/TC4426A on `INH_EN_n` | Series \(-I_c/2\) on folded sense (YB65→fold→YB66→CCS); no 4th inhibit wire |
+| **Drive FWD** | Upper mid | FDS8958A, SS14, TC4427A/TC4426A | Forward READ half-bridges + gate drive on XA0/XB0 & YA0/YB0 |
+| **Drive REV** | Upper right | FDS8958A, SS14, TC4427A/TC4426A | Reverse WRITE half-bridges + gate drive (ends swapped) |
+| **Decode** | Lower band (Y0 only) | 74AHC138 ×8 (FWD×4 + REV×4) | Shared ADDR; bank enables → Drive FWD/REV `*_n` / `*r_n` |
 | Plane connectors | Lib + footprints | CoreEdge XA/XB 64, YA/YB 66 | Dual-readout staggered card edge to the 9″ plane |
 | Timing controller | Spec only | RP2040 / Pico (off-board or later) | Deterministic READ / STROBE / INHIBIT / WRITE |
 | Testability | Partial | Keystone-style TPs; 2N7002 + LEDs planned | TP1 DOUT, TP2 Isense present; decoder/data LEDs not yet |
 
-## Stage 1 — Sense / bowtie
+## Sense
 
-On [kicad/core/core.kicad_sch](../kicad/core/core.kicad_sch):
+On the sheet:
 
 - Differential inputs from the folded loop (bowtie feedback / isolation network into the comparator)
 - BAT54S clamps to protect the amp during inhibit spikes
@@ -49,19 +54,23 @@ On [kicad/core/core.kicad_sch](../kicad/core/core.kicad_sch):
 
 See [theory_of_operation.md](theory_of_operation.md) for the strobe window and [component_selection.md](component_selection.md) §4 for part rationale.
 
-## Stage 2 — CCS
+## CCS
 
 Common low-side return through a linear MOSFET throttle. The OPA192 closes the loop around the 1 Ω sense resistor so pulse current stays at the trimpot setpoint despite inductive kick. Heat in the throttle MOSFET is expected; package choice (IRLZ44N or alternate) must allow linear-region dissipation.
 
-## Stages 3–8 (on sheet) and remaining work
+## Inhibit
 
-**Stages 3–4** — forward X0/Y0 half-bridges (FDS8958A + SS14) plus TC4427A/TC4426A with 10 kΩ pull-ups on `*_n`.
+Reuses the sense wire (YB65 → fold at YA65/66 → YB66 → CCS). Soft mid + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Polarity convention relative to READ remains open ([design_choices.md](design_choices.md)).
 
-**Stage 5 — Inhibit** reuses the sense wire (YB65 → fold at YA65/66 → YB66 → CCS). Soft mid + 1 kΩ iso (Stage 1) keep inhibit off AGND and off `SENSE_*`. Polarity convention relative to READ remains open ([design_choices.md](design_choices.md)).
+## Drive FWD / Drive REV (1×1)
 
-**Stages 6–7 — Reverse WRITE (1×1)** — second FDS8958A pair with ends swapped (HS→XB0/YB0, LS←XA0/YA0), shared `CCS_RET`, plus TC442x on `*r_n` (headers J6–J9 until decode steers).
+**Drive FWD** — X0/Y0 half-bridges (FDS8958A + SS14) plus TC4427A/TC4426A with 10 kΩ pull-ups on `*_n` (FETs above, gate drive below in one region).
 
-**Stage 8 — Decode (prototype)** — 74AHC138 ×4 with only `~Y0` used (`DEC_XH0`…`DEC_YL0`); 74AHC125 ×2 steers into forward `*_n` or reverse `*r_n` via `FWD_EN_n` / `REV_EN_n` (active-low OE; do not assert both). `ADDR_A[2:0]` default 000 via pull-downs; `DEC_EN` defaults off. Scaling to 8×8 = wire more 138 outputs + more FDS8958A banks.
+**Drive REV** — second FDS8958A pair with ends swapped (HS→XB0/YB0, LS←XA0/YA0), shared `CCS_RET`, plus TC442x on `*r_n`.
+
+## Decode (prototype)
+
+74AHC138 ×4 FWD (U11–U14) + ×4 REV (U15–U18); only `~Y0` wired directly to `*_n` / `*r_n`. Enables: `~E0`←`FWD_EN_n` or `REV_EN_n`, `~E1`←GND, `E2`←`DEC_EN` (do not assert both banks). `ADDR_A[2:0]` default 000 via pull-downs; `DEC_EN` defaults off. No 74AHC125. Scaling to 8×8 = wire more 138 outputs + more FDS8958A banks.
 
 **Bench plane map (1×1):** drive `XA0`/`XB0`/`YA0`/`YB0`; sense still on YB65/66 fold. Full cycle: CCS setpoint → FWD READ → strobe → INHIBIT → REV WRITE.
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Append Stage 8 address decode (74AHC138×4 + FWD/REV buffers) without touching 1–7."""
+"""Regenerate Decode block: FWD/REV 74AHC138 banks (no 74AHC125 mux).
+
+Removes Decode by reference / bbox (elements are scattered in the .kicad_sch),
+then appends a fresh contiguous Decode block before sheet_instances.
+"""
 from __future__ import annotations
 
 import re
@@ -11,6 +15,32 @@ SCH = ROOT / "core" / "core.kicad_sch"
 KICAD = Path("/usr/share/kicad/symbols")
 SHEET_UUID = "de7211a3-1219-4154-b2a8-36f4d2dfd28b"
 PROJECT = "core"
+
+# Decode placement bbox (generator + hand-moved titles nearby)
+BBOX = (220.0, 195.0, 830.0, 460.0)
+
+STAGE8_REFS = {
+    *[f"U{n}" for n in range(11, 19)],
+    *[f"J{n}" for n in range(10, 16)],
+    *[f"R{n}" for n in range(19, 25)],
+    *[f"C{n}" for n in range(19, 27)],
+}
+STAGE8_PWR_PREFIXES = tuple(
+    f"#PWR_U{n}" for n in range(11, 19)
+) + tuple(f"#PWR_R{n}" for n in range(19, 25)) + tuple(f"#PWR_C{n}" for n in range(19, 27))
+
+STAGE8_CTRL_LABELS = {
+    "DEC_XH0",
+    "DEC_XL0",
+    "DEC_YH0",
+    "DEC_YL0",
+    "ADDR_A0",
+    "ADDR_A1",
+    "ADDR_A2",
+    "DEC_EN",
+    "FWD_EN_n",
+    "REV_EN_n",
+}
 
 
 def uid() -> str:
@@ -147,41 +177,121 @@ def text(s, x, y, size=1.27):
 \t)'''
 
 
-def strip_stage8(sch: str) -> str:
-    marker = "\t(sheet_instances"
-    end = sch.find(marker)
-    if end < 0:
+def find_body_range(sch: str) -> tuple[int, int]:
+    lib_start = sch.find("(lib_symbols")
+    if lib_start < 0:
+        raise SystemExit("lib_symbols missing")
+    i = lib_start
+    depth = 0
+    started = False
+    while i < len(sch):
+        if sch[i] == "(":
+            depth += 1
+            started = True
+        elif sch[i] == ")":
+            depth -= 1
+            if started and depth == 0:
+                body_start = i + 1
+                break
+        i += 1
+    else:
+        raise SystemExit("lib_symbols unclosed")
+    while body_start < len(sch) and sch[body_start] in "\n\r\t ":
+        body_start += 1
+    si = sch.find("(sheet_instances")
+    if si < 0:
         raise SystemExit("sheet_instances missing")
-    if "STAGE 8" not in sch and '(property "Reference" "U11"' not in sch and '(property "Reference" "J10"' not in sch:
-        return sch
-    starts = []
-    for needle in (
-        '\t(text "STAGE 8',
-        '\t(rectangle\n\t\t(start 230.00 210.00)',
-        '(property "Reference" "J10"',
-        '(property "Reference" "R19"',
-        '(property "Reference" "U11"',
-        '(property "Reference" "U15"',
-        '(property "Reference" "U16"',
-    ):
-        i = sch.find(needle)
-        if needle.startswith("(property") and i > 0:
-            i = sch.rfind("\t(symbol\n", 0, i)
-        if 0 <= i < end:
-            starts.append(i)
-    if not starts:
-        raise SystemExit("STAGE 8 present but cannot locate block")
-    start = min(starts)
-    while start > 0 and sch[start - 1] == "\n":
-        start -= 1
-        break
-    return sch[:start] + "\n" + sch[end:]
+    # include leading tab if present
+    if si > 0 and sch[si - 1] == "\t":
+        si -= 1
+    return body_start, si
+
+
+def extract_items(s: str, start: int, end: int) -> list[str]:
+    items: list[str] = []
+    i = start
+    while i < end:
+        while i < end and s[i] in "\n\r\t ":
+            i += 1
+        if i >= end:
+            break
+        if s[i] != "(":
+            raise SystemExit(f"expected '(' at {i}: {s[i : i + 40]!r}")
+        j = i
+        depth = 0
+        while j < end:
+            if s[j] == "(":
+                depth += 1
+            elif s[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    break
+            j += 1
+        items.append(s[i:j])
+        i = j
+    return items
+
+
+def in_bbox(x: float, y: float) -> bool:
+    return BBOX[0] <= x <= BBOX[2] and BBOX[1] <= y <= BBOX[3]
+
+
+def item_coords(item: str) -> list[tuple[float, float]]:
+    coords = [(float(a), float(b)) for a, b in re.findall(r"\(xy ([0-9.]+) ([0-9.]+)\)", item)]
+    coords += [(float(a), float(b)) for a, b in re.findall(r"\(at ([0-9.]+) ([0-9.]+)", item)]
+    return coords
+
+
+def is_stage8(item: str) -> bool:
+    head = item.lstrip()
+    if head.startswith("(symbol"):
+        m = re.search(r'\(property "Reference" "([^"]+)"', item)
+        if not m:
+            return False
+        ref = m.group(1)
+        if ref in STAGE8_REFS:
+            return True
+        return any(ref.startswith(p) for p in STAGE8_PWR_PREFIXES)
+    if head.startswith("(text"):
+        return "DECODE" in item or "STAGE 8" in item or "74AHC138×4" in item or "74AHC125×2" in item
+    if head.startswith("(rectangle"):
+        return "230.00 210.00" in item or "(start 230 210)" in item
+    if head.startswith("(label"):
+        m = re.match(r'\s*\(label "([^"]+)"', item)
+        if not m:
+            return False
+        name = m.group(1)
+        coords = item_coords(item)
+        if not coords:
+            return False
+        x, y = coords[0]
+        if name in STAGE8_CTRL_LABELS:
+            return True
+        # Old mux outputs into *_n / *r_n lived in the Decode buffer band
+        if name.endswith(("_n", "r_n")) and in_bbox(x, y) and y >= 280.0:
+            return True
+        return False
+    if head.startswith(("(wire", "(junction", "(no_connect")):
+        coords = item_coords(item)
+        if not coords:
+            return False
+        return all(in_bbox(x, y) for x, y in coords)
+    return False
+
+
+def strip_stage8(sch: str) -> tuple[str, int]:
+    body_start, si = find_body_range(sch)
+    items = extract_items(sch, body_start, si)
+    kept = [it for it in items if not is_stage8(it)]
+    dropped = len(items) - len(kept)
+    new_body = "\n".join(kept) + "\n"
+    return sch[:body_start] + new_body + sch[si:], dropped
 
 
 def ensure_lib(sch: str) -> str:
     needed = [
         ("74xx:74HC138", KICAD / "74xx.kicad_sym", "74HC138"),
-        ("74xx:74LS125", KICAD / "74xx.kicad_sym", "74LS125"),
     ]
     embeds = []
     for lib_id, path, src in needed:
@@ -190,7 +300,7 @@ def ensure_lib(sch: str) -> str:
         embeds.append(embed_as(lib_id, extract(path, src), src))
     if not embeds:
         return sch
-    m = re.search(r"\t\(lib_symbols\n", sch)
+    m = re.search(r"\(lib_symbols\n", sch)
     start = m.end()
     depth = 1
     i = start
@@ -210,24 +320,25 @@ def decoder_138(
     ux: float,
     uy: float,
     y0_net: str,
+    bank_en_n: str,
     pwr_suffix: str,
+    cref: str,
 ) -> None:
-    """One 74AHC138: Y0 → y0_net; Y1–Y7 NC; A[2:0]/E*/E2 shared labels; local bypass."""
+    """~E0←bank_en_n, ~E1←GND, E2←DEC_EN; Y0→y0_net; Y1–Y7 NC."""
     FP_U = "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm"
     FP_C = "Capacitor_SMD:C_0805_2012Metric"
 
     pins = [str(n) for n in range(1, 17)]
     o.append(symbol_inst("74xx:74HC138", uref, "74AHC138", ux, uy, pins, footprint=FP_U))
 
-    # Pin map (lib coords)
     a0 = pin_xy(ux, uy, -10.16, 10.16)
     a1 = pin_xy(ux, uy, -10.16, 7.62)
     a2 = pin_xy(ux, uy, -10.16, 5.08)
     e0 = pin_xy(ux, uy, -10.16, -2.54)
     e1 = pin_xy(ux, uy, -10.16, -5.08)
     e2 = pin_xy(ux, uy, -10.16, -7.62)
-    y7 = pin_xy(ux, uy, 10.16, -7.62)
     gnd = pin_xy(ux, uy, 0, -12.7)
+    y7 = pin_xy(ux, uy, 10.16, -7.62)
     y6 = pin_xy(ux, uy, 10.16, -5.08)
     y5 = pin_xy(ux, uy, 10.16, -2.54)
     y4 = pin_xy(ux, uy, 10.16, 0)
@@ -240,31 +351,27 @@ def decoder_138(
     for p in (y1, y2, y3, y4, y5, y6, y7):
         o.append(no_connect(p))
 
-    # Address via labels — stub column clear of ~E0/~E1 GND (those use pin_x-5.08)
     for pin, net in (
         (a0, "ADDR_A0"),
         (a1, "ADDR_A1"),
         (a2, "ADDR_A2"),
+        (e0, bank_en_n),
         (e2, "DEC_EN"),
     ):
         stub = (round(pin[0] - 15.24, 2), pin[1])
         o += [wire(pin, stub), label(net, stub, 180)]
 
-    # ~E0, ~E1 → GND (short stubs; do not share X with address labels)
-    for pin, sfx in ((e0, "E0"), (e1, "E1")):
-        gx = round(pin[0] - 5.08, 2)
-        gy = pin[1]
-        o += [
-            wire(pin, (gx, gy)),
-            power("power:GND", f"#PWR_{uref}_{sfx}", "GND", gx, round(gy + 5.08, 2)),
-            wire((gx, gy), (gx, round(gy + 5.08, 2))),
-        ]
+    gx = round(e1[0] - 5.08, 2)
+    gy = e1[1]
+    o += [
+        wire(e1, (gx, gy)),
+        power("power:GND", f"#PWR_{uref}_E1", "GND", gx, round(gy + 5.08, 2)),
+        wire((gx, gy), (gx, round(gy + 5.08, 2))),
+    ]
 
-    # Y0 → decode net (stub must not sit on bypass column)
     yo = (round(y0[0] + 17.78, 2), y0[1])
     o += [wire(y0, yo), label(y0_net, yo)]
 
-    # Power + bypass to the right of the Y0 stub
     vp = (vcc[0], round(vcc[1] - 5.08, 2))
     vm = (gnd[0], round(gnd[1] + 5.08, 2))
     o += [
@@ -279,106 +386,6 @@ def decoder_138(
     ]
     cx = round(ux + 30.48, 2)
     cy = round((vp[1] + vm[1]) / 2, 2)
-    cref = f"C{19 + int(uref[1:]) - 11}"  # U11→C19 … U14→C22
-    o.append(symbol_inst("Device:C", cref, "100n", cx, cy, ["1", "2"], footprint=FP_C))
-    ct, cb = pin_xy(cx, cy, 0, 3.81), pin_xy(cx, cy, 0, -3.81)
-    o += [
-        wire(ct, (cx, vp[1])),
-        wire((cx, vp[1]), vp),
-        junction((cx, vp[1])),
-        wire(cb, (cx, vm[1])),
-        wire((cx, vm[1]), vm),
-        junction((cx, vm[1])),
-    ]
-
-
-def buffer_125(
-    o: list[str],
-    *,
-    uref: str,
-    ox: float,
-    oy: float,
-    oe_net: str,
-    channels: list[tuple[str, str]],
-    pwr_suffix: str,
-) -> None:
-    """74AHC125 (74LS125): 4 gates + power. channels = [(in_net, out_net), …] len 4."""
-    FP_U = "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
-    FP_C = "Capacitor_SMD:C_0805_2012Metric"
-
-    # Gate units 1–4: OE, IN, OUT pin numbers
-    gate_pins = [
-        ("1", "2", "3"),
-        ("4", "5", "6"),
-        ("10", "9", "8"),
-        ("13", "12", "11"),
-    ]
-    # Place gates in a row
-    for ui, ((oe_p, in_p, out_p), (in_net, out_net)) in enumerate(zip(gate_pins, channels)):
-        gx = round(ox + ui * 35.56, 2)
-        gy = oy
-        o.append(
-            symbol_inst(
-                "74xx:74LS125",
-                uref,
-                "74AHC125",
-                gx,
-                gy,
-                [oe_p, in_p, out_p],
-                unit=ui + 1,
-                footprint=FP_U,
-            )
-        )
-        # Lib: OE (0,-6.35), IN (-7.62,0), OUT (7.62,0) — units 3/4 swap OUT/IN side same coords
-        oe = pin_xy(gx, gy, 0, -6.35)
-        inp = pin_xy(gx, gy, -7.62, 0)
-        outp = pin_xy(gx, gy, 7.62, 0)
-
-        # OE → shared enable net
-        o += [
-            wire(oe, (oe[0], round(oe[1] + 7.62, 2))),
-            label(oe_net, (oe[0], round(oe[1] + 7.62, 2))),
-        ]
-        # IN / OUT labels
-        o += [
-            wire(inp, (round(inp[0] - 7.62, 2), inp[1])),
-            label(in_net, (round(inp[0] - 7.62, 2), inp[1]), 180),
-            wire(outp, (round(outp[0] + 7.62, 2), outp[1])),
-            label(out_net, (round(outp[0] + 7.62, 2), outp[1])),
-        ]
-
-    # Power unit 5
-    px = round(ox + 4 * 35.56 + 10.16, 2)
-    py = oy
-    o.append(
-        symbol_inst(
-            "74xx:74LS125",
-            uref,
-            "74AHC125",
-            px,
-            py,
-            ["7", "14"],
-            unit=5,
-            footprint=FP_U,
-        )
-    )
-    gnd = pin_xy(px, py, 0, -12.7)
-    vcc = pin_xy(px, py, 0, 12.7)
-    vp = (vcc[0], round(vcc[1] - 5.08, 2))
-    vm = (gnd[0], round(gnd[1] + 5.08, 2))
-    o += [
-        wire(vcc, vp),
-        power("power:+3V3", f"#PWR_{pwr_suffix}_VCC", "+3V3", vp[0], round(vp[1] - 5.08, 2)),
-        wire(vp, (vp[0], round(vp[1] - 5.08, 2))),
-        junction(vp),
-        wire(gnd, vm),
-        power("power:GND", f"#PWR_{pwr_suffix}_GND", "GND", vm[0], round(vm[1] + 5.08, 2)),
-        wire(vm, (vm[0], round(vm[1] + 5.08, 2))),
-        junction(vm),
-    ]
-    cx = round(px + 12.7, 2)
-    cy = round((vp[1] + vm[1]) / 2, 2)
-    cref = "C23" if uref == "U15" else "C24"
     o.append(symbol_inst("Device:C", cref, "100n", cx, cy, ["1", "2"], footprint=FP_C))
     ct, cb = pin_xy(cx, cy, 0, 3.81), pin_xy(cx, cy, 0, -3.81)
     o += [
@@ -392,54 +399,50 @@ def buffer_125(
 
 
 def control_headers(o: list[str]) -> None:
-    """ADDR_A[2:0] pull-down to 000; DEC_EN pull-down; FWD/REV_EN_n pull-up."""
     FP_R = "Resistor_SMD:R_0805_2012Metric"
     FP_J = "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
     base_x, base_y = 245.0, 230.0
 
-    # Conn_01x01 pin is on the left at lib (-5.08,0); place body left of net stub.
     def header_with_pulldown(jref: str, rref: str, net: str, x: float, y: float) -> None:
-        nonlocal o
         o.append(symbol_inst("Connector:Conn_01x01", jref, net, x, y, ["1"], footprint=FP_J))
         jp = pin_xy(x, y, -5.08, 0, 0)
         junc = (round(jp[0] - 5.08, 2), y)
-        o += [wire(jp, junc), junction(junc), label(net, (round(junc[0] - 5.08, 2), y), 180)]
+        o.extend([wire(jp, junc), junction(junc), label(net, (round(junc[0] - 5.08, 2), y), 180)])
         rx, ry = round(junc[0] - 12.7, 2), round(y + 12.7, 2)
         o.append(symbol_inst("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
         rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
-        o += [
-            wire(rt, (rx, junc[1])),
-            wire((rx, junc[1]), junc),
-            junction((rx, junc[1])),
-            power("power:GND", f"#PWR_{rref}", "GND", rx, round(rb[1] + 7.62, 2)),
-            wire(rb, (rx, round(rb[1] + 7.62, 2))),
-        ]
+        o.extend(
+            [
+                wire(rt, (rx, junc[1])),
+                wire((rx, junc[1]), junc),
+                junction((rx, junc[1])),
+                power("power:GND", f"#PWR_{rref}", "GND", rx, round(rb[1] + 7.62, 2)),
+                wire(rb, (rx, round(rb[1] + 7.62, 2))),
+            ]
+        )
 
     def header_with_pullup(jref: str, rref: str, net: str, x: float, y: float) -> None:
-        nonlocal o
         o.append(symbol_inst("Connector:Conn_01x01", jref, net, x, y, ["1"], footprint=FP_J))
         jp = pin_xy(x, y, -5.08, 0, 0)
         junc = (round(jp[0] - 5.08, 2), y)
-        o += [wire(jp, junc), junction(junc), label(net, (round(junc[0] - 5.08, 2), y), 180)]
+        o.extend([wire(jp, junc), junction(junc), label(net, (round(junc[0] - 5.08, 2), y), 180)])
         rx, ry = round(junc[0] - 12.7, 2), round(y - 12.7, 2)
         o.append(symbol_inst("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
         rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
-        o += [
-            wire(rb, (rx, junc[1])),
-            wire((rx, junc[1]), junc),
-            junction((rx, junc[1])),
-            power("power:+3V3", f"#PWR_{rref}", "+3V3", rx, round(rt[1] - 7.62, 2)),
-            wire(rt, (rx, round(rt[1] - 7.62, 2))),
-        ]
+        o.extend(
+            [
+                wire(rb, (rx, junc[1])),
+                wire((rx, junc[1]), junc),
+                junction((rx, junc[1])),
+                power("power:+3V3", f"#PWR_{rref}", "+3V3", rx, round(rt[1] - 7.62, 2)),
+                wire(rt, (rx, round(rt[1] - 7.62, 2))),
+            ]
+        )
 
-    # Address: header + 10k to GND (default 000)
     for i, net in enumerate(("ADDR_A0", "ADDR_A1", "ADDR_A2")):
         header_with_pulldown(f"J{10 + i}", f"R{19 + i}", net, round(base_x + i * 25.4, 2), base_y)
 
-    # DEC_EN: header + 10k to GND (disabled default)
     header_with_pulldown("J13", "R22", "DEC_EN", 245.0, 270.0)
-
-    # FWD_EN_n / REV_EN_n: header + 10k to +3V3 (OE inactive = Hi-Z)
     header_with_pullup("J14", "R23", "FWD_EN_n", 245.0, 310.0)
     header_with_pullup("J15", "R24", "REV_EN_n", 290.0, 310.0)
 
@@ -448,72 +451,73 @@ def main() -> None:
     sch = SCH.read_text()
     if "sheet_instances" not in sch:
         raise SystemExit("schematic truncated — abort")
-    sch = strip_stage8(sch)
+
+    sch, dropped = strip_stage8(sch)
+    print(f"Removed {dropped} Decode items")
     sch = ensure_lib(sch)
 
     o: list[str] = []
     control_headers(o)
 
-    # Four decoders — Y0 only used (prototype 1×1)
-    decoders = [
-        ("U11", 380.0, 250.0, "DEC_XH0"),
-        ("U12", 480.0, 250.0, "DEC_XL0"),
-        ("U13", 580.0, 250.0, "DEC_YH0"),
-        ("U14", 680.0, 250.0, "DEC_YL0"),
+    fwd = [
+        ("U11", 380.0, 250.0, "X_HS0_n", "C19"),
+        ("U12", 480.0, 250.0, "X_LS0_n", "C20"),
+        ("U13", 580.0, 250.0, "Y_HS0_n", "C21"),
+        ("U14", 680.0, 250.0, "Y_LS0_n", "C22"),
     ]
-    for uref, ux, uy, y0 in decoders:
-        decoder_138(o, uref=uref, ux=ux, uy=uy, y0_net=y0, pwr_suffix=uref)
+    for uref, ux, uy, y0, cref in fwd:
+        decoder_138(
+            o,
+            uref=uref,
+            ux=ux,
+            uy=uy,
+            y0_net=y0,
+            bank_en_n="FWD_EN_n",
+            pwr_suffix=uref,
+            cref=cref,
+        )
 
-    # FWD polarity buffers → Stage 4 *_n
-    buffer_125(
-        o,
-        uref="U15",
-        ox=360.0,
-        oy=360.0,
-        oe_net="FWD_EN_n",
-        channels=[
-            ("DEC_XH0", "X_HS0_n"),
-            ("DEC_XL0", "X_LS0_n"),
-            ("DEC_YH0", "Y_HS0_n"),
-            ("DEC_YL0", "Y_LS0_n"),
-        ],
-        pwr_suffix="U15",
-    )
-    # REV polarity buffers → Stage 7 *r_n
-    buffer_125(
-        o,
-        uref="U16",
-        ox=360.0,
-        oy=410.0,
-        oe_net="REV_EN_n",
-        channels=[
-            ("DEC_XH0", "X_HS0r_n"),
-            ("DEC_XL0", "X_LS0r_n"),
-            ("DEC_YH0", "Y_HS0r_n"),
-            ("DEC_YL0", "Y_LS0r_n"),
-        ],
-        pwr_suffix="U16",
-    )
+    rev = [
+        ("U15", 380.0, 360.0, "X_HS0r_n", "C23"),
+        ("U16", 480.0, 360.0, "X_LS0r_n", "C24"),
+        ("U17", 580.0, 360.0, "Y_HS0r_n", "C25"),
+        ("U18", 680.0, 360.0, "Y_LS0r_n", "C26"),
+    ]
+    for uref, ux, uy, y0, cref in rev:
+        decoder_138(
+            o,
+            uref=uref,
+            ux=ux,
+            uy=uy,
+            y0_net=y0,
+            bank_en_n="REV_EN_n",
+            pwr_suffix=uref,
+            cref=cref,
+        )
 
     o += [
         f'''\t(rectangle
 \t\t(start 230.00 210.00)
-\t\t(end 820.00 450.00)
+\t\t(end 820.00 420.00)
 \t\t(stroke (width 0.254) (type dot))
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 8 — Address decode (1×1 / Y0 only)", 235.0, 215.0, 1.524),
+        text("DECODE — FWD/REV 138 banks (1×1 / Y0)", 235.0, 215.0, 1.524),
         text(
-            "74AHC138×4 → DEC_*0; 74AHC125×2 steer FWD_EN_n→*_n / REV_EN_n→*r_n; ADDR default 000; never assert both EN",
+            "DECODE: 74AHC138×4 FWD + ×4 REV; ~E0←FWD/REV_EN_n, ~E1←GND, E2←DEC_EN; ~Y0→*_n/*r_n; never assert both EN",
             235.0,
-            445.0,
+            415.0,
         ),
     ]
 
-    sch = sch.replace("\t(sheet_instances", "\n".join(o) + "\n\t(sheet_instances", 1)
+    # Insert before sheet_instances
+    marker = "\t(sheet_instances"
+    if marker not in sch:
+        marker = "(sheet_instances"
+    sch = sch.replace(marker, "\n".join(o) + "\n" + marker, 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 8 decode to {SCH}")
+    print(f"Appended Decode bank-enable block to {SCH}")
 
 
 if __name__ == "__main__":

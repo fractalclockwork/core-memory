@@ -22,8 +22,8 @@ Manufacturer PDFs for selected MPNs are archived under [datasheets/](datasheets/
 | Document | Role |
 |----------|------|
 | [theory_of_operation.md](theory_of_operation.md) | Read/write cycle narrative |
-| [regions.md](regions.md) | Block / stage map |
+| [regions.md](regions.md) | Functional block map |
 | [design_choices.md](design_choices.md) | Architecture rationale |
 | [component_selection.md](component_selection.md) | Part choices |
 | [design_spec.md](design_spec.md) | Normative interface and timing |
-| [../kicad/core/core.kicad_sch](../kicad/core/core.kicad_sch) | Schematic ground truth for Stages 1–2 |
+| [../kicad/core/core.kicad_sch](../kicad/core/core.kicad_sch) | Schematic ground truth (functional blocks) |

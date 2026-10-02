@@ -4,7 +4,7 @@ Architecture decisions and tradeoffs for the core-plane driver. Part-level picks
 
 ## Three-wire cores: no separate inhibit winding
 
-Each core carries **X**, **Y**, and **sense** only (classic 3-wire). There is no fourth inhibit wire through the array. WRITE-0 inhibit reuses the sense path at high current; READ uses the same path as a millivolt differential. That time-multiplex forces Stage-1 isolation (1 kΩ), clamps, and soft mid-bias before Stage-5 can source/sink YB65/YB66 into the CCS.
+Each core carries **X**, **Y**, and **sense** only (classic 3-wire). There is no fourth inhibit wire through the array. WRITE-0 inhibit reuses the sense path at high current; READ uses the same path as a millivolt differential. That time-multiplex forces Sense-block isolation (1 kΩ), clamps, and soft mid-bias before Inhibit can source/sink YB65/YB66 into the CCS.
 
 ## Folded differential sense (shared READ / inhibit loop)
 
@@ -16,15 +16,17 @@ The core PCB has no discrete diodes on the drive lines. Without Schottky steerin
 
 ## 8×8 half-select matrix vs 64 line drivers
 
-Driving 64 X and 64 Y lines with one switch each would explode MOSFET and connector fan-out. Grouping each axis into 8 high-side and 8 low-side switches (with direction for READ vs WRITE) yields an 8×8 coincident-current matrix: twelve address bits total, four 3-to-8 decoders, and a compact FDS8958A-based switch farm. Cost is more careful sequencing and mandatory steering diodes.
+Driving 64 X and 64 Y lines with one switch each would explode MOSFET and connector fan-out. Grouping each axis into 8 high-side and 8 low-side switches (with direction for READ vs WRITE) yields an 8×8 coincident-current matrix: twelve address bits total, eight 3-to-8 decoders (FWD×4 + REV×4), and a compact FDS8958A-based switch farm. Cost is more careful sequencing and mandatory steering diodes.
 
 ## Prototype 1×1 before scaling lines
 
-Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on one core (X0∩Y0) before cloning matrix FETs. Forward (Stages 3–4) and reverse (Stages 6–7) half-bridges share the same plane nets with swapped diode ends; Stage 8 installs the 74AHC138 ×4 decode path with only Y0 wired, plus FWD/REV OE buffers so polarity is exclusive. Extra 138 outputs and FDS8958A rows/columns come after this 1×1 works.
+Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on one core (X0∩Y0) before cloning matrix FETs. Drive FWD and Drive REV half-bridges share the same plane nets with swapped diode ends; Decode installs duplicated FWD/REV 74AHC138 banks (×4 each) with only Y0 wired, gated by `FWD_EN_n` / `REV_EN_n` on `~E0` so polarity is exclusive without OE buffers. Extra 138 outputs and FDS8958A rows/columns come after this 1×1 works.
 
 ## Soft mid-bias and input clamps on sense
 
-During inhibit, YB65/YB66 see large excursions. BAT54S clamps dump spikes into the rails; a soft resistive mid-bias to AGND keeps the comparator inputs from floating between cycles. Isolation resistors (e.g. 1 kΩ in Stage 1) limit clamp current into the amp. This favors a modern fast comparator (TLV3501) over older ±supply parts that assumed different front-ends.
+During inhibit, YB65/YB66 see large excursions. BAT54S clamps dump spikes into the rails; a soft resistive mid-bias to AGND keeps the comparator inputs from floating between cycles. Isolation resistors (e.g. 1 kΩ in Sense) limit clamp current into the amp (~8 mA into clamps at 12 V). This favors a modern fast comparator (TLV3501) over older ±supply parts that assumed different front-ends.
+
+A 1:1 pulse-transformer sense front-end was considered and **deferred**: on this 3-wire plane the same YB65/YB66 pair carries series inhibit, so a low-DCR primary across those pins would shunt inhibit current around the cores. AC-coupling the primary would still slam inhibit edges onto the secondary and force clamps/blanking, erasing the BOM win. DC-coupled Sense stays.
 
 ## Manual TL431 + trimpot CCS
 
@@ -33,6 +35,8 @@ Bench bring-up needs a knob for \(I_c/2\) while probing cores of uncertain coerc
 ## AHC logic and TC4427A level shift
 
 The timing controller is 3.3 V (RP2040). Matrix gates need fast, hard \(V_{drive}\) edges. 74AHC138 accepts 3.3 V inputs with short propagation delay; TC4427A dual non-inverting drivers supply ampere-class gate current from the drive rail so FDS8958A switches cleanly in tens of nanoseconds. Skipping the gate drivers would leave slow, partial enhancement and mushy half-select pulses.
+
+FWD vs REV steering uses decoder enables rather than 74AHC125 buffers: four 138s for READ, four for WRITE, shared address bus. That removes a mux layer that would otherwise explode to eight 125 packages at full 8×8 scale, and keeps fail-safe behavior native (disabled `~Yn` = HIGH → FETs off).
 
 ## RP2040 PIO for timing
 
@@ -47,5 +51,5 @@ READ → strobe → inhibit → WRITE needs fixed delays on the order of hundred
 | Inhibit polarity convention | Which of YB65/YB66 is source vs sink relative to READ polarity |
 | Inhibit switch topology | Discrete path vs reuse of matrix/CCS resources |
 | On-board vs off-board RP2040 | Pico header vs soldered MCU vs external timing pod |
-| Final CCS throttle MOSFET | IRLZ44N on Stage 2; AOD4184 (or similar) remains a thermal/package alternate |
+| Final CCS throttle MOSFET | IRLZ44N in CCS; AOD4184 (or similar) remains a thermal/package alternate |
 | Diagnostic LED set | Planned on decoder outputs and DOUT; not yet on the schematic |

@@ -77,7 +77,7 @@ sequenceDiagram
 
 ## Constant-current sink
 
-Low-side matrix returns share an adjustable constant-current sink that holds \(I_c/2\) flat into the inductive load. Stage 2 on the schematic implements this with a TL431 reference, multi-turn trimpot, OPA192 feedback amp, IRLZ44N throttle MOSFET, and a 1 Ω sense resistor. Without regulation, pulse amplitude would wander with temperature, MOSFET Rds(on), and wiring resistance, corrupting half-select margins.
+Low-side matrix returns share an adjustable constant-current sink that holds \(I_c/2\) flat into the inductive load. The CCS block on the schematic implements this with a TL431 reference, multi-turn trimpot, OPA192 feedback amp, IRLZ44N throttle MOSFET, and a 1 Ω sense resistor. Without regulation, pulse amplitude would wander with temperature, MOSFET Rds(on), and wiring resistance, corrupting half-select margins.
 
 ## Timing controller
 

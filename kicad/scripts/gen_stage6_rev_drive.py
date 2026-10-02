@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append Stage 6 reverse WRITE X0/Y0 drive without touching Stages 1–5."""
+"""Append Drive REV FET matrix without touching Sense/CCS/Inhibit/Drive FWD."""
 from __future__ import annotations
 
 import uuid
@@ -99,10 +99,11 @@ def strip_stage6(sch: str) -> str:
     end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
-    if "STAGE 6" not in sch and '(property "Reference" "Q5"' not in sch:
+    if "DRIVE REV" not in sch and "STAGE 6" not in sch and '(property "Reference" "Q5"' not in sch:
         return sch
     starts = []
     for needle in (
+        '\t(text "DRIVE REV',
         '\t(text "STAGE 6',
         '\t(rectangle\n\t\t(start 540.00',
         '(property "Reference" "Q5"',
@@ -114,7 +115,7 @@ def strip_stage6(sch: str) -> str:
         if 0 <= i < end:
             starts.append(i)
     if not starts:
-        raise SystemExit("STAGE 6 present but cannot locate block")
+        raise SystemExit("Drive REV present but cannot locate block")
     start = min(starts)
     while start > 0 and sch[start - 1] == "\n":
         start -= 1
@@ -216,7 +217,7 @@ def main() -> None:
 
     o: list[str] = []
 
-    # Right of Stage 3 (ends ~x=527)
+    # Right of Drive FWD (ends ~x=527)
     half_bridge_rev(
         o,
         qref="Q5",
@@ -250,9 +251,9 @@ def main() -> None:
 \t\t(fill (type none))
 \t\t(uuid "{uid()}")
 \t)''',
-        text("STAGE 6 — X/Y reverse WRITE drive", 545.0, 20.0, 1.524),
+        text("DRIVE REV — X0/Y0 matrix + gate", 545.0, 20.0, 1.524),
         text(
-            "QX0r/QY0r FDS8958A + SS14 swapped ends (HS→XB0/YB0, LS←XA0/YA0); LS→CCS_RET; gates for Stage 7",
+            "QX0r/QY0r FDS8958A + SS14 swapped ends (HS→XB0/YB0, LS←XA0/YA0); LS→CCS_RET; TC442x below",
             545.0,
             95.0,
         ),
@@ -260,7 +261,7 @@ def main() -> None:
 
     sch = sch.replace("\t(sheet_instances", "\n".join(o) + "\n\t(sheet_instances", 1)
     SCH.write_text(sch)
-    print(f"Appended Stage 6 reverse drive to {SCH}")
+    print(f"Appended Drive REV matrix to {SCH}")
 
 
 if __name__ == "__main__":
