@@ -1,0 +1,36 @@
+# KiCad local history is its own git repo; do not nest it here.
+**/.history/
+
+# KiCad temporary / session files
+# https://github.com/github/gitignore/blob/main/KiCad.gitignore
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups
+*.kicad_prl
+*.sch-bak
+*~
+_autosave-*
+*.tmp
+*-save.pro
+*-save.kicad_pcb
+fp-info-cache
+*.lck
+~*.lck
+\#auto_saved_files\#
+
+# Netlist / autorouter / BOM exports
+*.net
+*.dsn
+*.ses
+*.xml
+*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+
+# GIMP sources; rendered PNGs live in docs/img/
+*.xcf

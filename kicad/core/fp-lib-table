@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "core_memory")(type "KiCad")(uri "${KIPRJMOD}/../libs/core_memory.pretty")(options "")(descr "Core plane edge receptacles"))
+)

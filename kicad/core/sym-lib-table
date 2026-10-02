@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "core_memory")(type "KiCad")(uri "${KIPRJMOD}/../libs/core_memory.kicad_sym")(options "")(descr "Core memory driver custom symbols"))
+)

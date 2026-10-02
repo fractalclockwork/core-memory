@@ -11,4 +11,3 @@ Start at [docs/README.md](docs/README.md) for theory of operation, board regions
 ## KiCad
 
 Schematic and PCB live under [kicad/core/](kicad/core/). Custom symbols and card-edge footprints are in [kicad/libs/](kicad/libs/); generators are in [kicad/scripts/](kicad/scripts/).
-# core-memory
