@@ -1,68 +1,58 @@
 # Implementation Summary
 
-Present state of the driver: one-page A1 schematic [`kicad/core/core.kicad_sch`](../kicad/core/core.kicad_sch), organized by **functional blocks**. Scope is a **1×1 prototype** (core X0∩Y0) that can run a full READ → STROBE → INHIBIT → WRITE cycle, with decode banked for later 8×8 scaling.
+Present state of the driver: hierarchical schematic under [`kicad/core/core.kicad_sch`](../kicad/core/core.kicad_sch). **Decode** and **Drive** are reusable blocks with `N`/`n` pins; root places one of each for X FWD / X0 FWD bring-up. Y / REV instances and remaining matrix FETs come later.
 
 Part rationale: [component_selection.md](component_selection.md). Architecture: [design_choices.md](design_choices.md), [regions.md](regions.md), [theory_of_operation.md](theory_of_operation.md).
 
 ## Architecture
 
-Three-wire cores (X, Y, sense)—no separate inhibit winding. Folded sense on YB65/66 (via YA65/66) is shared for differential READ and series inhibit. Drive is coincident half-select into a shared CCS (`CCS_RET`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
+Three-wire cores (X, Y, sense)—no separate inhibit winding. Folded sense is two half-loops (`YA65`↔`YA66`, `YB65`↔`YB66`) shunted at **`YA65`═`YB65`**; full path `YA66`↔`YB66` is shared for differential READ and series inhibit. Drive is coincident half-select into a shared CCS (`CCS_RET`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
 
 ```
-ADDR_A[2:0] ──┬──────────────────┐
-DEC_EN ───────┼── E2 (all 138s)  │
-              │                  │
-     FWD_EN_n │~E0      REV_EN_n │~E0
-              ▼                  ▼
-      74AHC138 ×4 FWD     74AHC138 ×4 REV
-      U11–U14 (Y0 only)   U15–U18 (Y0 only)
-      ~E1←GND             ~E1←GND
-              │                  │
-              ▼ ~Y0              ▼ ~Y0
-      X/Y_*0_n            X/Y_*0r_n
-              │                  │
-              ▼                  ▼
-      TC442x Drive FWD    TC442x Drive REV
-              │                  │
-              ▼                  ▼
-      FDS8958A+SS14       FDS8958A+SS14
-      (READ)              (WRITE)
-              └────────┬─────────┘
-                       ▼
-                  CCS_RET / plane
-                       │
-              YB65/66 sense + inhibit
+ADDR_XH/XL[2:0] ──┐
+DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
+                  │   U11 138 + U12 238; root = X FWD
+                  ▼
+        X_HS{0..7}_n / X_LS{0..7}_en
+                  │
+                  ▼
+          drive_block (N=axis, n=line)
+          one TC4427A + FDS8958A; root wires X0 FWD only
+                  └────────┬─────────┘
+                           ▼
+                      CCS_RET / plane
+                           │
+                  YB65/66 sense + inhibit (FDS8958A + TC4427A×2)
 ```
 
-No `74AHC125` mux layer. Decoder `~Y0` drives gate-driver nets directly.
-
-**Fail-safe:** TC442x active-low inputs pulled up to +3V3; `DEC_EN` pull-down (off); `FWD_EN_n` / `REV_EN_n` pull-up (inactive). A disabled 138 forces all `~Yn` HIGH → TC4427 HS gate HIGH (P-FET off) and TC4426 LS gate LOW (N-FET off). Never assert both bank enables.
+**Fail-safe:** `DEC_EN` pull-down (off); `FWD_EN_n` / `REV_EN_n` pull-up (inactive). Disabled **138** outputs HIGH → TC4427 → P-FET gates HIGH (off). Disabled **238** outputs LOW → TC4427 → N-FET gates LOW (off). HS inputs `*_n` have 10k pull-ups; LS inputs `*_en` have 10k pull-downs. Never assert both bank enables.
 
 ## Blocks on the sheet
 
 | Block | What it does |
 |-------|--------------|
-| Sense | Bowtie FB_A/FB_B, 1k iso, BAT54S clamps, soft mid→AGND, TLV3501 → 74AHC74 (STROBE→DOUT) |
-| CCS | TL431 + 3296W pot → OPA192 → IRLZ44N + 1Ω; all LS returns on `CCS_RET` |
-| Drive FWD | Q2/Q3 half-bridges + TC4427A/TC4426A → XA0/XB0 & YA0/YB0 (HS→A, LS←B) |
-| Drive REV | Q5/Q6 + TC442x, ends swapped (HS→B, LS←A) for WRITE |
-| Inhibit | Series drive YB65→fold→YB66→CCS (`INH_EN_n`) |
-| Decode | 74AHC138×4 FWD + ×4 REV; bank enables on `~E0`; `~Y0`→`*_n`/`*r_n` |
+| Sense | Sheet `sense`: 1k iso, BAT54S, TLV3501 → 74AHC74 |
+| Ferrite Beads | Sheet `ferrite_beads`: FB00–FB11 2×2; fold mid `SENSE_FOLD` (tied to `YA65` for now) |
+| CCS | Sheet `ccs`: TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; `CCS_RET` out |
+| Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`NAn`/`NBn`; root = X0 FWD |
+| Inhibit | Sheet `inhibit`: FDS8958A on YB65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
+| Decode | Sheet `decode_block`: one axis 138+238 + C19/C20; pins `N_HS{0..7}_n`/`N_LS{0..7}_en`; root = X FWD |
+| Decode CTRL | Sheet `decode_ctrl`: J40–J54 / R40–R54 ADDR + bank enables |
+| Decoupling Logic | Sheet `decoupling_logic`: +3V3/+5V bypass (Sense/Latch/CCS) |
+| Decoupling VDRIVE | Sheet `decoupling_vdrive`: VDRIVE 100n+1u for Inhibit TC4427s |
 
-## Decode map (1×1)
+## Decode map (one axis on Decode Block)
 
-| Bank | Ref | Axis | `~Y0` net |
-|------|-----|------|-----------|
-| FWD | U11 | X HS | `X_HS0_n` |
-| FWD | U12 | X LS | `X_LS0_n` |
-| FWD | U13 | Y HS | `Y_HS0_n` |
-| FWD | U14 | Y LS | `Y_LS0_n` |
-| REV | U15 | X HS | `X_HS0r_n` |
-| REV | U16 | X LS | `X_LS0r_n` |
-| REV | U17 | Y HS | `Y_HS0r_n` |
-| REV | U18 | Y LS | `Y_LS0r_n` |
+On [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch) (X FWD on root today):
 
-Enables (KiCad `74HC138` pin names): `~E0`←bank EN, `~E1`←GND, `E2`←`DEC_EN`. Headers J10–J12 = `ADDR_A[2:0]` (10k→GND); J13 = `DEC_EN` (10k→GND); J14/J15 = `FWD_EN_n` / `REV_EN_n` (10k→+3V3). Bypass C19–C26.
+| Ref | Part | Role | ADDR | Hier outs |
+|-----|------|------|------|-----------|
+| U11 | 74AHC138 | HS | `ADDR_NH[2:0]` | `N_HS0_n` … `N_HS7_n` |
+| U12 | 74AHC238 | LS | `ADDR_NL[2:0]` | `N_LS0_en` … `N_LS7_en` |
+
+**Line select:** `Nn = 8·HS + LS`. Root maps X FWD: `ADDR_NH*`←`ADDR_XH*`, `BANK_EN`←`FWD_EN_n`, outs → `X_HS*_n` / `X_LS*_en`. Headers J40–J54 live on **Decode CTRL**. Local +3V3 100n (C19/C20) lives on **Decode Block**.
+
+Drive Block consumes `X_HS0_n` / `X_LS0_en` → `N_HSn` / `N_LSn`, plane `XA0`/`XB0`; local VDRIVE bypass C30/C31 on the block.
 
 ## Component selection (as used)
 
@@ -70,55 +60,29 @@ Enables (KiCad `74HC138` pin names): `~E0`←bank EN, `~E1`←GND, `E2`←`DEC_E
 
 | MPN | Role on sheet | Notes |
 |-----|---------------|--------|
-| 74AHC138 | Decode ×8 (U11–U18); only ~Y0 used | 3.3 V; bank enables as above |
-| TC4427A | Drive FWD/REV + Inhibit (non-inv HS) | VDRIVE rail; ampere-class gate drive |
-| TC4426A | Drive FWD/REV + Inhibit (inv LS) | Active-low `*_n` with 10k to +3V3 |
+| 74AHC138 | Decode HS (U11 on `decode_block`) | Active-low Y → TC4427 for P-FET HS |
+| 74AHC238 | Decode LS (U12 on `decode_block`) | Active-high Y → TC4427 for N-FET LS |
+| TC4427A | All gate drivers (Drive + Inhibit) | Non-inverting only — no TC4426A |
 
-See [component_selection.md](component_selection.md) §1; [sn74ahc138.pdf](datasheets/sn74ahc138.pdf), [tc4427a.pdf](datasheets/tc4427a.pdf).
+See [component_selection.md](component_selection.md) §1.
 
 ### Drive matrix
 
 | MPN | Role on sheet | Notes |
 |-----|---------------|--------|
-| FDS8958A | Drive FWD Q2/Q3, Drive REV Q5/Q6, Inhibit Q4 | One HS (P) + one LS (N) per package |
+| FDS8958A | Drive Q10 on `drive_block`; Inhibit Q4 | One HS (P) + one LS (N) per package |
 | SS14 | Steering on each matrix output | Plane has no diodes; blocks sneak paths |
+| TC4427A | U20 on Drive Block (+ Inhibit×2) | Dual channels = HS+LS of that block |
 
-See [component_selection.md](component_selection.md) §2; [fds8958a.pdf](datasheets/fds8958a.pdf), [ss14.pdf](datasheets/ss14.pdf).
+### Constant-current sink / Sense
 
-### Constant-current sink
+Unchanged (TL431, OPA192, IRLZ44N, TLV3501, BAT54S, 74AHC74, 1k iso). Soft mid on Ferrite Beads. DC-coupled Sense locked.
 
-| MPN | Role on sheet | Notes |
-|-----|---------------|--------|
-| TL431 | CCS reference | With Bourns 3296W setpoint |
-| OPA192 | CCS error amp | Loop around 1Ω sense |
-| IRLZ44N | CCS throttle | Linear-region heat expected |
-| 1.0 Ω 1% | Current sense | TP2 at Isense |
+### Inhibit polarity helper
 
-Target half-select ~200–400 mA. `CCS_RET` shared by Drive FWD, Drive REV, and Inhibit. See [component_selection.md](component_selection.md) §3.
-
-### Sense and inhibit front end
-
-| MPN | Role on sheet | Notes |
-|-----|---------------|--------|
-| BAT54S | Sense clamps | Protect amp during inhibit spikes |
-| TLV3501 | Sense comparator | 3.3 V, ~4.5 ns; not LT1016 |
-| 74AHC74 | Sense latch | Clock ~150–300 ns into READ |
-| Soft mid 10k→AGND | Sense | Soft YA65/66 mid so inhibit can traverse fold |
-| 1k iso | Sense | Limits clamp current (~8 mA at 12 V) |
-
-**Locked DC-coupled:** pulse-transformer sense deferred—primary across YB65/66 would shunt series inhibit on this 3-wire plane. See [design_choices.md](design_choices.md).
-
-See [component_selection.md](component_selection.md) §4; [AN13](appnotes/an13f.pdf).
-
-### Testability
-
-| Item | Status |
-|------|--------|
-| TP1 DOUT, TP2 Isense | On sheet (Sense / CCS) |
-| Headers J1–J9, J10–J15 | Bench drive / address / bank enables |
-| 2N7002 + LEDs | Planned, not populated |
-
-See [component_selection.md](component_selection.md) §5.
+| MPN | Role | Notes |
+|-----|------|-------|
+| 2N7002 | Q7 inverts `INH_EN_n` → `INH_LS_en` | Same FET family as diagnostic LED buffers; lets Inhibit use TC4427A on both HS and LS |
 
 ## Bench cycle
 
@@ -129,11 +93,20 @@ After CCS setpoint:
 3. Inhibit (`INH_EN_n`) if restoring/writing 0
 4. Pulse `REV_EN_n` → WRITE (+Ic/2)
 
-Plane hookup: XA0, XB0, YA0, YB0; sense fold YB65/66.
+Plane hookup: XA0/XB0 (driven), XA1/XB1 / YA0/YB0 / YA1/YB1 on Ferrite Beads stand-in; sense/inhibit attach per **Bring-Up Deviations** below.
+
+## Bring-Up Deviations
+
+Temporary 1×1 test-state attach points. These are **not** the normative fold topology in [design_spec.md](design_spec.md) / [naming.md](naming.md); do not “resolve” them into the architecture docs.
+
+- **Normative full fold:** two half-loops `YA65`↔`YA66` and `YB65`↔`YB66`, shunt `YA65`═`YB65`, series ends `YA66` / `YB66` for differential READ and series inhibit.
+- **1×1 schematic today:** Inhibit sheet and Sense probe attach on the **YB half only** (`YB65` / `YB66`). Ferrite Beads fold mid is `SENSE_FOLD`, presently tied to `YA65` (same net as the `YA65`═`YB65` shunt).
+- **Why:** prove the READ → STROBE → INHIBIT → WRITE cycle on one core before wiring the full series path through both halves.
+- **Exit criterion:** when cloning past bring-up, move Sense/Inhibit to `YA66`↔`YB66` and drop this section.
 
 ## Not implemented yet
 
-- Remaining 63 X/Y lines and 138 outputs Y1–Y7
+- Remaining drive matrix FETs (decode already covers X0–63 / Y0–63; drive still 1×1)
 - Edge receptacles / full connector fan-out
 - RP2040 PIO timing controller
 - Decoder / DOUT LEDs

@@ -64,24 +64,24 @@ CORE_BEAD = r'''	(symbol "CoreBead_3W"
 		(property "Value" "CoreBead_3W" (at 0 -8.89 0) (effects (font (size 1.27 1.27))))
 		(property "Footprint" "Inductor_SMD:L_1206_3216Metric" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
 		(property "Datasheet" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-		(property "Description" "Three isolated windings (X/Y/Sense) ferrite bead for bowtie core model" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-		(property "ki_keywords" "ferrite bead core memory bowtie" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+		(property "Description" "Ferrite bead stand-in: X top/bot, Y left/right, S on LL→UR diagonal" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+		(property "ki_keywords" "ferrite bead core memory sense" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
 		(symbol "CoreBead_3W_0_1"
-			(rectangle (start -5.08 6.35) (end 5.08 -6.35) (stroke (width 0.254) (type default)) (fill (type background)))
-			(polyline (pts (xy -3.81 5.08) (xy -2.54 5.08) (xy -1.905 5.715) (xy -0.635 4.445) (xy 0.635 5.715) (xy 1.905 4.445) (xy 2.54 5.08) (xy 3.81 5.08)) (stroke (width 0) (type default)) (fill (type none)))
+			(rectangle (start -5.08 5.08) (end 5.08 -5.08) (stroke (width 0.254) (type default)) (fill (type background)))
+			(polyline (pts (xy 0 3.81) (xy 0 2.54) (xy 0.635 1.905) (xy -0.635 0.635) (xy 0.635 -0.635) (xy -0.635 -1.905) (xy 0 -2.54) (xy 0 -3.81)) (stroke (width 0) (type default)) (fill (type none)))
 			(polyline (pts (xy -3.81 0) (xy -2.54 0) (xy -1.905 0.635) (xy -0.635 -0.635) (xy 0.635 0.635) (xy 1.905 -0.635) (xy 2.54 0) (xy 3.81 0)) (stroke (width 0) (type default)) (fill (type none)))
-			(polyline (pts (xy -3.81 -5.08) (xy -2.54 -5.08) (xy -1.905 -4.445) (xy -0.635 -5.715) (xy 0.635 -4.445) (xy 1.905 -5.715) (xy 2.54 -5.08) (xy 3.81 -5.08)) (stroke (width 0) (type default)) (fill (type none)))
-			(text "X" (at 0 6.985 0) (effects (font (size 1.016 1.016))))
-			(text "Y" (at 0 1.905 0) (effects (font (size 1.016 1.016))))
-			(text "S" (at 0 -3.175 0) (effects (font (size 1.016 1.016))))
+			(polyline (pts (xy -3.81 -3.81) (xy 3.81 3.81)) (stroke (width 0) (type default)) (fill (type none)))
+			(text "X" (at 2.032 0 0) (effects (font (size 1.016 1.016))))
+			(text "Y" (at 0 2.032 0) (effects (font (size 1.016 1.016))))
+			(text "S" (at -2.54 2.54 0) (effects (font (size 1.016 1.016))))
 		)
 		(symbol "CoreBead_3W_1_1"
-			(pin passive line (at -7.62 5.08 0) (length 2.54) (name "X1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-			(pin passive line (at 7.62 5.08 180) (length 2.54) (name "X2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+			(pin passive line (at 0 7.62 270) (length 2.54) (name "X1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+			(pin passive line (at 0 -7.62 90) (length 2.54) (name "X2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
 			(pin passive line (at -7.62 0 0) (length 2.54) (name "Y1" (effects (font (size 1.27 1.27)))) (number "3" (effects (font (size 1.27 1.27)))))
 			(pin passive line (at 7.62 0 180) (length 2.54) (name "Y2" (effects (font (size 1.27 1.27)))) (number "4" (effects (font (size 1.27 1.27)))))
 			(pin passive line (at -7.62 -5.08 0) (length 2.54) (name "S1" (effects (font (size 1.27 1.27)))) (number "5" (effects (font (size 1.27 1.27)))))
-			(pin passive line (at 7.62 -5.08 180) (length 2.54) (name "S2" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27)))))
+			(pin passive line (at 7.62 5.08 180) (length 2.54) (name "S2" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27)))))
 		)
 		(embedded_fonts no)
 	)
@@ -272,7 +272,14 @@ def main() -> None:
 
     o += [wire(a["x2"], b["x1"]), wire(a["y2"], b["y1"])]
     mid = (round((a["s2"][0] + b["s1"][0]) / 2, 2), a["s2"][1])
-    o += [wire(a["s2"], mid), wire(mid, b["s1"]), junction(mid), label("YA65_66", mid)]
+    # Fold mid node is SENSE_FOLD; tied to YA65 for now (docs/naming.md).
+    o += [
+        wire(a["s2"], mid),
+        wire(mid, b["s1"]),
+        junction(mid),
+        label("SENSE_FOLD", mid),
+        label("YA65", (round(mid[0] + 2.54, 2), mid[1])),
+    ]
 
     # Soft mid 10k → AGND (flag stacked vertically below AGND)
     r1 = (mid[0], mid[1] + 20.32)

@@ -12,10 +12,13 @@ The 3.3 V logic from the timing controller must become high-current, high-voltag
 
 | MPN | Role | Package | Key params | Alternate | Datasheet |
 |-----|------|---------|------------|-----------|-----------|
-| 74AHC138 | 3-to-8 decoder ×8 (FWD ×4 + REV ×4: X-H/X-L/Y-H/Y-L each) | SOIC-16 | 3.3 V-friendly inputs, ~5 ns prop; bank enables | 74HC138 (slower / Vih care) | [sn74ahc138.pdf](datasheets/sn74ahc138.pdf) |
-| TC4427A | Dual non-inverting gate driver | SOIC-8 / DIP-8 | 1.5 A peak, driven from \(V_{drive}\) | TC4426A (inverting) | [tc4427a.pdf](datasheets/tc4427a.pdf) |
+| 74AHC138 | 3-to-8 decoder HS (×4: FWD/REV × X-H/Y-H) | SOIC-16 | Active-low Y0–Y7; bank enables | 74HC138 | [sn74ahc138.pdf](datasheets/sn74ahc138.pdf) |
+| 74AHC238 | 3-to-8 decoder LS (×4: FWD/REV × X-L/Y-L) | SOIC-16 | Active-high Y0–Y7; same enables as 138 | 74HC238 | [sn74ahc238.pdf](datasheets/sn74ahc238.pdf) |
+| TC4427A | Dual non-inverting gate driver (all channels) | SOIC-8 / DIP-8 | 1.5 A peak from \(V_{drive}\) | — (TC4426A removed) | [tc4427a.pdf](datasheets/tc4427a.pdf) |
 
-AHC decoders natively accept 3.3 V inputs while switching quickly. Polarity is selected by **duplicating** the decoder bank: FWD `~E0`←`FWD_EN_n`, REV `~E0`←`REV_EN_n`, unused `~E1`←GND, shared `E2`←`DEC_EN`. Disabled outputs go HIGH, holding TC442x inputs inactive without a separate mux (no 74AHC125). TC4427A/TC4426A then deliver ampere-class gate current so READ/WRITE edges stay sharp.
+AHC decoders accept 3.3 V inputs. **HS** uses 74AHC138 (active-low Y + TC4427 → P-FET). **LS** uses 74AHC238 (active-high Y + TC4427 → N-FET) so the board stocks only TC4427A gate drivers. Same enable wiring on both (`~E0`/`~E1`/`E2` family): bank EN, GND, `DEC_EN`. Disabled 138 → Y HIGH (P off); disabled 238 → Y LOW (N off).
+
+**KiCad symbol vs MPN:** sheets use pin-compatible lib_id `74xx:74HC138` / `74xx:74HC238` with Value set to the ordered MPN (`74AHC138` / `74AHC238`). Do not treat the HC lib_id as the BOM part.
 
 ---
 

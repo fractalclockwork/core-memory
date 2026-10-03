@@ -11,3 +11,15 @@ Start at [docs/README.md](docs/README.md) for theory of operation, board regions
 ## KiCad
 
 Schematic and PCB live under [kicad/core/](kicad/core/). Custom symbols and card-edge footprints are in [kicad/libs/](kicad/libs/); generators are in [kicad/scripts/](kicad/scripts/).
+
+## Python tooling
+
+Dependencies (e.g. [kiutils](https://pypi.org/project/kiutils/)) are managed with [uv](https://github.com/astral-sh/uv):
+
+```bash
+uv sync
+uv run python kicad/scripts/gen_xy_drive_page.py   # drive_block.kicad_sch (N/n pins; local VDRIVE bypass; X0 FWD)
+uv run python kicad/scripts/gen_xy_decode_page.py  # decode_block.kicad_sch (N/n pins; local +3V3 bypass; X FWD)
+uv run python kicad/scripts/gen_decoupling_pages.py  # shared Sense/Latch/CCS + Inhibit caps; regen blocks
+uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 2  # 2×2 CoreBead stand-in page
+```

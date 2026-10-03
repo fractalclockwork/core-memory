@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCH = ROOT / "core" / "core.kicad_sch"
-SHEET_UUID = "de7211a3-1219-4154-b2a8-36f4d2dfd28b"
+SHEET_UUID = "fabf9ba2-76e6-4325-a1a0-bc01b9516551"
 PROJECT = "core"
 
 
@@ -125,8 +125,13 @@ def text(s, x, y, size=1.27):
 
 
 def strip_stage5(sch: str) -> str:
+    # Prefer stopping before hierarchical sheets so Drive xy_drive symbols survive.
+    end = sch.find("\t(sheet\n")
+    if end < 0:
+        end = sch.find("(sheet\n")
     marker = "\t(sheet_instances"
-    end = sch.find(marker)
+    if end < 0:
+        end = sch.find(marker)
     if end < 0:
         raise SystemExit("sheet_instances missing")
     if "INHIBIT" not in sch and "STAGE 5" not in sch and '(property "Reference" "Q4"' not in sch:
@@ -141,7 +146,7 @@ def strip_stage5(sch: str) -> str:
     ):
         i = sch.find(needle)
         if needle.startswith("(property") and i > 0:
-            i = sch.rfind("\t(symbol\n", 0, i)
+            i = max(sch.rfind("\t(symbol\n", 0, i), sch.rfind("\n(symbol\n", 0, i))
         if 0 <= i < end:
             starts.append(i)
     if not starts:
@@ -230,10 +235,42 @@ def main() -> None:
     sch = SCH.read_text()
     if "sheet_instances" not in sch:
         raise SystemExit("schematic truncated — abort")
-    # Libs already embedded from Drive FWD
-    for need in ("core_memory:FDS8958A", "Driver_FET:TC4427xOA", "Driver_FET:TC4426xOA", "Connector:Conn_01x01"):
+    # Libs already embedded from Drive FWD (TC4427 only — no TC4426)
+    for need in ("core_memory:FDS8958A", "Driver_FET:TC4427xOA", "Connector:Conn_01x01"):
         if f'(symbol "{need}"' not in sch:
             raise SystemExit(f"missing lib embed {need}")
+    # Embed 2N7002 for INH_EN_n → INH_LS_en invert (reuse LED-buffer FET family)
+    if '(symbol "Transistor_FET:2N7002"' not in sch:
+        from pathlib import Path as _P
+        import re as _re
+        kicad = _P("/usr/share/kicad/symbols/Transistor_FET.kicad_sym")
+        # resolve extends Q_NMOS_GSD
+        raw = kicad.read_text()
+        base_start = raw.find('(symbol "Q_NMOS_GSD"')
+        depth = 0
+        for i in range(base_start, len(raw)):
+            if raw[i] == "(":
+                depth += 1
+            elif raw[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    base = raw[base_start : i + 1]
+                    break
+        emb = base.replace('(symbol "Q_NMOS_GSD"', '(symbol "Transistor_FET:2N7002"', 1)
+        emb = emb.replace('(property "Value" "Q_NMOS_GSD"', '(property "Value" "2N7002"', 1)
+        emb = emb.replace("Q_NMOS_GSD_", "2N7002_")
+        emb = "\n".join("\t\t" + ln if ln else ln for ln in emb.splitlines())
+        m = _re.search(r"\(lib_symbols\n", sch)
+        start = m.end()
+        depth = 1
+        i = start
+        while i < len(sch) and depth:
+            if sch[i] == "(":
+                depth += 1
+            elif sch[i] == ")":
+                depth -= 1
+            i += 1
+        sch = sch[: i - 1] + emb + "\n\t" + sch[i - 1 :]
     sch = strip_stage5(sch)
 
     o: list[str] = []
@@ -318,23 +355,59 @@ def main() -> None:
     jp = pin_xy(jx, jy, -5.08, 0, 180)
     o.append(wire(jp, inh_bus))
 
-    # ---- U7 TC4427 → INH_HS ; U8 TC4426 → INH_LS ----
+    # ---- U7 TC4427 → INH_HS from INH_EN_n; U8 TC4427 → INH_LS via 2N7002 invert ----
     add_driver(
         o, uref="U7", lib_id="Driver_FET:TC4427xOA", value="TC4427A",
         ux=250.0, uy=230.0, out_net="INH_HS", c_lo="C11", c_hi="C12",
         pwr_suffix="U7", inh_junc=inh_bus,
     )
-    add_driver(
-        o, uref="U8", lib_id="Driver_FET:TC4426xOA", value="TC4426A",
-        ux=250.0, uy=320.0, out_net="INH_LS", c_lo="C13", c_hi="C14",
-        pwr_suffix="U8", inh_junc=inh_bus,
+
+    # 2N7002 inverter: gate←INH_EN_n, source←GND, drain←INH_LS_en (10k→+3V3)
+    qx7, qy7 = 200.0, 300.0
+    o.append(
+        symbol_inst(
+            "Transistor_FET:2N7002",
+            "Q7",
+            "2N7002",
+            qx7,
+            qy7,
+            ["1", "2", "3"],
+            footprint="Package_TO_SOT_SMD:SOT-23",
+        )
     )
-    # Extend INH spine down to U8 IN_A height
-    u8_ina_y = pin_xy(250.0, 320.0, -10.16, 2.54)[1]
+    g = pin_xy(qx7, qy7, -2.54, 0)
+    s = pin_xy(qx7, qy7, 2.54, -2.54)
+    d = pin_xy(qx7, qy7, 2.54, 2.54)
+    ls_bus = (200.0, 320.0)
     o += [
-        wire(inh_bus, (inh_bus[0], u8_ina_y)),
-        junction((inh_bus[0], u8_ina_y)),
+        wire(g, (inh_bus[0], g[1])),
+        wire((inh_bus[0], g[1]), inh_bus),
+        junction((inh_bus[0], g[1])),
+        wire(s, (s[0], round(s[1] + 5.08, 2))),
+        power("power:GND", "#PWR_Q7_S", "GND", s[0], round(s[1] + 7.62, 2)),
+        wire((s[0], round(s[1] + 5.08, 2)), (s[0], round(s[1] + 7.62, 2))),
+        wire(d, (ls_bus[0], d[1])),
+        wire((ls_bus[0], d[1]), ls_bus),
+        junction((ls_bus[0], d[1])),
+        junction(ls_bus),
+        label("INH_LS_en", (round(ls_bus[0] - 5.08, 2), ls_bus[1]), 180),
     ]
+    rx, ry = round(ls_bus[0] - 15.24, 2), round(ls_bus[1] - 12.7, 2)
+    o.append(symbol_inst("Device:R", "R25", "10k", rx, ry, ["1", "2"], footprint=FP_R))
+    rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
+    o += [
+        wire(rb, (rx, ls_bus[1])),
+        wire((rx, ls_bus[1]), ls_bus),
+        junction((rx, ls_bus[1])),
+        power("power:+3V3", "#PWR_R25", "+3V3", rx, round(rt[1] - 7.62, 2)),
+        wire(rt, (rx, round(rt[1] - 7.62, 2))),
+    ]
+
+    add_driver(
+        o, uref="U8", lib_id="Driver_FET:TC4427xOA", value="TC4427A",
+        ux=250.0, uy=320.0, out_net="INH_LS", c_lo="C13", c_hi="C14",
+        pwr_suffix="U8", inh_junc=ls_bus,
+    )
 
     o += [
         f'''\t(rectangle
@@ -346,8 +419,8 @@ def main() -> None:
 \t)''',
         text("INHIBIT — series YB65→fold→YB66→CCS", 15.24, 210.0, 1.524),
         text(
-            "Inhibit for WRITE/RESTORE 0 only. P: VDRIVE→YB65; N: YB66→CCS_RET. "
-            "TC4427/4426 from INH_EN_n (10k to +3V3). Do not dump into AGND or SENSE_*.",
+            "FDS8958A P→YB65 / N→YB66→CCS_RET. Both TC4427A: HS←INH_EN_n, "
+            "LS←INH_LS_en (2N7002 invert of INH_EN_n). Do not dump into AGND or SENSE_*.",
             15.24, 372.0,
         ),
     ]

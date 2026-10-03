@@ -14,8 +14,9 @@ Related app notes (not chip datasheets): [../appnotes/](../appnotes/).
 | OPA192 | [opa192.pdf](opa192.pdf) | CCS feedback amp | https://www.ti.com/lit/ds/symlink/opa192.pdf | 2026-10-02 |
 | TL431 | [tl431.pdf](tl431.pdf) | CCS voltage reference | https://www.ti.com/lit/ds/symlink/tl431.pdf | 2026-10-02 |
 | SN74AHC74 | [sn74ahc74.pdf](sn74ahc74.pdf) | Sense read latch | https://www.ti.com/lit/ds/symlink/sn74ahc74.pdf | 2026-10-02 |
-| SN74AHC138 | [sn74ahc138.pdf](sn74ahc138.pdf) | Address decode (×8: FWD×4 + REV×4) | https://www.ti.com/lit/ds/symlink/sn74ahc138.pdf | 2026-10-02 |
-| TC4427A | [tc4427a.pdf](tc4427a.pdf) | Gate drivers | https://media.digikey.com/pdf/Data%20Sheets/Microchip%20PDFs/TC4426A,27A,28A.pdf | 2026-10-02 |
+| SN74AHC138 | [sn74ahc138.pdf](sn74ahc138.pdf) | Decode HS (active-low Y) | https://www.ti.com/lit/ds/symlink/sn74ahc138.pdf | 2026-10-02 |
+| SN74AHC238 | [sn74ahc238.pdf](sn74ahc238.pdf) | Decode LS (active-high Y) | https://www.ti.com/lit/ds/symlink/sn74ahc238.pdf | 2026-10-02 |
+| TC4427A | [tc4427a.pdf](tc4427a.pdf) | Gate drivers (all channels) | https://media.digikey.com/pdf/Data%20Sheets/Microchip%20PDFs/TC4426A,27A,28A.pdf | 2026-10-02 |
 | FDS8958A | [fds8958a.pdf](fds8958a.pdf) | X/Y matrix switches | https://media.digikey.com/pdf/Data%20Sheets/Fairchild%20PDFs/FDS8958A.pdf | 2026-10-02 |
 | IRLZ44N | [irlz44n.pdf](irlz44n.pdf) | CCS throttle MOSFET | https://media.digikey.com/pdf/Data%20Sheets/International%20Rectifier%20PDFs/IRLZ44N.pdf | 2026-10-02 |
 | BAT54S | [bat54s.pdf](bat54s.pdf) | Sense input clamps | https://www.diodes.com/assets/Datasheets/ds11005.pdf | 2026-10-02 |

@@ -20,26 +20,41 @@ Each ferrite core is threaded by exactly **three** wires:
 | **Y** | 64 lines | Half-select address |
 | **Sense** | One long wire through all 4,096 cores | READ pickup **and** WRITE-0 inhibit |
 
-This is classic 3-wire core memory: there is **no fourth inhibit winding**. Inhibit current is **time-multiplexed onto the sense wire** (high current during WRITE/RESTORE 0; quiet differential sensing during READ). The driver must therefore protect and bias the same YB65/YB66 pins for both regimes.
+This is classic 3-wire core memory: there is **no fourth inhibit winding**. Inhibit current is **time-multiplexed onto the sense wire** (high current during WRITE/RESTORE 0; quiet differential sensing during READ). Full-fold driver ends are `YA66`/`YB66`; the fold mid is `YA65`═`YB65`.
 
 ## Folded sense / inhibit loop
 
-The plane has no separate sense connector pair beyond the Y edge fold. The sense wire snakes through all 4,096 cores, exits at YA65, shunts across to YA66 at the board edge, and returns through the array to YB66. That fold:
+The plane has no separate sense connector beyond pins 65/66 on the Y edges. Sense is two **separate half-loops** that meet at a fold shunt:
 
-- Presents a **balanced differential pair** at YB65 / YB66 for the sense amplifier during READ.
-- Lets the same two pins carry **series inhibit** during WRITE: current into YB65, across the YA65/66 shunt, and out YB66 (or reverse), putting all cores in series at \(-I_c/2\).
+| Half-loop | Path through cores | Ends |
+|-----------|--------------------|------|
+| **YA loop** | Sense through one half of the array | `YA65` ↔ `YA66` |
+| **YB loop** | Sense through the other half | `YB65` ↔ `YB66` |
 
-On the driver board the YA mid is **soft-biased** (10 kΩ → AGND), not hard-tied, so inhibit current completes through the return half and CCS instead of dumping at the fold. Plane photos documenting the shunt and connectors are in [img/](img/); sources are listed in [references.md](references.md).
+**Fold shunt:** `YA65` is tied to `YB65` (not YA65–YA66). The full series sense/inhibit path is therefore:
+
+```text
+YA66 ── YA half ── YA65 ════ YB65 ── YB half ── YB66
+                         │
+                      R1 10k → AGND   (soft mid at the fold)
+```
+
+- **READ:** Differential sense across the fold ends `YA66` / `YB66` (full path), or bring-up may probe one half (`YB65`/`YB66`) only.
+- **INHIBIT:** Series \(-I_c/2\) end-to-end on `YA66` ↔ `YB66` puts both halves (all cores) in series; current crosses the `YA65`═`YB65` shunt.
+- **Soft mid:** 10 kΩ from the fold (`YA65`/`YB65`) → AGND, not a hard AGND short, so inhibit current continues through the other half into the CCS instead of dumping at the mid.
+
+Plane photos: [img/](img/); sources in [references.md](references.md). Earlier notes that called the bare-wire fold “YA65–YA66” were wrong — the stand-in and corrected model shunt **YA65–YB65**.
 
 ```mermaid
 flowchart LR
-  YB65[YB65] --> ArrayA[Sense half A]
-  ArrayA --> YA65[YA65]
-  YA65 --> Shunt[YA65/66 shunt to AGND]
-  Shunt --> YA66[YA66]
-  YA66 --> ArrayB[Sense half B]
-  ArrayB --> YB66[YB66]
-  YB65 -.-> SenseAmp[Differential sense amp]
+  YA66[YA66] --> ArrayYA[YA sense half]
+  ArrayYA --> YA65[YA65]
+  YA65 --> Shunt["YA65 = YB65 fold shunt"]
+  Shunt --> SoftMid["R1 10k to AGND"]
+  Shunt --> YB65[YB65]
+  YB65 --> ArrayYB[YB sense half]
+  ArrayYB --> YB66[YB66]
+  YA66 -.-> SenseAmp[Differential sense amp]
   YB66 -.-> SenseAmp
 ```
 
@@ -71,8 +86,8 @@ sequenceDiagram
 ```
 
 1. **READ** — Drive \(-I_c/2\) into the addressed X and Y lines (forward polarity for read). Only the selected core sees full \(I_c\).
-2. **SENSE STROBE** — After ~150–300 ns for capacitive ringing to settle, clock the D flip-flop that samples the TLV3501 comparator across YB65/YB66.
-3. **INHIBIT** — If writing or restoring a 0, drive \(-I_c/2\) through the folded sense path (YB65 ↔ YB66 via YA shunt) so the subsequent WRITE cannot flip that core to 1.
+2. **SENSE STROBE** — After ~150–300 ns for capacitive ringing to settle, clock the D flip-flop that samples the TLV3501 comparator across the fold ends (`YA66`/`YB66` full path; bring-up may use `YB65`/`YB66` for the YB half only).
+3. **INHIBIT** — If writing or restoring a 0, drive \(-I_c/2\) through the folded sense path (`YA66` ↔ `YB66` via `YA65`═`YB65`) so the subsequent WRITE cannot flip that core to 1.
 4. **WRITE** — Drive \(+I_c/2\) into the same X and Y lines (reverse polarity) to restore or write 1 when inhibit is off.
 
 ## Constant-current sink
