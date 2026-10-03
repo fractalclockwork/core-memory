@@ -1,0 +1,147 @@
+* Isolated coincident-current testbench for coremem.
+* Same stimulus as kicad/core_element_sim/core_element_sim.kicad_sch.
+*
+* 100 ns edges. X2 Y2 S2 are ground. 20 ohm dampers across X and Y.
+*   2-4 us   Ix=-400 mA           half-select, m stays near +1
+*   6-8 us   Ix=Iy=-400 mA        read 1, flip +Br -> -Br
+*  10-12 us  Ix=Iy=-400 mA        already flipped, small pulse
+*  14-16 us  Ix=Iy=+400 mA        flip back to +Br
+*
+* Batch: ngspice -b coremem_tb.cir
+* Prints RESULT PASS or RESULT FAIL.
+
+.include coremem.cir
+
+Vx2 X2 0 0
+Vy2 Y2 0 0
+Vs2 S2 0 0
+
+Rx X1 X2 20
+Ry Y1 Y2 20
+
+Ix 0 X1 PWL(
++ 0 0
++ 2u 0 2.1u -0.4 4u -0.4 4.1u 0
++ 6u 0 6.1u -0.4 8u -0.4 8.1u 0
++ 10u 0 10.1u -0.4 12u -0.4 12.1u 0
++ 14u 0 14.1u 0.4 16u 0.4 16.1u 0)
+Iy 0 Y1 PWL(
++ 0 0
++ 6u 0 6.1u -0.4 8u -0.4 8.1u 0
++ 10u 0 10.1u -0.4 12u -0.4 12.1u 0
++ 14u 0 14.1u 0.4 16u 0.4 16.1u 0)
+
+Xcore X1 X2 Y1 Y2 S1 S2 B coremem
+
+.tran 20n 18u uic
+
+.control
+set nobreak
+set noaskquit
+run
+meas tran m_half FIND v(xcore.m) AT=5u
+meas tran m_full FIND v(xcore.m) AT=9u
+meas tran m_rep FIND v(xcore.m) AT=13u
+meas tran m_back FIND v(xcore.m) AT=17u
+meas tran half_max MAX v(s1) FROM=2u TO=5.5u
+meas tran half_min MIN v(s1) FROM=2u TO=5.5u
+meas tran flip_max MAX v(s1) FROM=6u TO=9u
+meas tran flip_min MIN v(s1) FROM=6u TO=9u
+meas tran rep_max MAX v(s1) FROM=10u TO=13u
+meas tran rep_min MIN v(s1) FROM=10u TO=13u
+meas tran back_max MAX v(s1) FROM=14u TO=17u
+meas tran back_min MIN v(s1) FROM=14u TO=17u
+meas tran t_flip_a WHEN v(s1)=-17.5m FALL=1 FROM=6u TO=9u
+meas tran t_flip_b WHEN v(s1)=-17.5m RISE=1 FROM=6u TO=9u
+let flip_w = t_flip_b - t_flip_a
+meas tran t_back_a WHEN v(s1)=17.5m RISE=1 FROM=14u TO=17u
+meas tran t_back_b WHEN v(s1)=17.5m FALL=1 FROM=14u TO=17u
+let back_w = t_back_b - t_back_a
+
+print m_half m_full m_rep m_back
+print half_max half_min flip_max flip_min
+print rep_max rep_min back_max back_min
+print flip_w back_w
+
+let fail = 0
+if m_half < 0.9
+  let fail = 1
+  echo FAIL half-select moved m
+end
+if m_full > -0.9
+  let fail = 1
+  echo FAIL full-select did not reach -Br
+end
+if m_rep > -0.9
+  let fail = 1
+  echo FAIL repeat select flipped m back
+end
+if m_back < 0.9
+  let fail = 1
+  echo FAIL reverse select did not restore +Br
+end
+let half_pk = half_max
+if half_min < 0
+  if abs(half_min) > half_pk
+    let half_pk = abs(half_min)
+  end
+end
+if half_pk > 10m
+  let fail = 1
+  echo FAIL half-select sense is not a few millivolts
+end
+let flip_pk = flip_max
+if abs(flip_min) > flip_pk
+  let flip_pk = abs(flip_min)
+end
+if flip_pk < 15m
+  let fail = 1
+  echo FAIL flip pulse below 15 mV
+end
+if flip_pk > 60m
+  let fail = 1
+  echo FAIL flip pulse above 60 mV
+end
+let rep_pk = rep_max
+if abs(rep_min) > rep_pk
+  let rep_pk = abs(rep_min)
+end
+if rep_pk > 10m
+  let fail = 1
+  echo FAIL repeat select produced a flip-sized pulse
+end
+let back_pk = back_max
+if abs(back_min) > back_pk
+  let back_pk = abs(back_min)
+end
+if back_pk < 15m
+  let fail = 1
+  echo FAIL reverse pulse below 15 mV
+end
+if back_pk > 60m
+  let fail = 1
+  echo FAIL reverse pulse above 60 mV
+end
+if flip_w < 0.3u
+  let fail = 1
+  echo FAIL flip pulse narrower than 0.3 us
+end
+if flip_w > 3u
+  let fail = 1
+  echo FAIL flip pulse wider than 3 us
+end
+if back_w < 0.3u
+  let fail = 1
+  echo FAIL reverse pulse narrower than 0.3 us
+end
+if back_w > 3u
+  let fail = 1
+  echo FAIL reverse pulse wider than 3 us
+end
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end

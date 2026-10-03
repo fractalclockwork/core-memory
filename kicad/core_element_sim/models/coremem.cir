@@ -1,0 +1,58 @@
+* One 3-wire 50-mil memory core for KiCad/ngspice.
+*
+* Ngspice's K statement is a linear coupling coefficient. It does not accept the
+* LTspice Chan parameters (Hc, Br, Bs, Lm, A). This behavioral model uses those
+* same physical numbers. The flip time is an explicit domain-wall constant Tsw:
+* a 20-50 mV sense pulse across the external 10-50 ohm dampers is only a couple
+* of milliamps, so those resistors do not set the 1 us peaking time when the
+* windings are driven by ideal current sources. Dampers stay on the testbench.
+*
+* Geometry: OD 1.27 mm, ID 0.76 mm, height 0.38 mm.
+*   Lm = pi * 1.0 mm = 0.00314 m
+*   A  = 0.255 mm * 0.38 mm = 0.097e-6 m^2
+* Half-select 400 mA -> H = I/Lm ~ 127 A/m (below Hc, no flip).
+* Full-select 800 mA -> H ~ 255 A/m (above Hc, flip).
+* Run with UIC so Cm starts at m=+1 (stored +Br).
+*
+* Pins X1 X2 Y1 Y2 S1 S2 match CoreBead_3W. B is a sim-only probe, 1 V = 1 T.
+
+.subckt coremem X1 X2 Y1 Y2 S1 S2 B params:
++ Hc=150 Br=0.18 Bs=0.20 Lm=0.00314 A=0.097u Tsw=1u mur=20
+
+.param mu0=1.2566370614e-6
+.param Heps=4
+.param meps=0.05
+.param rate={2/Tsw}
+
+* Positive current in the pin-1 -> pin-2 direction adds to H (1 turn each).
+Vx X1 nX 0
+Vy Y1 nY 0
+Vs S1 nS 0
+BH H 0 V = (I(Vx)+I(Vy)+I(Vs))/Lm
+
+* Normalized remanence. IC is applied by "tran ... uic".
+Cm m 0 1 IC=1
+Rm m 0 1e12
+
+* |H|<Hc holds m. |H|>Hc slews m toward the driven rail in about Tsw.
+* tanh(*) is ~1 in the interior and 0 at the destination rail, so the
+* state can leave the opposite rail and stops when it arrives.
+Bdm 0 m I =
++ {rate}*(0.5*(1+tanh((v(H)-{Hc})/{Heps})))*tanh((1-v(m))/{meps})
++ - {rate}*(0.5*(1+tanh((-{Hc}-v(H))/{Heps})))*tanh((v(m)+1)/{meps})
++ + (min(1, max(-1, v(m)))-v(m))/50n
+
+* V = A*dB/dt on every winding (mutual). Irreversible part is A*Br*dm/dt.
+* Reversible part follows dH/dt through a 20 ns lag so a PWL corner is not an impulse.
+* The lag is shorter than the 100 ns drive edge. I(Bhs) is the lagged dH/dt.
+Bhs 0 hs I = (v(H)-v(hs))/20n
+Chs hs 0 1
+Rhs hs 0 1e12
+Bx nX X2 V = {A*Br}*I(Bdm) + {A*mu0*mur}*I(Bhs)
+By nY Y2 V = {A*Br}*I(Bdm) + {A*mu0*mur}*I(Bhs)
+Bsw nS S2 V = {A*Br}*I(Bdm) + {A*mu0*mur}*I(Bhs)
+
+* Probe clamped to +/- Bs. 1 V on pin B is 1 T.
+BB B 0 V = min({Bs}, max(-{Bs}, {Br}*v(m)+{mu0*mur}*v(H)))
+
+.ends

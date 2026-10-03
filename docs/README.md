@@ -13,6 +13,10 @@ Driver-board documentation for the 64×64 magnetic core plane.
 7. [Design specification](design_spec.md) — normative plane / connector / timing contract
 8. [References](references.md) — bibliography and image sources
 
+## Core element model
+
+[Core-element simulation](core_element_sim.md) — isolated ngspice model of one 50-mil three-wire core, and how its sense pulse and B–H loop compare with the coincident-current literature. Not part of the driver schematic.
+
 ## Archives
 
 - [Chip datasheets](datasheets/README.md) — offline PDF vault for selected MPNs

@@ -801,13 +801,13 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 151.13) (xy 140.97 161.29)
+			(xy 153.67 138.43) (xy 140.97 138.43)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "388e4569-07f6-4861-9e35-af4f0632cc3f")
+		(uuid "3c4b2103-0ded-4ef9-b44c-8ee39f7619ab")
 	)
 	(wire
 		(pts
@@ -968,6 +968,16 @@
 			(type default)
 		)
 		(uuid "80e7c6c0-1604-4ec6-a666-d1d29484fd6b")
+	)
+	(wire
+		(pts
+			(xy 140.97 151.13) (xy 147.32 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "824c7921-bdd5-4c30-8b9d-818f2f5d86f4")
 	)
 	(wire
 		(pts
@@ -1179,16 +1189,6 @@
 		)
 		(uuid "f75dd9f8-fa93-4850-82ee-e99d7ce5d5ff")
 	)
-	(label "SENSE_FOLD"
-		(at 140.97 114.3 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5a283c8c-8cf5-4039-80d8-756bf830ee0b")
-	)
 	(label "YA65"
 		(at 143.51 114.3 0)
 		(effects
@@ -1198,6 +1198,16 @@
 			(justify left)
 		)
 		(uuid "036145a6-5e82-4e3a-b13f-828108649cef")
+	)
+	(label "SENSE_FOLD"
+		(at 153.67 138.43 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5a283c8c-8cf5-4039-80d8-756bf830ee0b")
 	)
 	(label "YA66"
 		(at 147.32 110.49 180)
@@ -1706,7 +1716,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 140.97 161.29 0)
+		(at 147.32 151.13 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1716,7 +1726,7 @@
 		(dnp no)
 		(uuid "81902ce9-2803-4407-942d-71107f276b92")
 		(property "Reference" "#FLG_AGND"
-			(at 140.97 163.83 0)
+			(at 147.32 153.67 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1728,7 +1738,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 140.97 166.37 0)
+			(at 145.542 146.812 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -1739,7 +1749,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 140.97 161.29 0)
+			(at 147.32 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1751,7 +1761,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 140.97 161.29 0)
+			(at 147.32 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1763,7 +1773,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 140.97 161.29 0)
+			(at 147.32 151.13 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1894,7 +1904,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 140.97 156.21 0)
+			(at 134.366 151.384 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

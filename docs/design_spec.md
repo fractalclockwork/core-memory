@@ -31,7 +31,7 @@ Each core is a **three-wire** element (X, Y, sense). There is **no separate inhi
 * **Steering Diodes:** Because there are no discrete diodes populated on the memory plane itself [[cite: 1](references.md#core-plane-physical-evidence), [cite: 2](references.md#core-plane-physical-evidence)], fast-recovery Schottky diodes must be placed on the driver board at the output of the switch matrices to prevent back-feeding and "sneak paths" through unselected core lines.
 
 ## 4. Current Recommendations ($I_c$)
-* **Coercive Current ($I_c$):** Given the 0.125-inch core diameter, expect a full-select current between 400mA and 800mA. 
+* **Coercive Current ($I_c$):** Given the 0.125-inch core diameter, expect a full-select current between 400mA and 800mA. A separate single-core study uses an explicit 50-mil toroid at the top of this current band; it does not replace this paragraph. See [core_element_sim.md](core_element_sim.md). 
 * **Drive Regulation:** The half-select current ($I_c/2$) of 200mA to 400mA must be strictly regulated. Implement an adjustable constant-current sink on the common return path of the Low-Side drivers. A power op-amp driving an N-channel MOSFET, monitored by a low-ohm sense resistor, ensures the current remains perfectly flat despite the inductive load.
 
 ## 5. Timing & Sequencing

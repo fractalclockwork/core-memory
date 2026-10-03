@@ -8,7 +8,7 @@ Each ferrite core stores one bit as magnetic remanence in one of two directions.
 
 Readout is destructive: the READ pulse forces the core toward a known polarity. If the core was previously the opposite polarity, it flips and induces a millivolt-scale spike on the sense wire; if it was already that polarity, the spike is negligible. After sensing, a WRITE (restore) pulse returns the desired data, optionally with an INHIBIT current so a restore-to-0 does not flip the core back to 1.
 
-For this plane, expect \(I_c\) in the 400–800 mA range (0.125″ cores), so regulated half-select is about 200–400 mA. See [design_spec.md](design_spec.md) for the normative numbers.
+For this plane, expect \(I_c\) in the 400–800 mA range (0.125″ cores), so regulated half-select is about 200–400 mA. See [design_spec.md](design_spec.md) for the normative numbers. A separate ngspice model of one 50-mil toroid, and how its sense pulse compares with the published read-1, is in [core_element_sim.md](core_element_sim.md).
 
 ## Three wires per core (no inhibit winding)
 
