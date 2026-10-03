@@ -31,10 +31,10 @@ flowchart TB
 
 | Block | On sheet | Primary parts | Role |
 |-------|----------|---------------|------|
-| **Sense** | [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) | TLV3501, BAT54S, 74AHC74, 1k iso | Differential sense across YB65/66; clamp; strobe latch to DOUT |
-| **Magnetic Cores** | [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; diagonal sense + center tap |
+| **Sense** | [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) | TLV3501, BAT54S, 74AHC74, 1k iso | Differential sense across YA65/YB66; clamp; strobe latch to DOUT |
+| **Magnetic Cores** | [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; two sense diagonals joined at YA66/YB65 |
 | **CCS** | [`ccs.kicad_sch`](../kicad/core/ccs.kicad_sch) | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
-| **Inhibit** | [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) | FDS8958A, TC4427A×2, 2N7002 invert | Series \(-I_c/2\) on folded sense (YB65→fold→YB66→CCS); no 4th inhibit wire |
+| **Inhibit** | [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) | FDS8958A, TC4427A×2, 2N7002 invert | Series \(-I_c/2\) on folded sense (YA65→fold→YB66→CCS); no 4th inhibit wire |
 | **Drive** | Mid (sheet ×1) | `drive_block` | One TC4427A + FDS8958A + local VDRIVE C30/C31; pins `N_*` / `NAn`/`NBn`; root wires X0 FWD |
 | **Decode CTRL** | [`decode_ctrl.kicad_sch`](../kicad/core/decode_ctrl.kicad_sch) | J40–J54, R40–R54 | ADDR + `DEC_EN` / `FWD_EN_n` / `REV_EN_n` headers |
 | **Decode** | Lower (sheet ×1) | `decode_block` | One axis: 138 HS + 238 LS + local +3V3 C19/C20; pins `N_*`; root wires X FWD |
@@ -46,9 +46,9 @@ flowchart TB
 
 ## Sense
 
-Hierarchical page [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) (root sheet **Sense**). Pins: `YB65`/`YB66` only. `SENSE_STROBE` / `DOUT` are global labels.
+Hierarchical page [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) (root sheet **Sense**). Pins: `YA65`/`YB66` only. `SENSE_STROBE` / `DOUT` are global labels.
 
-- Differential inputs from the folded loop (1 kΩ isolation into the comparator)
+- Differential inputs from the series fold (1 kΩ from `YA65` into `SENSE_P`, 1 kΩ from `YB66` into `SENSE_N`)
 - BAT54S clamps to protect the amp during inhibit spikes
 - TLV3501 comparator → 74AHC74 clocked by SENSE STROBE
 
@@ -60,7 +60,7 @@ Hierarchical page [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_
 
 **Drive hierarchy pins (0-based matrix only):** `XA0`/`XA1`/`XB0`/`XB1`, `YA0`/`YA1`/`YB0`/`YB1` — same semantic class as physical contacts 1–64, indexed 0–63 in the schematic. These participate in the Drive/Decode pin story.
 
-**Sense / fold nets (not Drive/Decode hierarchy):** `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` — physical Y pins 65/66 plus schematic fold-mid; different function (fold + sense/inhibit). On the stand-in sheet they are local labels (and optionally exported for Sense/Inhibit), **not** an extension of the `NAn`/`n` chain. Soft mid R1 10k→AGND at `SENSE_FOLD` (tied to `YA65` for now; plane shunt `YA65`═`YB65`).
+**Sense / fold nets (not Drive/Decode hierarchy):** `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` — physical Y pins 65/66 plus the driver center tap; different function (fold + sense/inhibit). On the stand-in sheet they are local labels (and optionally exported for Sense/Inhibit), **not** an extension of the `NAn`/`n` chain. Soft mid R1 10k→AGND at `SENSE_FOLD` (`YA66` tied to `YB65`). The plane does not shunt the loops.
 
 2×2 MCE array matching plane markings ([img/top.jpeg](img/top.jpeg)):
 
@@ -76,11 +76,11 @@ Hierarchical page [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_
 
 - **X** top→bottom: `XA0`→MCE00→MCE10→`XB0`; `XA1`→MCE01→MCE11→`XB1`
 - **Y** right→left: `YA0`→MCE01→MCE00→`YB0`; `YA1`→MCE11→MCE10→`YB1`
-- **Sense (two loops + fold):**
-  - YA half: `YA66` ↔ MCE11 ↔ MCE00 ↔ `YA65`
-  - YB half: `YB66` ↔ MCE01 ↔ MCE10 ↔ `YB65`
-  - Fold shunt: `YA65`═`YB65` + R1 10k→AGND
-  - Full series path: `YA66` → YA half → fold → YB half → `YB66`
+- **Sense (two loops + external fold):**
+  - Loop A (stand-in for 2,048): `YA65` ↔ MCE00 ↔ MCE11 ↔ `YA66`
+  - Loop B (the other 2,048): `YB65` ↔ MCE10 ↔ MCE01 ↔ `YB66`
+  - Center tap: `YA66`═`YB65` (`SENSE_FOLD`) + R1 10k→AGND
+  - Full series path: `YA65` → Loop A → fold → Loop B → `YB66`
 - **Symbol:** diagonal ellipse (toroid). X1/X2 top/bot, Y1/Y2 left/right, S1/S2 on LL→UR diagonal; **MCE01** and **MCE10** mirrored about Y
 
 Each X/Y line pierces only the cores on its column/row. Regen baseline: [`gen_ferrite_beads_page.py`](../kicad/scripts/gen_ferrite_beads_page.py) `--phase 2` (hand-tuned sense fold may supersede the generator).
@@ -93,9 +93,9 @@ Common low-side return through a linear MOSFET throttle. The OPA192 closes the l
 
 ## Inhibit
 
-Hierarchical page [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) (root sheet **Inhibit**). Pins: `YB65`/`YB66`, `CCS_RET`, `VDRIVE`; `INH_EN_n` via on-page header J5.
+Hierarchical page [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) (root sheet **Inhibit**). Pins: `YA65`/`YB66`, `CCS_RET`, `VDRIVE`; `INH_EN_n` via on-page header J5.
 
-Reuses the folded sense path (`YA66` ↔ `YB66` via `YA65`═`YB65`; bring-up may still wire Inhibit to `YB65`/`YB66` for the YB half only). Soft mid (Magnetic Cores) + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Both gate drivers are TC4427A: HS←`INH_EN_n`, LS←`INH_LS_en` (2N7002 invert). Polarity convention relative to READ remains open ([design_choices.md](design_choices.md)).
+Reuses the series sense path (`YA65` → Loop A → `YA66`═`YB65` → Loop B → `YB66`). P-FET sources `VDRIVE` into `YA65`; N-FET sinks `YB66` to `CCS_RET`. Soft mid (Magnetic Cores) + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Both gate drivers are TC4427A: HS←`INH_EN_n`, LS←`INH_LS_en` (2N7002 invert). Whether this direction matches READ polarity on the real cores remains open ([design_choices.md](design_choices.md)).
 
 ## Drive Block (1×1)
 
@@ -157,7 +157,7 @@ Pin tokens: **`N`** = axis (`X`/`Y`), **`n`** = HS/LS bank index (`0`…`7`). Hi
 
 Y / REV instances (`BANK_EN`←`REV_EN_n`, outs → `*r_*`) come later. Refs today: U11/U12.
 
-**Bench plane map (1×1 drive):** Drive Block still `XA0`/`XB0` only; Magnetic Cores exposes XA0/1 XB0/1 YA0/1 YB0/1; sense on YB65/66 fold.
+**Bench plane map:** Drive Block still `XA0`/`XB0` only; Magnetic Cores exposes XA0/1 XB0/1 YA0/1 YB0/1; sense/inhibit outer ends are `YA65`/`YB66`, center tap `YA66`═`YB65`.
 
 ## Decoupling (Logic / VDRIVE)
 

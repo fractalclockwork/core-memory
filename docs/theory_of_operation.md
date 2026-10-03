@@ -18,43 +18,43 @@ Each ferrite core is threaded by exactly **three** wires:
 |------|----------------|------|
 | **X** | 64 lines | Half-select address |
 | **Y** | 64 lines | Half-select address |
-| **Sense** | One long wire through all 4,096 cores | READ pickup **and** WRITE-0 inhibit |
+| **Sense** | Two independent loops, 2,048 cores each | READ pickup **and** WRITE-0 inhibit |
 
-This is classic 3-wire core memory: there is **no fourth inhibit winding**. Inhibit current is **time-multiplexed onto the sense wire** (high current during WRITE/RESTORE 0; quiet differential sensing during READ). Full-fold driver ends are `YA66`/`YB66`; the fold mid is `YA65`═`YB65`.
+This is classic 3-wire core memory: there is **no fourth inhibit winding**. Inhibit current is **time-multiplexed onto the sense wire** (high current during WRITE/RESTORE 0; quiet differential sensing during READ). The plane does not join the two loops. The driver board ties them in series. Outer ends are `YA65`/`YB66`; the center tap is `YA66`═`YB65`.
 
-## Folded sense / inhibit loop
+## Dual sense / inhibit loops
 
-The plane has no separate sense connector beyond pins 65/66 on the Y edges. Sense is two **separate half-loops** that meet at a fold shunt:
+The plane has no separate sense connector beyond pins 65/66 on the Y edges. Those four terminals are two **independent** 3-wire loops. Vintage 4K planes split the sense/inhibit winding this way so each loop has about half the inductance, DC resistance, and transmission delay of one weave through all 4,096 cores. No numeric L or DCR is recorded here; each loop is half of that former single-weave estimate. Series connection on the driver presents the sum, which is the old full-array L and DCR.
 
-| Half-loop | Path through cores | Ends |
-|-----------|--------------------|------|
-| **YA loop** | Sense through one half of the array | `YA65` ↔ `YA66` |
-| **YB loop** | Sense through the other half | `YB65` ↔ `YB66` |
+| Loop | Path through cores | Ends |
+|------|--------------------|------|
+| **Loop A** | 2,048 cores (geographic split untraced) | `YA65` ↔ `YA66` |
+| **Loop B** | The other 2,048 cores | `YB65` ↔ `YB66` |
 
-**Fold shunt:** `YA65` is tied to `YB65` (not YA65–YA66). The full series sense/inhibit path is therefore:
+**External fold:** the driver ties `YA66` directly to `YB65`. That center-tap jumper is not on the plane. The full series sense/inhibit path is:
 
 ```text
-YA66 ── YA half ── YA65 ════ YB65 ── YB half ── YB66
-                         │
-                      R1 10k → AGND   (soft mid at the fold)
+YA65 ── Loop A (2048) ── YA66 ════ YB65 ── Loop B (2048) ── YB66
+                              │
+                         R1 10k → AGND   (soft ground at the center tap)
 ```
 
-- **READ:** Differential sense across the fold ends `YA66` / `YB66` (full path), or bring-up may probe one half (`YB65`/`YB66`) only.
-- **INHIBIT:** Series \(-I_c/2\) end-to-end on `YA66` ↔ `YB66` puts both halves (all cores) in series; current crosses the `YA65`═`YB65` shunt.
-- **Soft mid:** 10 kΩ from the fold (`YA65`/`YB65`) → AGND, not a hard AGND short, so inhibit current continues through the other half into the CCS instead of dumping at the mid.
+- **READ:** Differential sense across the outer ends `YA65` / `YB66` (1 kΩ isolation into `SENSE_P` / `SENSE_N`).
+- **INHIBIT:** Source \(V_{drive}\) into `YA65`, traverse Loop A, cross the `YA66`═`YB65` jumper, traverse Loop B, and sink `YB66` into `CCS_RET`. Series \(-I_c/2\) puts all 4,096 cores in one string. Because the halves are in series, \(V_{drive}\) headroom and CCS current stay at the single-weave values.
+- **Soft ground:** 10 kΩ from the center tap (`YA66`/`YB65`) → AGND, not a hard AGND short, so inhibit current continues through Loop B into the CCS instead of dumping at the mid.
 
-Plane photos: [img/](img/); sources in [references.md](references.md). Earlier notes that called the bare-wire fold “YA65–YA66” were wrong — the stand-in and corrected model shunt **YA65–YB65**.
+The schematic array is the 2×2 on the Magnetic Cores sheet: one diagonal stands in for Loop A (`YA65`↔MCE00↔MCE11↔`YA66`), the other for Loop B (`YB65`↔MCE10↔MCE01↔`YB66`). X and Y address lines on that sheet are unchanged. Plane photos: [img/](img/); sources in [references.md](references.md).
 
 ```mermaid
 flowchart LR
-  YA66[YA66] --> ArrayYA[YA sense half]
-  ArrayYA --> YA65[YA65]
-  YA65 --> Shunt["YA65 = YB65 fold shunt"]
-  Shunt --> SoftMid["R1 10k to AGND"]
-  Shunt --> YB65[YB65]
-  YB65 --> ArrayYB[YB sense half]
+  YA65[YA65] --> ArrayYA[Loop A 2048]
+  ArrayYA --> YA66[YA66]
+  YA66 --> Jumper["YA66 = YB65 center tap"]
+  Jumper --> SoftMid["R1 10k to AGND"]
+  Jumper --> YB65[YB65]
+  YB65 --> ArrayYB[Loop B 2048]
   ArrayYB --> YB66[YB66]
-  YA66 -.-> SenseAmp[Differential sense amp]
+  YA65 -.-> SenseAmp[Differential sense amp]
   YB66 -.-> SenseAmp
 ```
 
@@ -77,7 +77,7 @@ sequenceDiagram
   S->>S: SENSE STROBE clocks comparator into 74AHC74
 
   alt restore or write 0
-    I->>I: INHIBIT -Ic/2 on YB65 to YB66
+    I->>I: INHIBIT -Ic/2 on YA65 through fold to YB66
   end
 
   Note over X,CCS: WRITE phase
@@ -86,8 +86,8 @@ sequenceDiagram
 ```
 
 1. **READ** — Drive \(-I_c/2\) into the addressed X and Y lines (forward polarity for read). Only the selected core sees full \(I_c\).
-2. **SENSE STROBE** — After ~150–300 ns for capacitive ringing to settle, clock the D flip-flop that samples the TLV3501 comparator across the fold ends (`YA66`/`YB66` full path; bring-up may use `YB65`/`YB66` for the YB half only).
-3. **INHIBIT** — If writing or restoring a 0, drive \(-I_c/2\) through the folded sense path (`YA66` ↔ `YB66` via `YA65`═`YB65`) so the subsequent WRITE cannot flip that core to 1.
+2. **SENSE STROBE** — After ~150–300 ns for capacitive ringing to settle, clock the D flip-flop that samples the TLV3501 comparator across the outer ends `YA65` / `YB66`.
+3. **INHIBIT** — If writing or restoring a 0, drive \(-I_c/2\) from `YA65` through both loops and the `YA66`═`YB65` center tap, sinking at `YB66`, so the subsequent WRITE cannot flip that core to 1.
 4. **WRITE** — Drive \(+I_c/2\) into the same X and Y lines (reverse polarity) to restore or write 1 when inhibit is off.
 
 ## Constant-current sink

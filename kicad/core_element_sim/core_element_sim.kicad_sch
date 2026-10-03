@@ -1,7 +1,7 @@
 (kicad_sch
 	(version 20260306)
-	(generator "gen_core_element_sim.py")
-	(generator_version "1.0")
+	(generator "eeschema")
+	(generator_version "10.0")
 	(uuid "7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30")
 	(paper "A3")
 	(title_block
@@ -143,6 +143,121 @@
 						(effects
 							(font
 								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Simulation_SPICE:0"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#GND"
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "0"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#subsec_Circuit_elements__device"
+				(at 0 -10.16 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "0V reference potential for simulation"
+				(at 0 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "simulation"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "0_0_1"
+				(polyline
+					(pts
+						(xy -1.27 0) (xy 0 -1.27) (xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "0_1_1"
+				(pin power_in line
+					(at 0 0 0)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.016 1.016)
 							)
 						)
 					)
@@ -364,33 +479,27 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Simulation_SPICE:0"
-			(power global)
-			(pin_numbers
-				(hide yes)
-			)
+		(symbol "core_element_sim:CoreMem"
 			(pin_names
-				(offset 0)
-				(hide yes)
+				(offset 1.016)
 			)
 			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
+			(in_bom no)
+			(on_board no)
+			(in_pos_files no)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "#GND"
-				(at 0 -5.08 0)
+			(property "Reference" "X"
+				(at 0 10.16 0)
 				(show_name no)
 				(do_not_autoplace no)
-				(hide yes)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "0"
-				(at 0 -2.54 0)
+			(property "Value" "CoreMem"
+				(at 0 -10.16 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -410,29 +519,7 @@
 					)
 				)
 			)
-			(property "Datasheet" "https://ngspice.sourceforge.io/docs/ngspice-html-manual/manual.xhtml#subsec_Circuit_elements__device"
-				(at 0 -10.16 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "0V reference potential for simulation"
-				(at 0 -7.62 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "simulation"
+			(property "Datasheet" ""
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -443,10 +530,77 @@
 					)
 				)
 			)
-			(symbol "0_0_1"
+			(property "Description" "Sim-only 3-wire memory core. SPICE model models/coremem.cir."
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Device" "SUBCKT"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Name" "coremem"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Library" "models/coremem.cir"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2 7=B"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "CoreMem_0_1"
+				(rectangle
+					(start -5.08 5.08)
+					(end 5.08 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
 				(polyline
 					(pts
-						(xy -1.27 0) (xy 0 -1.27) (xy 1.27 0) (xy -1.27 0)
+						(xy -3.81 0) (xy -2.54 0) (xy -1.905 0.635) (xy -0.635 -0.635) (xy 0.635 0.635) (xy 1.905 -0.635)
+						(xy 2.54 0) (xy 3.81 0)
 					)
 					(stroke
 						(width 0)
@@ -456,22 +610,179 @@
 						(type none)
 					)
 				)
+				(polyline
+					(pts
+						(xy -3.81 -3.81) (xy 3.81 3.81)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 3.81) (xy 0 2.54) (xy 0.635 1.905) (xy -0.635 0.635) (xy 0.635 -0.635) (xy -0.635 -1.905)
+						(xy 0 -2.54) (xy 0 -3.81)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(text "S"
+					(at -2.54 2.54 0)
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(text "Y"
+					(at 0 2.286 0)
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(text "X"
+					(at 2.032 0 0)
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
 			)
-			(symbol "0_1_1"
-				(pin power_in line
-					(at 0 0 0)
-					(length 0)
-					(name ""
+			(symbol "CoreMem_1_1"
+				(pin passive line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "X1"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
 							)
 						)
 					)
 					(number "1"
 						(effects
 							(font
-								(size 1.016 1.016)
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "X2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "Y1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "Y2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -7.62 -5.08 0)
+					(length 2.54)
+					(name "S1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 5.08 180)
+					(length 2.54)
+					(name "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -5.08 180)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
 							)
 						)
 					)
@@ -594,46 +905,979 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "core_element_sim:CoreMem"
-			(pin_names (offset 1.016))
-			(exclude_from_sim no)
-			(in_bom no)
-			(on_board no)
-			(in_pos_files no)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "X" (at 0 10.16 0) (effects (font (size 1.27 1.27))))
-			(property "Value" "CoreMem" (at 0 -10.16 0) (effects (font (size 1.27 1.27))))
-			(property "Footprint" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Datasheet" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Description" "Sim-only 3-wire memory core. SPICE model models/coremem.cir." (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Sim.Device" "SUBCKT" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Sim.Name" "coremem" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Sim.Library" "models/coremem.cir" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2 7=B" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
-			(symbol "CoreMem_0_1"
-				(rectangle (start -5.08 5.08) (end 5.08 -5.08) (stroke (width 0.254) (type default)) (fill (type background)))
-				(polyline (pts (xy 0 3.81) (xy 0 2.54) (xy 0.635 1.905) (xy -0.635 0.635) (xy 0.635 -0.635) (xy -0.635 -1.905) (xy 0 -2.54) (xy 0 -3.81)) (stroke (width 0) (type default)) (fill (type none)))
-				(polyline (pts (xy -3.81 0) (xy -2.54 0) (xy -1.905 0.635) (xy -0.635 -0.635) (xy 0.635 0.635) (xy 1.905 -0.635) (xy 2.54 0) (xy 3.81 0)) (stroke (width 0) (type default)) (fill (type none)))
-				(polyline (pts (xy -3.81 -3.81) (xy 3.81 3.81)) (stroke (width 0) (type default)) (fill (type none)))
-				(text "X" (at 2.032 0 0) (effects (font (size 1.016 1.016))))
-				(text "Y" (at 0 2.286 0) (effects (font (size 1.016 1.016))))
-				(text "S" (at -2.54 2.54 0) (effects (font (size 1.016 1.016))))
+	)
+	(text ".tran 20n 18u uic\n"
+		(exclude_from_sim no)
+		(at 25.4 25.4 0)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
-			(symbol "CoreMem_1_1"
-				(pin passive line (at 0 7.62 270) (length 2.54) (name "X1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at 0 -7.62 90) (length 2.54) (name "X2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at -7.62 0 0) (length 2.54) (name "Y1" (effects (font (size 1.27 1.27)))) (number "3" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at 7.62 0 180) (length 2.54) (name "Y2" (effects (font (size 1.27 1.27)))) (number "4" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at -7.62 -5.08 0) (length 2.54) (name "S1" (effects (font (size 1.27 1.27)))) (number "5" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at 7.62 5.08 180) (length 2.54) (name "S2" (effects (font (size 1.27 1.27)))) (number "6" (effects (font (size 1.27 1.27)))))
-				(pin passive line (at 7.62 -5.08 180) (length 2.54) (name "B" (effects (font (size 1.27 1.27)))) (number "7" (effects (font (size 1.27 1.27)))))
+			(justify left top)
+		)
+		(uuid "08c750d6-840c-4e03-b96d-670b5de85ed6")
+	)
+	(text "Isolated 50-mil core. Not part of the driver.\nPlot V(S1) and V(B). V(B) is tesla.\n2-4 us    Ix=-400 mA           half-select\n6-8 us    Ix=Iy=-400 mA        flip +Br to -Br\n10-12 us  Ix=Iy=-400 mA        already flipped\n14-16 us  Ix=Iy=+400 mA        flip back\nR1 and R2 are 20 ohm dampers. X2 Y2 S2 are ground.\nModel: models/coremem.cir"
+		(exclude_from_sim yes)
+		(at 25.4 35.56 0)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
-			(embedded_fonts no)
+			(justify left top)
+		)
+		(uuid "0999ff0d-219c-4f5b-a740-f1a439ba6669")
+	)
+	(junction
+		(at 142.24 101.6)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "921d0218-fc31-4a4e-805b-b46ff0fff9c1")
+	)
+	(junction
+		(at 152.4 91.44)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "9d378f3e-1a68-4b0c-91df-94d02aab349f")
+	)
+	(junction
+		(at 152.4 116.84)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fbaaf305-afbf-4f63-b28f-67dbf8a9d803")
+	)
+	(wire
+		(pts
+			(xy 152.4 116.84) (xy 160.02 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1ce479d0-a0c2-47a1-9977-45852623b135")
+	)
+	(wire
+		(pts
+			(xy 160.02 96.52) (xy 180.34 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28011fab-6d0a-4bac-816f-d7b796970847")
+	)
+	(wire
+		(pts
+			(xy 142.24 101.6) (xy 142.24 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4b156c62-72ea-4da8-aba2-2d00d8fbc47b")
+	)
+	(wire
+		(pts
+			(xy 160.02 101.6) (xy 172.72 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5391decd-e4af-4783-9e0a-4ef4a118b06c")
+	)
+	(wire
+		(pts
+			(xy 152.4 88.9) (xy 152.4 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6ff0d101-cba8-45b8-afbf-c339cfd8a698")
+	)
+	(wire
+		(pts
+			(xy 152.4 91.44) (xy 170.18 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99fe36b3-71a5-49f7-85d5-32200a027a02")
+	)
+	(wire
+		(pts
+			(xy 152.4 109.22) (xy 152.4 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ab815b9d-996b-4389-b56d-4280129d66f0")
+	)
+	(wire
+		(pts
+			(xy 160.02 106.68) (xy 172.72 106.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b277ffbf-c4a3-4931-a50d-1378ee6f1439")
+	)
+	(wire
+		(pts
+			(xy 139.7 101.6) (xy 144.78 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7885458-de7d-45eb-b9e2-b1bf7c6ebeef")
+	)
+	(wire
+		(pts
+			(xy 144.78 106.68) (xy 144.78 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe282390-c6d0-4dc9-9cdd-23a831c53fdc")
+	)
+	(global_label "S1"
+		(shape passive)
+		(at 144.78 114.3 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4268ce17-9d48-43b8-b55b-7ca1d89bfa5e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 144.78 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(global_label "B"
+		(shape passive)
+		(at 172.72 106.68 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "bd96e7e3-3ba8-4f99-a9d7-372f6ef950ac")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 172.72 106.68 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 152.4 78.74 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "027b9a69-f1d2-4fa8-8f70-21303193b58a")
+		(property "Reference" "#PWR01"
+			(at 152.4 81.28 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 152.4 74.93 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 152.4 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 152.4 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 152.4 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "65a8fadd-733a-4ddd-8661-9c3bb009e417")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 152.4 116.84 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "25308bb4-571e-4da5-9542-69793abb17d2")
+		(property "Reference" "#PWR05"
+			(at 152.4 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 152.4 113.03 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 152.4 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 152.4 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 152.4 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "15a671e9-d518-4b7a-bca5-074c43bdcf0c")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 170.18 83.82 180)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "2682214c-28da-4849-a67f-1e51947b89f3")
+		(property "Reference" "#PWR03"
+			(at 170.18 86.36 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 170.18 80.01 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 170.18 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 170.18 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 170.18 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "972fb5ee-934c-4c44-9aea-d9d578c284bf")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:IPWL")
+		(at 134.62 101.6 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "503e16c8-4a89-40c2-a306-1e70ca301ee4")
+		(property "Reference" "I2"
+			(at 137.16 97.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "IPWL"
+			(at 137.16 100.33 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Device" "I"
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Type" "PWL"
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Params" "pwl=\"0 0 6u 0 6.1u -0.4 8u -0.4 8.1u 0 10u 0 10.1u -0.4 12u -0.4 12.1u 0 14u 0 14.1u 0.4 16u 0.4 16.1u 0\""
+			(at 134.62 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "de68c4ce-a9ce-41f3-bf93-a46a55998af1")
+		)
+		(pin "2"
+			(uuid "0b77fa67-2205-4f59-82a7-bed9f4dcd627")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "I2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:IPWL")
+		(at 152.4 83.82 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "6fa28d22-17dc-4ecd-bb19-575b37bfbe79")
+		(property "Reference" "I1"
+			(at 154.94 80.01 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "IPWL"
+			(at 154.94 82.55 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Device" "I"
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Type" "PWL"
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Pins" "1=+ 2=-"
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sim.Params" "pwl=\"0 0 2u 0 2.1u -0.4 4u -0.4 4.1u 0 6u 0 6.1u -0.4 8u -0.4 8.1u 0 10u 0 10.1u -0.4 12u -0.4 12.1u 0 14u 0 14.1u 0.4 16u 0.4 16.1u 0\""
+			(at 152.4 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c2318961-2e8a-4ebb-94ab-914f6d4746ac")
+		)
+		(pin "2"
+			(uuid "ff474784-1821-4517-b542-6840dd8894f0")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "I1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 160.02 116.84 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "83950f88-1e8b-4081-a2d7-e478f2636071")
+		(property "Reference" "#FLG01"
+			(at 160.02 111.76 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 160.02 121.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 160.02 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 160.02 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3e290f44-b878-4f15-85e6-3e188d9e817a")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 180.34 96.52 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "9be72b20-7c9a-4a76-a172-5a15c9f79944")
+		(property "Reference" "#PWR07"
+			(at 180.34 99.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 180.34 92.71 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 180.34 96.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 180.34 96.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 180.34 96.52 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "026700c0-2083-467e-8c81-715630a3242b")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR07")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 172.72 101.6 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "9c635e9a-22bc-468f-8102-4379c4a33863")
+		(property "Reference" "#PWR06"
+			(at 172.72 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 172.72 97.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 172.72 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 172.72 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 172.72 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b7735674-4eb2-4b53-b0a2-c9e4023c2dfd")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR06")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Simulation_SPICE:0")
+		(at 129.54 101.6 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp no)
+		(uuid "b42d4785-2be5-4bb5-9083-921c6f5a6a3e")
+		(property "Reference" "#PWR02"
+			(at 129.54 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "0"
+			(at 129.54 97.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 129.54 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "19d4038d-2673-44fa-b72a-a8625b2990c0")
+		)
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR02")
+					(unit 1)
+				)
+			)
 		)
 	)
 	(symbol
 		(lib_id "core_element_sim:CoreMem")
-		(at 152.40 101.60 0)
+		(at 152.4 101.6 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -646,62 +1890,98 @@
 			(at 154.94 97.79 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Value" "CoreMem"
 			(at 154.94 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Footprint" ""
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Datasheet" ""
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Description" ""
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Sim.Device" "SUBCKT"
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Sim.Name" "coremem"
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Sim.Library" "models/coremem.cir"
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2 7=B"
-			(at 152.40 101.60 0)
+			(at 152.4 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(pin "1"
 			(uuid "aaed50de-a991-455f-8cad-152124002fee")
@@ -724,11 +2004,18 @@
 		(pin "7"
 			(uuid "65a0737a-9cd7-4fef-8fe8-d5fe6078e17a")
 		)
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "X1") (unit 1))))
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "X1")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
-		(lib_id "Simulation_SPICE:IPWL")
-		(at 152.40 83.82 0)
+		(lib_id "Simulation_SPICE:0")
+		(at 142.24 124.46 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -736,207 +2023,72 @@
 		(on_board no)
 		(in_pos_files no)
 		(dnp no)
-		(uuid "6fa28d22-17dc-4ecd-bb19-575b37bfbe79")
-		(property "Reference" "I1"
-			(at 154.94 80.01 0)
+		(uuid "d489a476-6265-4717-ac4d-814c155e08f6")
+		(property "Reference" "#PWR04"
+			(at 142.24 127 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
-		(property "Value" "IPWL"
-			(at 154.94 82.55 0)
+		(property "Value" "0"
+			(at 142.24 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Footprint" ""
-			(at 152.40 83.82 0)
+			(at 142.24 124.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Datasheet" ""
-			(at 152.40 83.82 0)
+			(at 142.24 124.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Description" ""
-			(at 152.40 83.82 0)
+			(at 142.24 124.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Device" "I"
-			(at 152.40 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Type" "PWL"
-			(at 152.40 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Pins" "1=+ 2=-"
-			(at 152.40 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Params" "pwl=\"0 0 2u 0 2.1u -0.4 4u -0.4 4.1u 0 6u 0 6.1u -0.4 8u -0.4 8.1u 0 10u 0 10.1u -0.4 12u -0.4 12.1u 0 14u 0 14.1u 0.4 16u 0.4 16.1u 0\""
-			(at 152.40 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(pin "1"
-			(uuid "c2318961-2e8a-4ebb-94ab-914f6d4746ac")
+			(uuid "660ef877-c65b-46b4-a8c2-5f493a2c7c6a")
 		)
-		(pin "2"
-			(uuid "ff474784-1821-4517-b542-6840dd8894f0")
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "#PWR04")
+					(unit 1)
+				)
+			)
 		)
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "I1") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:IPWL")
-		(at 134.62 101.60 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "503e16c8-4a89-40c2-a306-1e70ca301ee4")
-		(property "Reference" "I2"
-			(at 137.16 97.79 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "IPWL"
-			(at 137.16 100.33 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Device" "I"
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Type" "PWL"
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Pins" "1=+ 2=-"
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Sim.Params" "pwl=\"0 0 6u 0 6.1u -0.4 8u -0.4 8.1u 0 10u 0 10.1u -0.4 12u -0.4 12.1u 0 14u 0 14.1u 0.4 16u 0.4 16.1u 0\""
-			(at 134.62 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1"
-			(uuid "de68c4ce-a9ce-41f3-bf93-a46a55998af1")
-		)
-		(pin "2"
-			(uuid "0b77fa67-2205-4f59-82a7-bed9f4dcd627")
-		)
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "I2") (unit 1))))
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 170.18 87.63 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "e7f7cfc6-19f4-4677-8137-9a4d2adfb308")
-		(property "Reference" "R1"
-			(at 172.72 83.82 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "20"
-			(at 172.72 86.36 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 170.18 87.63 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 170.18 87.63 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 170.18 87.63 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1"
-			(uuid "dd6c1fa0-e8e2-462e-8be9-e6436ef8dae1")
-		)
-		(pin "2"
-			(uuid "d8f5607d-bfcf-43fb-9c06-b504be20dc66")
-		)
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "R1") (unit 1))))
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -953,34 +2105,54 @@
 			(at 144.78 116.84 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Value" "20"
 			(at 144.78 119.38 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Footprint" ""
 			(at 142.24 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Datasheet" ""
 			(at 142.24 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Description" ""
 			(at 142.24 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(pin "1"
 			(uuid "5d5e064b-321a-4578-a5ee-71b5d54192ef")
@@ -988,11 +2160,18 @@
 		(pin "2"
 			(uuid "63c5345f-e3e7-4844-8abd-8bc50466a129")
 		)
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "R2") (unit 1))))
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 152.40 78.74 180)
+		(lib_id "Device:R")
+		(at 170.18 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -1000,485 +2179,74 @@
 		(on_board no)
 		(in_pos_files no)
 		(dnp no)
-		(uuid "027b9a69-f1d2-4fa8-8f70-21303193b58a")
-		(property "Reference" "#PWR01"
-			(at 152.40 81.28 0)
-			(hide yes)
+		(uuid "e7f7cfc6-19f4-4677-8137-9a4d2adfb308")
+		(property "Reference" "R1"
+			(at 172.72 83.82 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
-		(property "Value" "0"
-			(at 152.40 74.93 0)
+		(property "Value" "20"
+			(at 172.72 86.36 0)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 152.40 78.74 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 152.40 78.74 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 152.40 78.74 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "65a8fadd-733a-4ddd-8661-9c3bb009e417"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR01") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 129.54 101.60 270)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "b42d4785-2be5-4bb5-9083-921c6f5a6a3e")
-		(property "Reference" "#PWR02"
-			(at 129.54 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "0"
-			(at 129.54 97.79 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Footprint" ""
-			(at 129.54 101.60 0)
+			(at 170.18 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Datasheet" ""
-			(at 129.54 101.60 0)
+			(at 170.18 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
 		(property "Description" ""
-			(at 129.54 101.60 0)
+			(at 170.18 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
 		)
-		(pin "1" (uuid "19d4038d-2673-44fa-b72a-a8625b2990c0"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR02") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 170.18 83.82 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "2682214c-28da-4849-a67f-1e51947b89f3")
-		(property "Reference" "#PWR03"
-			(at 170.18 86.36 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+		(pin "1"
+			(uuid "dd6c1fa0-e8e2-462e-8be9-e6436ef8dae1")
 		)
-		(property "Value" "0"
-			(at 170.18 80.01 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+		(pin "2"
+			(uuid "d8f5607d-bfcf-43fb-9c06-b504be20dc66")
 		)
-		(property "Footprint" ""
-			(at 170.18 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
+		(instances
+			(project "core_element_sim"
+				(path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30"
+					(reference "R1")
+					(unit 1)
+				)
+			)
 		)
-		(property "Datasheet" ""
-			(at 170.18 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 170.18 83.82 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "972fb5ee-934c-4c44-9aea-d9d578c284bf"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR03") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 142.24 124.46 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "d489a476-6265-4717-ac4d-814c155e08f6")
-		(property "Reference" "#PWR04"
-			(at 142.24 127.00 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "0"
-			(at 142.24 120.65 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 142.24 124.46 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 142.24 124.46 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 142.24 124.46 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "660ef877-c65b-46b4-a8c2-5f493a2c7c6a"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR04") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 152.40 116.84 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "25308bb4-571e-4da5-9542-69793abb17d2")
-		(property "Reference" "#PWR05"
-			(at 152.40 119.38 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "0"
-			(at 152.40 113.03 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 152.40 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 152.40 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 152.40 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "15a671e9-d518-4b7a-bca5-074c43bdcf0c"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR05") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 172.72 101.60 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "9c635e9a-22bc-468f-8102-4379c4a33863")
-		(property "Reference" "#PWR06"
-			(at 172.72 104.14 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "0"
-			(at 172.72 97.79 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 172.72 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 172.72 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 172.72 101.60 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "b7735674-4eb2-4b53-b0a2-c9e4023c2dfd"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR06") (unit 1))))
-	)
-	(symbol
-		(lib_id "Simulation_SPICE:0")
-		(at 180.34 96.52 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "9be72b20-7c9a-4a76-a172-5a15c9f79944")
-		(property "Reference" "#PWR07"
-			(at 180.34 99.06 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "0"
-			(at 180.34 92.71 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 180.34 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 180.34 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 180.34 96.52 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "026700c0-2083-467e-8c81-715630a3242b"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#PWR07") (unit 1))))
-	)
-	(symbol
-		(lib_id "power:PWR_FLAG")
-		(at 160.02 116.84 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim yes)
-		(in_bom no)
-		(on_board no)
-		(in_pos_files no)
-		(dnp no)
-		(uuid "83950f88-1e8b-4081-a2d7-e478f2636071")
-		(property "Reference" "#FLG01"
-			(at 160.02 111.76 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Value" "PWR_FLAG"
-			(at 160.02 121.92 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Footprint" ""
-			(at 160.02 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Datasheet" ""
-			(at 160.02 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(property "Description" ""
-			(at 160.02 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-		(pin "1" (uuid "3e290f44-b878-4f15-85e6-3e188d9e817a"))
-		(instances (project "core_element_sim" (path "/7f3c1a90-6e2d-4b7a-8c15-9d4e2f6a1b30" (reference "#FLG01") (unit 1))))
-	)
-	(wire
-		(pts (xy 152.40 88.90) (xy 152.40 93.98))
-		(stroke (width 0) (type default))
-		(uuid "6ff0d101-cba8-45b8-afbf-c339cfd8a698")
-	)
-	(junction
-		(at 152.40 91.44)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9d378f3e-1a68-4b0c-91df-94d02aab349f")
-	)
-	(wire
-		(pts (xy 152.40 91.44) (xy 170.18 91.44))
-		(stroke (width 0) (type default))
-		(uuid "99fe36b3-71a5-49f7-85d5-32200a027a02")
-	)
-	(wire
-		(pts (xy 139.70 101.60) (xy 144.78 101.60))
-		(stroke (width 0) (type default))
-		(uuid "b7885458-de7d-45eb-b9e2-b1bf7c6ebeef")
-	)
-	(junction
-		(at 142.24 101.60)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "921d0218-fc31-4a4e-805b-b46ff0fff9c1")
-	)
-	(wire
-		(pts (xy 142.24 101.60) (xy 142.24 116.84))
-		(stroke (width 0) (type default))
-		(uuid "4b156c62-72ea-4da8-aba2-2d00d8fbc47b")
-	)
-	(wire
-		(pts (xy 152.40 109.22) (xy 152.40 116.84))
-		(stroke (width 0) (type default))
-		(uuid "ab815b9d-996b-4389-b56d-4280129d66f0")
-	)
-	(wire
-		(pts (xy 152.40 116.84) (xy 160.02 116.84))
-		(stroke (width 0) (type default))
-		(uuid "1ce479d0-a0c2-47a1-9977-45852623b135")
-	)
-	(junction
-		(at 152.40 116.84)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fbaaf305-afbf-4f63-b28f-67dbf8a9d803")
-	)
-	(wire
-		(pts (xy 160.02 101.60) (xy 172.72 101.60))
-		(stroke (width 0) (type default))
-		(uuid "5391decd-e4af-4783-9e0a-4ef4a118b06c")
-	)
-	(wire
-		(pts (xy 160.02 96.52) (xy 180.34 96.52))
-		(stroke (width 0) (type default))
-		(uuid "28011fab-6d0a-4bac-816f-d7b796970847")
-	)
-	(wire
-		(pts (xy 144.78 106.68) (xy 144.78 114.30))
-		(stroke (width 0) (type default))
-		(uuid "fe282390-c6d0-4dc9-9cdd-23a831c53fdc")
-	)
-	(global_label "S1"
-		(shape passive)
-		(at 144.78 114.30 0)
-		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "4268ce17-9d48-43b8-b55b-7ca1d89bfa5e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 144.78 114.30 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-	)
-	(wire
-		(pts (xy 160.02 106.68) (xy 172.72 106.68))
-		(stroke (width 0) (type default))
-		(uuid "b277ffbf-c4a3-4931-a50d-1378ee6f1439")
-	)
-	(global_label "B"
-		(shape passive)
-		(at 172.72 106.68 0)
-		(effects (font (size 1.27 1.27)) (justify left))
-		(uuid "bd96e7e3-3ba8-4f99-a9d7-372f6ef950ac")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 172.72 106.68 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects (font (size 1.27 1.27)))
-		)
-	)
-	(text ".tran 20n 18u uic\n"
-		(exclude_from_sim no)
-		(at 25.40 25.40 0)
-		(effects (font (size 1.27 1.27)) (justify left top))
-		(uuid "08c750d6-840c-4e03-b96d-670b5de85ed6")
-	)
-	(text "Isolated 50-mil core. Not part of the driver.\nPlot V(S1) and V(B). V(B) is tesla.\n2-4 us    Ix=-400 mA           half-select\n6-8 us    Ix=Iy=-400 mA        flip +Br to -Br\n10-12 us  Ix=Iy=-400 mA        already flipped\n14-16 us  Ix=Iy=+400 mA        flip back\nR1 and R2 are 20 ohm dampers. X2 Y2 S2 are ground.\nModel: models/coremem.cir"
-		(exclude_from_sim yes)
-		(at 25.40 35.56 0)
-		(effects (font (size 1.27 1.27)) (justify left top))
-		(uuid "0999ff0d-219c-4f5b-a740-f1a439ba6669")
 	)
 	(sheet_instances
 		(path "/"

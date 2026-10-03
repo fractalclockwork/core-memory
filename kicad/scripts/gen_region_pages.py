@@ -4,7 +4,7 @@
 Creates:
   sense.kicad_sch       — comparator / latch (extracted from root; beads separate)
   ccs.kicad_sch         — Ic/2 sink (extracted)
-  inhibit.kicad_sch     — series YB65/YB66 drive (regenerated, TC4427A×2 + 2N7002)
+  inhibit.kicad_sch     — series YA65/YB66 drive (regenerated, TC4427A×2 + 2N7002)
   decode_ctrl.kicad_sch — ADDR + bank-enable headers J40–J54 / R40–R54
 
 Root keeps Drive Block, Decode×2, Decoupling×2, Magnetic Cores as sheet stubs + bridging labels.
@@ -46,7 +46,7 @@ SENSE_PWR = (
     "#PWR_D1", "#PWR_D2", "#PWR_U1", "#PWR_U2",
     "#FLG_3V3", "#FLG_GND",
 )
-SENSE_HIER = {"YB65", "YB66"}
+SENSE_HIER = {"YA65", "YB66"}
 BEADS_UUID = "a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
 
 CCS_REFS = {"U3", "U4", "Q1", "R7", "R8", "R9", "RV1", "TP2"}
@@ -423,7 +423,7 @@ def classify_region(item: str) -> str | None:
         # inhibit-ish labels left of decode headers
         if name in {"INH_EN_n", "INH_HS", "INH_LS", "INH_LS_en"} and x < 230:
             return "inh_flat"
-        if name in {"YB65", "YB66", "CCS_RET", "VDRIVE"} and 191 < y < 380 and x < 200:
+        if name in {"YA65", "YB65", "YB66", "CCS_RET", "VDRIVE"} and 191 < y < 380 and x < 200:
             return "inh_flat"
         if name in ADDR_NETS + EN_NETS and y >= 190 and x >= 200:
             return "decode_ctrl"
@@ -506,9 +506,9 @@ def build_inhibit_page(sch: str) -> str:
     ]
     libs = "\n".join(extract_lib(sch, lid) for lid in lib_ids)
     o: list[str] = [
-        text("INHIBIT — series YB65→fold→YB66→CCS", 20, 20, 1.524),
+        text("INHIBIT — series YA65→fold→YB66→CCS", 20, 20, 1.524),
         text(
-            "FDS8958A P→YB65 / N→YB66→CCS_RET. Both TC4427A: HS←INH_EN_n, "
+            "FDS8958A P→YA65 / N→YB66→CCS_RET. Both TC4427A: HS←INH_EN_n, "
             "LS←INH_LS_en (2N7002 invert). Caps on Decoupling VDRIVE.",
             20,
             28,
@@ -549,7 +549,7 @@ def build_inhibit_page(sch: str) -> str:
         wire(d1_7, (d1_7[0], dy_hs)),
         wire((d1_7[0], dy_hs), (round(d1_7[0] + 15.24, 2), dy_hs)),
         junction((d1_7[0], dy_hs)),
-        hier("YB65", "passive", (round(d1_7[0] + 15.24, 2), dy_hs)),
+        hier("YA65", "passive", (round(d1_7[0] + 15.24, 2), dy_hs)),
     ]
     dy_ls = round((d2_5[1] + d2_6[1]) / 2, 2)
     o += [
@@ -945,11 +945,11 @@ def main() -> None:
     print("Wrote decode_ctrl.kicad_sch")
 
     # Rebuild root body: keep + new sheets/stubs/titles (no flat sense/ccs/inh/decode_ctrl)
-    sense_left = ["YB65", "YB66"]
+    sense_left = ["YA65", "YB66"]
     sense_right: list[str] = []
     ccs_left = ["CCS_RET"]
     inh_left = ["INH_EN_n", "VDRIVE", "CCS_RET"]
-    inh_right = ["YB65", "YB66"]
+    inh_right = ["YA65", "YB66"]
     dec_ctrl_right = ADDR_NETS + EN_NETS
 
     # Layout: left column for Sense/CCS/Inhibit/DecodeCtrl; Drive/Decode stay

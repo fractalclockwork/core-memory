@@ -6,7 +6,7 @@
 	(paper "A3")
 	(title_block
 		(title "Sense")
-		(comment 1 "TLV3501 / 74AHC74 latch (beads on ferrite_beads)")
+		(comment 1 "TLV3501 / 74AHC74; 1k from YA65 to SENSE_P and YB66 to SENSE_N")
 	)
 	(lib_symbols
 		(symbol "74xx:74LS74"
@@ -2220,7 +2220,8 @@
 		)
 		(uuid "436f8aeb-b5df-4604-a210-9ef72fa10278")
 	)
-	(label "YA66"
+	(hierarchical_label "YA65"
+		(shape passive)
 		(at 46.99 63.5 0)
 		(effects
 			(font

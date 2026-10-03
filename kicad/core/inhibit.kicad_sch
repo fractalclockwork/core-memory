@@ -6,7 +6,7 @@
 	(paper "A3")
 	(title_block
 		(title "Inhibit")
-		(comment 1 "Series inhibit on folded sense; TC4427A×2")
+		(comment 1 "Series inhibit YA65 through center tap to YB66; TC4427A×2")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x01"
@@ -1475,7 +1475,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "INHIBIT — series YB65→fold→YB66→CCS"
+	(text "INHIBIT — series YA65→fold→YB66→CCS"
 		(exclude_from_sim no)
 		(at 20 20 0)
 		(effects
@@ -1486,7 +1486,7 @@
 		)
 		(uuid "81f88f27-c9ad-4c91-a247-e3adea4707c5")
 	)
-	(text "FDS8958A P→YB65 / N→YB66→CCS_RET. Both TC4427A: HS←INH_EN_n, LS←INH_LS_en (2N7002 invert). Caps on Decoupling VDRIVE."
+	(text "FDS8958A P→YA65 / N→YB66→CCS_RET. Both TC4427A: HS←INH_EN_n, LS←INH_LS_en (2N7002 invert). Caps on Decoupling VDRIVE."
 		(exclude_from_sim no)
 		(at 20 28 0)
 		(effects
@@ -1965,7 +1965,7 @@
 		)
 		(uuid "98dfbfa0-eb39-41d8-ae5a-2ae8bd85cef9")
 	)
-	(hierarchical_label "YB65"
+	(hierarchical_label "YA65"
 		(shape passive)
 		(at 105.4 76.19 0)
 		(effects

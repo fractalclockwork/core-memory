@@ -56,7 +56,7 @@ Examples: `XA0`, `XB0`, `YA17`, `YB63`. Physical contact number = \(n+1\).
 | Analog / power | `VDRIVE`, `CCS_RET`, `SENSE_P`, `SENSE_N`, `AGND`, `+3V3`, `+5V` |
 | Sense / fold (not Drive/Decode hierarchy) | `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` |
 
-Fold model: two half-loops `YA65`↔`YA66` and `YB65`↔`YB66`, shunt **`YA65`═`YB65`**, soft mid 10 kΩ→AGND at the fold. Full series ends: `YA66` / `YB66`. Schematic fold-mid node is **`SENSE_FOLD`** (not `YA65_66`); for now it is tied to **`YA65`** on the Magnetic Cores sheet. See [theory_of_operation.md](theory_of_operation.md).
+Fold model: two independent loops `YA65`↔`YA66` and `YB65`↔`YB66`. The plane does not join them. Schematic center-tap node is **`SENSE_FOLD`**: `YA66` tied to `YB65`, soft ground 10 kΩ→AGND. Outer ends: `YA65` / `YB66`. See [theory_of_operation.md](theory_of_operation.md).
 
 ## 5. Hierarchical block ABI (reusable sheets)
 

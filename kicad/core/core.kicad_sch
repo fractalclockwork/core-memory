@@ -6,7 +6,7 @@
 	(paper "A1")
 	(title_block
 		(title "Core Memory Driver")
-		(comment 1 "Bowtie FB_A/FB_B; soft YA mid; iso + clamps; TLV3501; 74AHC74")
+		(comment 1 "2x2 MCE; YA66=YB65 center tap; YA65/YB66 sense and inhibit; TLV3501; 74AHC74")
 	)
 	(lib_symbols
 		(symbol "74xx:74HC138"
@@ -5737,7 +5737,7 @@
 		)
 		(uuid "9d92cf77-c937-42e1-b3b3-4b7cf9fa096e")
 	)
-	(text "YA65≡YA66 mid-shunt (soft ground)"
+	(text "YA66≡YB65 center tap (10k soft ground)"
 		(exclude_from_sim no)
 		(at 124.968 42.522 0)
 		(effects
@@ -5759,7 +5759,7 @@
 		)
 		(uuid "eede2580-508d-44b6-a9ac-91a3639020ed")
 	)
-	(text "Inhibit for WRITE/RESTORE 0 only. P: VDRIVE→YB65; N: YB66→CCS_RET. TC4427/4426 from INH_EN_n (10k to +3V3). Do not dump into AGND or SENSE_*."
+	(text "Inhibit for WRITE/RESTORE 0 only. P: VDRIVE→YA65; N: YB66→CCS_RET. TC4427 from INH_EN_n (10k to +3V3). Do not dump into AGND or SENSE_*."
 		(exclude_from_sim no)
 		(at 18.034 315.976 0)
 		(effects
@@ -6462,7 +6462,7 @@
 		)
 		(uuid "05a2dedc-eee5-48ed-88a2-7afee9be7365")
 	)
-	(label "YB65"
+	(label "YA65"
 		(at 85.16 145.08 0)
 		(effects
 			(font
@@ -6802,7 +6802,7 @@
 		)
 		(uuid "93c7e02c-a321-4285-bc29-359f5d404afc")
 	)
-	(label "YB65"
+	(label "YA65"
 		(at 9.84 30.08 180)
 		(effects
 			(font
@@ -7002,7 +7002,7 @@
 		)
 		(uuid "e733e558-7509-45a8-82fb-f4c588657e1e")
 	)
-	(label "YB65"
+	(label "YA65"
 		(at 89.84 30.08 180)
 		(effects
 			(font
@@ -7763,7 +7763,7 @@
 				(justify left top)
 			)
 		)
-		(pin "YB65" passive
+		(pin "YA65" passive
 			(at 20 30.08 180)
 			(uuid "c01ffc90-fde5-4205-b6c0-75096e231dcc")
 			(effects
@@ -7917,7 +7917,7 @@
 				(justify left)
 			)
 		)
-		(pin "YB65" passive
+		(pin "YA65" passive
 			(at 75 145.08 0)
 			(uuid "3b16af02-f24e-4ca1-8742-5ae29162d852")
 			(effects
@@ -8181,7 +8181,7 @@
 				(justify left top)
 			)
 		)
-		(pin "YB65" passive
+		(pin "YA65" passive
 			(at 100 30.08 180)
 			(uuid "3a4e8417-e473-488b-9901-48b7e8fb70f7")
 			(effects

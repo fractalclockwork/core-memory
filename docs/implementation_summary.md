@@ -6,7 +6,7 @@ Part rationale: [component_selection.md](component_selection.md). Architecture: 
 
 ## Architecture
 
-Three-wire cores (X, Y, sense)—no separate inhibit winding. Folded sense is two half-loops (`YA65`↔`YA66`, `YB65`↔`YB66`) shunted at **`YA65`═`YB65`**; full path `YA66`↔`YB66` is shared for differential READ and series inhibit. Drive is coincident half-select into a shared CCS (`CCS_RET`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
+Three-wire cores (X, Y, sense)—no separate inhibit winding. Sense/inhibit is two independent loops (`YA65`↔`YA66`, `YB65`↔`YB66`), joined on the driver at **`YA66`═`YB65`**. Outer ends `YA65`/`YB66` are shared for differential READ and series inhibit. The schematic array is the 2×2 on Magnetic Cores (one diagonal per loop). Drive is coincident half-select into a shared CCS (`CCS_RET`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
 
 ```
 ADDR_XH/XL[2:0] ──┐
@@ -22,7 +22,7 @@ DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
                            ▼
                       CCS_RET / plane
                            │
-                  YB65/66 sense + inhibit (FDS8958A + TC4427A×2)
+                  YA65/YB66 sense + inhibit (FDS8958A + TC4427A×2)
 ```
 
 **Fail-safe:** `DEC_EN` pull-down (off); `FWD_EN_n` / `REV_EN_n` pull-up (inactive). Disabled **138** outputs HIGH → TC4427 → P-FET gates HIGH (off). Disabled **238** outputs LOW → TC4427 → N-FET gates LOW (off). HS inputs `*_n` have 10k pull-ups; LS inputs `*_en` have 10k pull-downs. Never assert both bank enables.
@@ -32,10 +32,10 @@ DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
 | Block | What it does |
 |-------|--------------|
 | Sense | Sheet `sense`: 1k iso, BAT54S, TLV3501 → 74AHC74 |
-| Magnetic Cores | Sheet `ferrite_beads`: MCE00–MCE11 2×2; fold mid `SENSE_FOLD` (tied to `YA65` for now) |
+| Magnetic Cores | Sheet `ferrite_beads`: MCE00–MCE11 2×2; center tap `SENSE_FOLD` (`YA66`═`YB65`) |
 | CCS | Sheet `ccs`: TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; `CCS_RET` out |
 | Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`NAn`/`NBn`; root = X0 FWD |
-| Inhibit | Sheet `inhibit`: FDS8958A on YB65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
+| Inhibit | Sheet `inhibit`: FDS8958A on YA65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
 | Decode | Sheet `decode_block`: one axis 138+238 + C19/C20; pins `N_HS{0..7}_n`/`N_LS{0..7}_en`; root = X FWD |
 | Decode CTRL | Sheet `decode_ctrl`: J40–J54 / R40–R54 ADDR + bank enables |
 | Decoupling Logic | Sheet `decoupling_logic`: +3V3/+5V bypass (Sense/Latch/CCS) |
@@ -93,16 +93,16 @@ After CCS setpoint:
 3. Inhibit (`INH_EN_n`) if restoring/writing 0
 4. Pulse `REV_EN_n` → WRITE (+Ic/2)
 
-Plane hookup: XA0/XB0 (driven), XA1/XB1 / YA0/YB0 / YA1/YB1 on the Magnetic Cores sheet (MCE); sense/inhibit attach per **Bring-Up Deviations** below.
+Plane hookup: XA0/XB0 (driven). The 2×2 on Magnetic Cores also exposes XA1/XB1 and YA0/YB0 / YA1/YB1 for address stimuli. Sense/inhibit outer ends are `YA65`/`YB66`; the center tap is `YA66`═`YB65` (`SENSE_FOLD`, 10 kΩ to AGND).
 
-## Bring-Up Deviations
+## Array model
 
-Temporary 1×1 test-state attach points. These are **not** the normative fold topology in [design_spec.md](design_spec.md) / [naming.md](naming.md); do not “resolve” them into the architecture docs.
+The Magnetic Cores sheet is the sim fixture for coincident address and the series sense string. It is a 2×2 stand-in for core count, not a second fold topology. Drive FET population is still one `drive_block` (X0 FWD); the other three line pairs are stimulated at the Magnetic Cores pins.
 
-- **Normative full fold:** two half-loops `YA65`↔`YA66` and `YB65`↔`YB66`, shunt `YA65`═`YB65`, series ends `YA66` / `YB66` for differential READ and series inhibit.
-- **1×1 schematic today:** Inhibit sheet and Sense probe attach on the **YB half only** (`YB65` / `YB66`). Magnetic Cores fold mid is `SENSE_FOLD`, presently tied to `YA65` (same net as the `YA65`═`YB65` shunt).
-- **Why:** prove the READ → STROBE → INHIBIT → WRITE cycle on one core before wiring the full series path through both halves.
-- **Exit criterion:** when cloning past bring-up, move Sense/Inhibit to `YA66`↔`YB66` and drop this section.
+- **Loop A:** `YA65` ↔ MCE00 ↔ MCE11 ↔ `YA66` (stands in for 2,048 cores).
+- **Loop B:** `YB65` ↔ MCE10 ↔ MCE01 ↔ `YB66` (the other 2,048).
+- **Center tap:** `YA66`═`YB65`, R1 10 kΩ→AGND. The plane does not join the loops.
+- **Outer ends:** `YA65` / `YB66` for differential READ and series inhibit.
 
 ## Not implemented yet
 

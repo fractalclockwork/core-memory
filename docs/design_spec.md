@@ -12,7 +12,7 @@ Normative plane interface, drive architecture, and timing contract. Narrative co
     * **Y-Axis (YA, YB):** 66 pins total. Requires a 33-position, dual-readout staggered receptacle.
 * **Matrix Capacity:** 64×64 bidirectional drive lines yield exactly 4,096 cores (512 bytes).
 * **Pin numbering vs address:** Physical edge contacts are labeled **1–64** (drive) plus Y **65/66** (sense). Schematic and firmware address drive lines **0–63**. Mapping: physical pin \(p\) ↔ logical index \(p-1\). Pins 65/66 are **not** drive lines and are **not** part of the Drive/Decode hierarchical pin chain — see §1.1 and §2.
-* **Midpoint Shunt:** Sense is two half-loops (`YA65`↔`YA66` and `YB65`↔`YB66`) joined by a fold shunt **`YA65`═`YB65`**. The full series path is `YA66` → YA half → fold → YB half → `YB66`. (Earlier text that described an YA65–YA66 bare-wire fold was incorrect.) [[cite: 1](references.md#core-plane-physical-evidence), [cite: 2](references.md#core-plane-physical-evidence)]
+* **Dual sense loops:** Pins 65/66 on YA and YB are two independent loops, 2,048 cores each (`YA65`↔`YA66` and `YB65`↔`YB66`). The plane does not join them. Each loop’s DCR and inductance are half of a single weave through all 4,096 cores. The driver ties `YA66`═`YB65` (external center tap) so the series path is `YA65` → Loop A → jumper → Loop B → `YB66`. Series connection restores the full-array L and DCR. [[cite: 1](references.md#core-plane-physical-evidence), [cite: 2](references.md#core-plane-physical-evidence)]
 
 ### 1.1 Three naming layers (keep separate)
 
@@ -20,10 +20,10 @@ Normative net grammar, block ABI, buses, and scale path: **[naming.md](naming.md
 
 ## 2. Sense and Inhibit Architecture (Pins 65 & 66)
 Each core is a **three-wire** element (X, Y, sense). There is **no separate inhibit winding**; inhibit is series current on the folded sense wire, time-multiplexed with READ.
-* **Two half-loops + fold:** YA loop `YA65`↔`YA66`; YB loop `YB65`↔`YB66`; fold shunt **`YA65`═`YB65`**. Full path ends: `YA66` / `YB66`.
-* **Common-Mode Noise Rejection (Read Phase):** A high-speed differential comparator (schematic: TLV3501; see [component_selection.md](component_selection.md)) across the fold ends isolates the millivolt flip spike. Classic techniques: [AN13](appnotes/an13f.pdf). Temporary 1×1 attach points: [implementation_summary.md § Bring-Up Deviations](implementation_summary.md#bring-up-deviations).
-* **Center-Tap Bias:** Soft-bias the fold mid `YA65`/`YB65` (schematic: 10 kΩ → AGND), not a hard AGND short, so inhibit current traverses both halves into the CCS.
-* **Series Inhibit Drive (Write Phase):** Source/sink \(-I_c/2\) on `YA66`↔`YB66` so current flows one half, crosses `YA65`═`YB65`, and returns through the other half — all cores in series.
+* **Two loops + external fold:** Loop A `YA65`↔`YA66`; Loop B `YB65`↔`YB66`. Driver jumper **`YA66`═`YB65`**. Outer ends: `YA65` / `YB66`. The 2×2 on Magnetic Cores is the schematic stand-in (one diagonal per loop).
+* **Common-Mode Noise Rejection (Read Phase):** A high-speed differential comparator (schematic: TLV3501; see [component_selection.md](component_selection.md)) across `YA65` / `YB66` isolates the millivolt flip spike. Classic techniques: [AN13](appnotes/an13f.pdf).
+* **Center-Tap Bias:** Soft-bias the center tap `YA66`/`YB65` (schematic: 10 kΩ → AGND), not a hard AGND short, so inhibit current traverses both loops into the CCS.
+* **Series Inhibit Drive (Write Phase):** Source \(V_{drive}\) into `YA65` and sink `YB66` to `CCS_RET` at \(-I_c/2\), so current flows Loop A, crosses `YA66`═`YB65`, and returns through Loop B — all cores in series. A parallel-drive alternative (both loops at once, two comparators) is deferred; see [design_choices.md](design_choices.md).
 
 ## 3. Drive Architecture (64x64 Matrix)
 * **Matrix Structure:** Group the 64 lines per axis into 8 rows and 8 columns. Implement 8 High-Side source switches and 8 Low-Side sink switches per axis, per direction (Forward for READ, Reverse for WRITE).
@@ -37,8 +37,8 @@ Each core is a **three-wire** element (X, Y, sense). There is **no separate inhi
 ## 5. Timing & Sequencing
 Core memory operations require sub-microsecond, deterministic pulse sequencing. A READ destroys the data, so every access is a READ / RESTORE cycle.
 1. **READ Phase:** Drive $-I_c/2$ into the target X and Y lines. 
-2. **SENSE STROBE:** Wait ~150-300ns for capacitive ringing to settle, then clock the D-flip-flop connected to the YB 65/66 differential comparator.
-3. **INHIBIT Phase:** If writing/restoring a '0', drive $-I_c/2$ on the full fold ends `YA66`↔`YB66` (1×1 bring-up may use the YB half only — [Bring-Up Deviations](implementation_summary.md#bring-up-deviations)).
+2. **SENSE STROBE:** Wait ~150-300ns for capacitive ringing to settle, then clock the D-flip-flop connected to the differential comparator across `YA65` / `YB66`.
+3. **INHIBIT Phase:** If writing/restoring a '0', drive $-I_c/2$ from `YA65` through the `YA66`═`YB65` center tap and out `YB66`.
 4. **WRITE Phase:** Drive $+I_c/2$ into the target X and Y lines.
 
 Standard software bit-banging will introduce cycle jitter that corrupts memory. Utilizing hardware-level programmable state machines—such as the PIO (Programmable I/O) blocks on an RP2040/Raspberry Pi Pico—driven by tight C or Assembly routines allows for multi-phase sub-microsecond sequence execution with absolute cycle accuracy independent of the main CPU clock.

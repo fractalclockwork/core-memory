@@ -4,8 +4,8 @@
 
 Citations `[cite: 1]` and `[cite: 2]` in [design_spec.md](design_spec.md) refer to inspection of the existing 9″ core PCB:
 
-1. **Top face / primary inspection** — odd-numbered edge contacts on the top face; XA/XB/YA/YB labeling; sense fold at **YA65═YB65** (two half-loops YA65↔YA66 and YB65↔YB66). See [img/top.jpeg](img/top.jpeg), [img/core_pcb_top.png](img/core_pcb_top.png), and the annotated GIMP source [img/core_pcb.xcf](img/core_pcb.xcf).
-2. **Bottom face** — even-numbered contacts on the bottom face; complementary view of the fold and connector stagger. See [img/bot.jpeg](img/bot.jpeg), [img/core_pcb_bot_mirror.png](img/core_pcb_bot_mirror.png).
+1. **Top face / primary inspection** — odd-numbered edge contacts on the top face; XA/XB/YA/YB labeling; four sense/inhibit terminals `YA65`, `YA66`, `YB65`, `YB66` (two independent 2,048-core loops; the series jumper is on the driver, not the plane). See [img/top.jpeg](img/top.jpeg), [img/core_pcb_top.png](img/core_pcb_top.png), and the annotated GIMP source [img/core_pcb.xcf](img/core_pcb.xcf).
+2. **Bottom face** — even-numbered contacts on the bottom face; complementary view of the sense terminals and connector stagger. See [img/bot.jpeg](img/bot.jpeg), [img/core_pcb_bot_mirror.png](img/core_pcb_bot_mirror.png).
 
 ## Coincident-current cores
 

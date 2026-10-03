@@ -55,7 +55,7 @@ Isolates the differential read pulse from common-mode noise and protect the amp 
 
 | MPN | Role | Package | Key params | Alternate | Datasheet |
 |-----|------|---------|------------|-----------|-----------|
-| BAT54S | Dual series Schottky clamp | SOT-23 | Clamp YB65/66 to rails | BAT54C | [bat54s.pdf](datasheets/bat54s.pdf) |
+| BAT54S | Dual series Schottky clamp | SOT-23 | Clamp YA65/YB66 to rails | BAT54C | [bat54s.pdf](datasheets/bat54s.pdf) |
 | TLV3501 | High-speed comparator (Sense) | SOT-23-5 / SOIC | 4.5 ns tpd, 3.3 V logic out | LT1016 (legacy ±5 V class) | [tlv3501.pdf](datasheets/tlv3501.pdf) |
 | 74AHC74 | D flip-flop read latch | SOIC-14 | Captures comparator on SENSE STROBE | 74LVC74 | [sn74ahc74.pdf](datasheets/sn74ahc74.pdf) |
 

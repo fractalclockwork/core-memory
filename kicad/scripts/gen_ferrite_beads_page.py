@@ -361,13 +361,14 @@ def build_bowtie_page(sch_src: str) -> str:
     a, b = bead_pins(ax, ay), bead_pins(bx, by)
     o += [wire(a["x2"], b["x1"]), wire(a["y2"], b["y1"])]
     mid = (round((a["s2"][0] + b["s1"][0]) / 2, 2), a["s2"][1])
-    # Fold mid node is SENSE_FOLD; tied to YA65 for now (naming.md).
+    # Center tap is YA66═YB65 (SENSE_FOLD), not an on-plane YA65 shunt.
     o += [
         wire(a["s2"], mid),
         wire(mid, b["s1"]),
         junction(mid),
         label("SENSE_FOLD", mid),
-        label("YA65", (round(mid[0] + 2.54, 2), mid[1])),
+        label("YA66", (round(mid[0] + 2.54, 2), mid[1])),
+        label("YB65", (round(mid[0] + 5.08, 2), mid[1])),
     ]
 
     r1 = (mid[0], mid[1] + 20.32)
@@ -380,7 +381,7 @@ def build_bowtie_page(sch_src: str) -> str:
     o += [wire(ag, flg), power("power:PWR_FLAG", "#FLG_AGND", "PWR_FLAG", flg[0], flg[1])]
 
     for name, pin, rot, dx in [
-        ("XA0", a["x1"], 180, -7.62), ("YA0", a["y1"], 180, -7.62), ("YB65", a["s1"], 180, -7.62),
+        ("XA0", a["x1"], 180, -7.62), ("YA0", a["y1"], 180, -7.62), ("YA65", a["s1"], 180, -7.62),
         ("XB0", b["x2"], 0, 7.62), ("YB0", b["y2"], 0, 7.62), ("YB66", b["s2"], 0, 7.62),
     ]:
         end = (round(pin[0] + dx, 2), pin[1])
@@ -391,7 +392,7 @@ def build_bowtie_page(sch_src: str) -> str:
     r2l, r2r = pin_xy(r2[0], r2[1], 0, 3.81, 90), pin_xy(r2[0], r2[1], 0, -3.81, 90)
     o += [
         wire(r2l, (round(r2l[0] - 5.08, 2), r2l[1])),
-        label("YB65", (round(r2l[0] - 5.08, 2), r2l[1]), 180),
+        label("YA65", (round(r2l[0] - 5.08, 2), r2l[1]), 180),
         wire(r2r, (round(r2r[0] + 5.08, 2), r2r[1])),
         label("YB66", (round(r2r[0] + 5.08, 2), r2r[1]), 0),
     ]
@@ -418,7 +419,7 @@ def build_grid_page(sch_src: str) -> str:
         text(
             "MAGNETIC CORES — 2×2 MCE\\n"
             "XA→XB top→bottom; YA→YB right→left\\n"
-            "Sense: LL→UR diagonal (MCE10/MCE01 mirrored about Y), center tap, then LR→UL",
+            "Sense loops: YA65–MCE00–MCE11–YA66 and YB65–MCE10–MCE01–YB66; center tap YA66=YB65",
             20, 15, 1.524,
         ),
     ]
@@ -473,23 +474,24 @@ def build_grid_page(sch_src: str) -> str:
     fb10_left = p10["y2"] if mirror["MCE10"] else p10["y1"]
     o += stub_hier("YB1", fb10_left, rot=180, dx=-10.16)
 
-    # --- Sense diagonals + center tap ---
-    # First diagonal (mirrored MCE10/MCE01): YB65 → MCE10.S2 → MCE10.S1 → MCE01.S2 → MCE01.S1 → mid
-    # Other diagonal (MCE11/MCE00): mid → MCE11.S2 → MCE11.S1 → MCE00.S2 → MCE00.S1 → YB66
+    # --- Sense diagonals + external center tap ---
+    # Loop A: YA65 ↔ MCE00 ↔ MCE11 ↔ YA66
+    # Loop B: YB65 ↔ MCE10 ↔ MCE01 ↔ YB66
+    # YA66 and YB65 meet only at SENSE_FOLD (driver jumper, 10k to AGND).
     mid = (
         round((positions["MCE00"][0] + positions["MCE01"][0]) / 2, 2),
         round((positions["MCE00"][1] + positions["MCE10"][1]) / 2, 2),
     )
-    o += stub_hier("YB65", p10["s2"], rot=180, dx=-10.16)
-    o += [wire(p10["s1"], p01["s2"])]
+    o += stub_hier("YA65", p00["s2"], rot=0, dx=10.16)
+    o += [wire(p00["s1"], p11["s2"]), wire(p11["s1"], mid)]
+    o += [wire(p10["s1"], p01["s2"]), wire(p10["s2"], mid)]
+    o += stub_hier("YB66", p01["s1"], rot=0, dx=10.16)
     o += [
-        wire(p01["s1"], mid),
         junction(mid),
         label("SENSE_FOLD", (mid[0] + 2.54, mid[1])),
-        label("YA65", (mid[0] + 5.08, mid[1])),
+        label("YA66", (mid[0] + 5.08, mid[1])),
+        label("YB65", (mid[0] - 2.54, mid[1]), 180),
     ]
-    o += [wire(mid, p11["s2"]), wire(p11["s1"], p00["s2"])]
-    o += stub_hier("YB66", p00["s1"], rot=180, dx=-10.16)
 
     # Soft mid R1
     r1 = (mid[0], mid[1] + 25.4)
@@ -501,20 +503,20 @@ def build_grid_page(sch_src: str) -> str:
     flg = (ag[0], ag[1] + 10.16)
     o += [wire(ag, flg), power("power:PWR_FLAG", "#FLG_AGND", "PWR_FLAG", flg[0], flg[1])]
 
-    # R2 DNP across YB65/YB66
+    # R2 DNP across outer ends YA65/YB66
     r2 = (mid[0] + 40.64, mid[1] + 25.4)
     o.append(symbol_inst("Device:R", "R2", "DNP", r2[0], r2[1], ["1", "2"], rot=90, dnp=True, footprint=FP_R))
     r2l, r2r = pin_xy(r2[0], r2[1], 0, 3.81, 90), pin_xy(r2[0], r2[1], 0, -3.81, 90)
     o += [
         wire(r2l, (round(r2l[0] - 5.08, 2), r2l[1])),
-        label("YB65", (round(r2l[0] - 5.08, 2), r2l[1]), 180),
+        label("YA65", (round(r2l[0] - 5.08, 2), r2l[1]), 180),
         wire(r2r, (round(r2r[0] + 5.08, 2), r2r[1])),
         label("YB66", (round(r2r[0] + 5.08, 2), r2r[1]), 0),
     ]
 
     return page_header(
         "Magnetic Cores",
-        "2x2 MCE; X top/bot Y L/R S diagonal; MCE01/MCE10 mirror Y",
+        "2x2 MCE; X/Y address weave; sense loops joined at YA66=YB65",
         BEADS_UUID,
         libs,
     ) + "\n".join(o) + "\n" + page_footer(BEADS_UUID)
@@ -765,7 +767,7 @@ def strip_sheet_and_stubs(sch: str, sheet_files: set[str], pin_nets_near: set[tu
                 if head.startswith("(label"):
                     m = re.match(r'\s*\(label "([^"]+)"', it)
                     if m and m.group(1) in {
-                        "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
+                        "YA65", "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
                         "XA1", "XB1", "YA1", "YB1",
                     }:
                         continue
@@ -817,7 +819,7 @@ def update_root(phase: int) -> None:
                 if head.startswith("(label"):
                     m = re.match(r'\s*\(label "([^"]+)"', it)
                     if m and m.group(1) in {
-                        "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
+                        "YA65", "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
                         "XA1", "XB1", "YA1", "YB1",
                     }:
                         continue
@@ -831,7 +833,7 @@ def update_root(phase: int) -> None:
                 if head.startswith("(label"):
                     m = re.match(r'\s*\(label "([^"]+)"', it)
                     if m and m.group(1) in {
-                        "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
+                        "YA65", "YB65", "YB66", "XA0", "XB0", "YA0", "YB0",
                         "XA1", "XB1", "YA1", "YB1",
                     }:
                         continue
@@ -842,16 +844,16 @@ def update_root(phase: int) -> None:
                         continue
         keep.append(it)
 
-    # Place Sense (YB65/YB66 only) and Ferrite Beads
+    # Place Sense (YA65/YB66 outer ends) and Magnetic Cores
     sx_sense, sy_sense = 20.0, 25.0
     sx_beads, sy_beads = 100.0, 25.0
 
-    sense_pins = [("YB65", "passive", "left"), ("YB66", "passive", "left")]
+    sense_pins = [("YA65", "passive", "left"), ("YB66", "passive", "left")]
     if phase == 1:
-        beads_left = ["YB65", "YB66"]
+        beads_left = ["YA65", "YB66"]
         beads_right = ["XA0", "XB0", "YA0", "YB0"]
     else:
-        beads_left = ["YB65", "YB66", "YB0", "YB1"]
+        beads_left = ["YA65", "YB66", "YB0", "YB1"]
         beads_right = ["XA0", "XA1", "XB0", "XB1", "YA0", "YA1"]
 
     beads_pins = (
@@ -866,7 +868,7 @@ def update_root(phase: int) -> None:
 
     o += [
         sheet_box("Sense", "sense.kicad_sch", SENSE_UUID, "6", sx_sense, sy_sense, sense_pins, w=45, h=20),
-        *stub_pins(sx_sense, sy_sense, ["YB65", "YB66"], [], w=45),
+        *stub_pins(sx_sense, sy_sense, ["YA65", "YB66"], [], w=45),
         sheet_box(
             "Magnetic Cores",
             "ferrite_beads.kicad_sch",

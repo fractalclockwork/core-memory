@@ -6,7 +6,7 @@
 	(paper "A3")
 	(title_block
 		(title "Magnetic Cores")
-		(comment 1 "2x2 MCE; X top/bot Y L/R S diagonal; MCE01/MCE10 mirror Y")
+		(comment 1 "2x2 MCE; X/Y address weave; sense loops YA65-YA66 and YB65-YB66; center tap YA66=YB65")
 	)
 	(lib_symbols
 		(symbol "Device:R"
@@ -858,7 +858,7 @@
 	)
 	(wire
 		(pts
-			(xy 107.95 49.53) (xy 140.97 49.53)
+			(xy 107.95 49.53) (xy 120.65 49.53)
 		)
 		(stroke
 			(width 0)
@@ -968,7 +968,7 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 49.53) (xy 140.97 138.43)
+			(xy 153.67 110.49) (xy 153.67 138.43)
 		)
 		(stroke
 			(width 0)
@@ -986,8 +986,9 @@
 		)
 		(uuid "f75dd9f8-fa93-4850-82ee-e99d7ce5d5ff")
 	)
-	(label "YA65"
-		(at 143.51 114.3 0)
+	(hierarchical_label "YA65"
+		(shape passive)
+		(at 120.65 49.53 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1016,7 +1017,8 @@
 		)
 		(uuid "99d42b1b-9166-4238-a16a-43add60a32a4")
 	)
-	(label "YB66"
+	(hierarchical_label "YB66"
+		(shape passive)
 		(at 81.28 90.17 180)
 		(effects
 			(font
@@ -1048,8 +1050,7 @@
 		)
 		(uuid "59d801ba-e315-4692-8ac3-cd4f894e448f")
 	)
-	(hierarchical_label "YB65"
-		(shape passive)
+	(label "YB65"
 		(at 87.63 100.33 180)
 		(effects
 			(font
@@ -1792,6 +1793,130 @@
 				)
 			)
 		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 210 160 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
+		(dnp yes)
+		(uuid "c4e8a1b2-7d30-4f6a-9c11-2b8e5f0a6d44")
+		(property "Reference" "R2"
+			(at 212.54 155.5 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "DNP"
+			(at 212.54 157.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 210 160 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" ""
+			(at 210 160 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" ""
+			(at 210 160 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "1"
+			(uuid "a91c0e55-2b14-4d77-8e30-6f4b1c8a2d09")
+		)
+		(pin "2"
+			(uuid "b72d1f66-3c25-4e88-9f41-705c2d9b3e10")
+		)
+		(instances
+			(project "core"
+				(path "/fabf9ba2-76e6-4325-a1a0-bc01b9516551/a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 210 156.19) (xy 210 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d15e2a77-4d36-4f99-a052-816d3e0c4f21")
+	)
+	(wire
+		(pts
+			(xy 210 163.81) (xy 210 168.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e26f3b88-5e47-40aa-b163-927e4f1d5032")
+	)
+	(label "YA65"
+		(at 210 151.13 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f37a4c99-6f58-41bb-c274-a38f502e6143")
+	)
+	(label "YB66"
+		(at 210 168.91 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "048b5daa-7069-42cc-d385-b490613f7254")
 	)
 	(symbol
 		(lib_id "power:GND")

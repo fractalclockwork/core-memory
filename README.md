@@ -2,7 +2,7 @@
 
 Electronics for driving and sensing an existing 9″ square ferrite core plane: a 64×64 array (4,096 bits / 512 bytes) with dual-readout edge connectors XA/XB and YA/YB.
 
-Each core is **three-wire** (X, Y, sense)—there is no separate inhibit winding. The folded sense loop (YB65/YB66 via YA65/66) is shared for differential READ and series WRITE-0 inhibit; see [docs/theory_of_operation.md](docs/theory_of_operation.md).
+Each core is **three-wire** (X, Y, sense)—there is no separate inhibit winding. Sense/inhibit is two independent 2,048-core loops (`YA65`↔`YA66` and `YB65`↔`YB66`). The driver ties `YA66` to `YB65` and reads/drives the outer ends `YA65`/`YB66`; see [docs/theory_of_operation.md](docs/theory_of_operation.md).
 
 ## Documentation
 
