@@ -21,8 +21,8 @@ uv sync
 uv run python kicad/scripts/gen_xy_drive_page.py   # drive_block.kicad_sch (N/n pins; local VDRIVE bypass; X0 FWD)
 uv run python kicad/scripts/gen_xy_decode_page.py  # decode_block.kicad_sch (N/n pins; local +3V3 bypass; X FWD)
 uv run python kicad/scripts/gen_decoupling_pages.py  # shared Sense/Latch/CCS + Inhibit caps; regen blocks
-uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 2  # 2×2 CoreBead stand-in page
+uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 2  # 2×2 MCE page
 uv run python kicad/scripts/gen_core_element_sim.py  # isolated core-element SPICE testbench
 ```
 
-The core-element model is a separate KiCad project at [kicad/core_element_sim/](kicad/core_element_sim/), not part of the driver schematic. The parameters, the run, and the comparison with published sense pulses are in [docs/core_element_sim.md](docs/core_element_sim.md).
+The core-element model is exercised on its own in [kicad/core_element_sim/](kicad/core_element_sim/). The driver places that model as MCE, four cores on the Magnetic Cores sheet. Parameters, the run, and the comparison with published sense pulses are in [docs/core_element_sim.md](docs/core_element_sim.md).

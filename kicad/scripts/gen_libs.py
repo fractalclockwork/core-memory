@@ -343,6 +343,73 @@ def opa192_symbol() -> str:
 \t)"""
 
 
+def mce_symbol() -> str:
+    """50-mil 3-wire core. Pin places match CoreBead_3W. Body is a 45° toroid."""
+    kappa = 0.5522847498307936
+    theta = math.pi / 4
+    ct, st = math.cos(theta), math.sin(theta)
+
+    def rot(x: float, y: float) -> tuple[float, float]:
+        return (x * ct - y * st, x * st + y * ct)
+
+    def ring(a: float, b: float, width: str) -> str:
+        quads = [
+            ((a, 0), (a, b * kappa), (a * kappa, b), (0, b)),
+            ((0, b), (-a * kappa, b), (-a, b * kappa), (-a, 0)),
+            ((-a, 0), (-a, -b * kappa), (-a * kappa, -b), (0, -b)),
+            ((0, -b), (a * kappa, -b), (a, -b * kappa), (a, 0)),
+        ]
+        lines = []
+        for quad in quads:
+            pts = " ".join(f"(xy {x:.2f} {y:.2f})" for x, y in (rot(px, py) for px, py in quad))
+            lines.append(
+                f"\t\t\t(bezier (pts {pts})\n"
+                f"\t\t\t\t(stroke (width {width}) (type default)) (fill (type none)))"
+            )
+        return "\n".join(lines)
+
+    pins = "\n".join(
+        f'\t\t\t(pin passive line (at {at}) (length 2.54)\n'
+        f'\t\t\t\t(name "{name}" (effects (font (size 1.27 1.27))))\n'
+        f'\t\t\t\t(number "{num}" (effects (font (size 1.27 1.27)))))'
+        for at, name, num in (
+            ("0 7.62 270", "X1", "1"),
+            ("0 -7.62 90", "X2", "2"),
+            ("-7.62 0 0", "Y1", "3"),
+            ("7.62 0 180", "Y2", "4"),
+            ("-7.62 -5.08 0", "S1", "5"),
+            ("7.62 5.08 180", "S2", "6"),
+        )
+    )
+    sim_lib = "../core_element_sim/models/coremem.cir"
+    return f"""\t(symbol "MCE"
+\t\t(pin_names (offset 0))
+\t\t(exclude_from_sim no)
+\t\t(in_bom no)
+\t\t(on_board no)
+\t\t(in_pos_files no)
+\t\t(duplicate_pin_numbers_are_jumpers no)
+\t\t(property "Reference" "MCE" (at 0 10.16 0) (effects (font (size 1.27 1.27))))
+\t\t(property "Value" "MCE" (at 0 -10.16 0) (effects (font (size 1.27 1.27))))
+\t\t(property "Footprint" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Datasheet" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Description" "Magnetic core element: 50-mil 3-wire toroid. X top/bottom, Y left/right, S on the LL to UR diagonal. SPICE model mce in coremem.cir." (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "ki_keywords" "magnetic core memory toroid mce" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Sim.Device" "SUBCKT" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Sim.Name" "mce" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Sim.Library" "{sim_lib}" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+\t\t(symbol "MCE_0_1"
+{ring(5.69, 3.16, "0.381")}
+{ring(3.40, 1.55, "0.254")}
+\t\t)
+\t\t(symbol "MCE_1_1"
+{pins}
+\t\t)
+\t\t(embedded_fonts no)
+\t)"""
+
+
 def main() -> None:
     PRETTY.mkdir(parents=True, exist_ok=True)
     LIB_DIR.mkdir(parents=True, exist_ok=True)
@@ -383,6 +450,7 @@ def main() -> None:
         ),
         fds8958a_symbol(),
         opa192_symbol(),
+        mce_symbol(),
     ]
 
     header = """(kicad_symbol_lib

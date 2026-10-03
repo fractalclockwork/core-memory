@@ -14,7 +14,8 @@
 * Full-select 800 mA -> H ~ 255 A/m (above Hc, flip).
 * Run with UIC so Cm starts at m=+1 (stored +Br).
 *
-* Pins X1 X2 Y1 Y2 S1 S2 match CoreBead_3W. B is a sim-only probe, 1 V = 1 T.
+* Pins X1 X2 Y1 Y2 S1 S2 match the MCE symbol (same places as CoreBead_3W).
+* B is a sim-only probe, 1 V = 1 T. The 6-pin mce wrapper keeps B internal.
 
 .subckt coremem X1 X2 Y1 Y2 S1 S2 B params:
 + Hc=150 Br=0.18 Bs=0.20 Lm=0.00314 A=0.097u Tsw=1u mur=20
@@ -55,4 +56,9 @@ Bsw nS S2 V = {A*Br}*I(Bdm) + {A*mu0*mur}*I(Bhs)
 * Probe clamped to +/- Bs. 1 V on pin B is 1 T.
 BB B 0 V = min({Bs}, max(-{Bs}, {Br}*v(m)+{mu0*mur}*v(H)))
 
+.ends
+
+* Schematic pinout: X1 X2 Y1 Y2 S1 S2. Flux node B stays inside (1 V = 1 T).
+.subckt mce X1 X2 Y1 Y2 S1 S2
+Xcore X1 X2 Y1 Y2 S1 S2 B coremem
 .ends

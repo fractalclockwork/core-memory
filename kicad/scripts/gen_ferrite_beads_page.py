@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Move CoreBead stand-in onto ferrite_beads.kicad_sch; build 2×2 grid.
+"""Place MCE cores on ferrite_beads.kicad_sch; build a 2×2 grid.
 
 Phase 1: strip FB1/FB2 + soft mid from sense; recreate bowtie topology on
-         ferrite_beads; rewire root Sense pins; add Ferrite Beads sheet.
+         ferrite_beads; rewire root Sense pins; add Magnetic Cores sheet.
 Phase 2: replace bowtie with physically oriented 2×2 (XA→XB top→bottom,
          YA→YB right→left; sense on diagonals with center tap after 2 cores).
 
@@ -45,7 +45,7 @@ SHEET_ORDER = [
     (LOGIC_UUID, "Decoupling Logic"),
     (VDRIVE_UUID, "Decoupling VDRIVE"),
     (SENSE_UUID, "Sense"),
-    (BEADS_UUID, "Ferrite Beads"),
+    (BEADS_UUID, "Magnetic Cores"),
     (CCS_UUID, "CCS"),
     (INH_UUID, "Inhibit"),
     (DEC_CTRL_UUID, "Decode CTRL"),
@@ -54,7 +54,12 @@ SHEET_ORDER = [
 BEAD_REFS = {"FB1", "FB2", "R1", "R2", "#PWR_AGND", "#FLG_AGND"}
 PLANE_HIER = {"XA0", "XB0", "YA0", "YB0"}
 FP_R = "Resistor_SMD:R_0805_2012Metric"
-FP_FB = "Inductor_SMD:L_1206_3216Metric"
+MCE_SPICE = [
+    ("Sim.Device", "SUBCKT"),
+    ("Sim.Name", "mce"),
+    ("Sim.Library", "../core_element_sim/models/coremem.cir"),
+    ("Sim.Pins", "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2"),
+]
 
 
 def uid() -> str:
@@ -222,25 +227,30 @@ def no_connect(p):
 \t)'''
 
 
-def symbol_inst(lib_id, ref, value, x, y, pins, *, unit=1, rot=0, dnp=False, footprint="", sheet_uuid=BEADS_UUID, mirror_y=False):
+def symbol_inst(lib_id, ref, value, x, y, pins, *, unit=1, rot=0, dnp=False, footprint="", sheet_uuid=BEADS_UUID, mirror_y=False, bom=None, on_board=True, extra=None):
     pins_s = "\n".join(f'\t\t(pin "{p}"\n\t\t\t(uuid "{uid()}")\n\t\t)' for p in pins)
     mirror_s = "\n\t\t(mirror y)" if mirror_y else ""
+    if bom is None:
+        bom = not dnp
+    extra_s = ""
+    if extra:
+        extra_s = "\n" + "\n".join(prop(n, v, f"{x} {y} 0", hide=True) for n, v in extra)
     return f'''\t(symbol
 \t\t(lib_id "{lib_id}")
 \t\t(at {x} {y} {rot})
 \t\t(unit {unit})
 \t\t(body_style 1)
 \t\t(exclude_from_sim no)
-\t\t(in_bom {"no" if dnp else "yes"})
-\t\t(on_board yes)
-\t\t(in_pos_files yes)
+\t\t(in_bom {"yes" if bom else "no"})
+\t\t(on_board {"yes" if on_board else "no"})
+\t\t(in_pos_files {"yes" if on_board else "no"})
 \t\t(dnp {"yes" if dnp else "no"})
 \t\t(uuid "{uid()}"){mirror_s}
 {prop("Reference", ref, f"{x + 2.54} {y - 12.7} 0")}
 {prop("Value", value, f"{x + 2.54} {y - 10.16} 0")}
 {prop("Footprint", footprint, f"{x} {y} 0", hide=True)}
 {prop("Datasheet", "", f"{x} {y} 0", hide=True)}
-{prop("Description", "", f"{x} {y} 0", hide=True)}
+{prop("Description", "", f"{x} {y} 0", hide=True)}{extra_s}
 {pins_s}
 \t\t(instances (project "{PROJECT}" (path "/{ROOT_UUID}/{sheet_uuid}" (reference "{ref}") (unit {unit}))))
 \t)'''
@@ -297,7 +307,7 @@ def page_footer(page_uuid: str) -> str:
 
 
 def bead_pins(sx: float, sy: float, *, mirror_y: bool = False) -> dict[str, tuple[float, float]]:
-    """Pin positions for CoreBead_3W: X top/bot, Y L/R, S on LL→UR diagonal.
+    """Pin positions for MCE: X top/bot, Y L/R, S on LL→UR diagonal.
 
     mirror_y flips about the Y axis (left↔right): S diagonal becomes LR↔UL.
     """
@@ -335,7 +345,7 @@ def libs_block(sch_src: str, lib_ids: list[str]) -> str:
 
 def build_bowtie_page(sch_src: str) -> str:
     libs = libs_block(sch_src, [
-        "core_memory:CoreBead_3W",
+        "core_memory:MCE",
         "Device:R",
         "power:GND",
         "power:PWR_FLAG",
@@ -344,9 +354,9 @@ def build_bowtie_page(sch_src: str) -> str:
     ax, ay = 100.0, 60.0
     bx, by = 150.8, 60.0
     o += [
-        text("FERRITE BEADS — bowtie stand-in (phase 1)\\nX/Y/Sense series both cores — corrected in phase 2", 20, 20, 1.524),
-        symbol_inst("core_memory:CoreBead_3W", "FB1", "FB_A", ax, ay, list("123456"), footprint=FP_FB),
-        symbol_inst("core_memory:CoreBead_3W", "FB2", "FB_B", bx, by, list("123456"), footprint=FP_FB),
+        text("MAGNETIC CORES — bowtie (phase 1)\\nX/Y/Sense series both cores — corrected in phase 2", 20, 20, 1.524),
+        symbol_inst("core_memory:MCE", "MCE1", "MCE", ax, ay, list("123456"), footprint="", bom=False, on_board=False, extra=MCE_SPICE),
+        symbol_inst("core_memory:MCE", "MCE2", "MCE", bx, by, list("123456"), footprint="", bom=False, on_board=False, extra=MCE_SPICE),
     ]
     a, b = bead_pins(ax, ay), bead_pins(bx, by)
     o += [wire(a["x2"], b["x1"]), wire(a["y2"], b["y1"])]
@@ -387,8 +397,8 @@ def build_bowtie_page(sch_src: str) -> str:
     ]
 
     return page_header(
-        "Ferrite Beads",
-        "Bowtie FB_A/FB_B stand-in (phase 1)",
+        "Magnetic Cores",
+        "Bowtie MCE1/MCE2 (phase 1)",
         BEADS_UUID,
         libs,
     ) + "\n".join(o) + "\n" + page_footer(BEADS_UUID)
@@ -399,16 +409,16 @@ def build_bowtie_page(sch_src: str) -> str:
 
 def build_grid_page(sch_src: str) -> str:
     libs = libs_block(sch_src, [
-        "core_memory:CoreBead_3W",
+        "core_memory:MCE",
         "Device:R",
         "power:GND",
         "power:PWR_FLAG",
     ])
     o: list[str] = [
         text(
-            "FERRITE BEADS — 2×2 stand-in\\n"
+            "MAGNETIC CORES — 2×2 MCE\\n"
             "XA→XB top→bottom; YA→YB right→left\\n"
-            "Sense: LL→UR diagonal (FB10/FB01 mirrored about Y), center tap, then LR→UL",
+            "Sense: LL→UR diagonal (MCE10/MCE01 mirrored about Y), center tap, then LR→UL",
             20, 15, 1.524,
         ),
     ]
@@ -417,28 +427,27 @@ def build_grid_page(sch_src: str) -> str:
     gap_x, gap_y = 60.96, 50.8
     c0x, c0y = 100.0, 55.0
     positions = {
-        "FB00": (c0x, c0y),
-        "FB01": (c0x + gap_x, c0y),
-        "FB10": (c0x, c0y + gap_y),
-        "FB11": (c0x + gap_x, c0y + gap_y),
+        "MCE00": (c0x, c0y),
+        "MCE01": (c0x + gap_x, c0y),
+        "MCE10": (c0x, c0y + gap_y),
+        "MCE11": (c0x + gap_x, c0y + gap_y),
     }
-    # Flip FB01 (UR) and FB10 (LL) about Y so their S diagonal matches the
+    # Flip MCE01 (UR) and MCE10 (LL) about Y so their S diagonal matches the
     # physical anti-diagonal weave (LR↔UL on those cores).
-    mirror = {"FB00": False, "FB01": True, "FB10": True, "FB11": False}
+    mirror = {"MCE00": False, "MCE01": True, "MCE10": True, "MCE11": False}
     pins = {}
     for ref, (sx, sy) in positions.items():
-        val = f"FB_{ref[2:]}"
         my = mirror[ref]
         o.append(symbol_inst(
-            "core_memory:CoreBead_3W", ref, val, sx, sy, list("123456"),
-            footprint=FP_FB, mirror_y=my,
+            "core_memory:MCE", ref, "MCE", sx, sy, list("123456"),
+            footprint="", mirror_y=my, bom=False, on_board=False, extra=MCE_SPICE,
         ))
         pins[ref] = bead_pins(sx, sy, mirror_y=my)
 
-    p00, p01, p10, p11 = pins["FB00"], pins["FB01"], pins["FB10"], pins["FB11"]
+    p00, p01, p10, p11 = pins["MCE00"], pins["MCE01"], pins["MCE10"], pins["MCE11"]
 
     # --- X columns (top → bottom via X1/X2) ---
-    # XA0 → FB00.X1 → FB00.X2 → FB10.X1 → FB10.X2 → XB0
+    # XA0 → MCE00.X1 → MCE00.X2 → MCE10.X1 → MCE10.X2 → XB0
     o += stub_hier_v("XA0", p00["x1"], dy=-10.16)
     o += [wire(p00["x2"], p10["x1"])]
     o += stub_hier_v("XB0", p10["x2"], dy=10.16)
@@ -449,27 +458,27 @@ def build_grid_page(sch_src: str) -> str:
     o += stub_hier_v("XB1", p11["x2"], dy=10.16)
 
     # --- Y rows (right → left via Y1/Y2; mirrored beads swap which name is on each side) ---
-    # YA0 (right of FB01) → across → YB0 (left of FB00)
-    o += stub_hier("YA0", p01["y1"] if mirror["FB01"] else p01["y2"], rot=0, dx=10.16)
-    # FB01 left pin → FB00 right pin
-    fb01_left = p01["y2"] if mirror["FB01"] else p01["y1"]
+    # YA0 (right of MCE01) → across → YB0 (left of MCE00)
+    o += stub_hier("YA0", p01["y1"] if mirror["MCE01"] else p01["y2"], rot=0, dx=10.16)
+    # MCE01 left pin → MCE00 right pin
+    fb01_left = p01["y2"] if mirror["MCE01"] else p01["y1"]
     fb00_right = p00["y2"]
     o += [wire(fb01_left, fb00_right)]
     o += stub_hier("YB0", p00["y1"], rot=180, dx=-10.16)
 
     # YA1 → FB11 → FB10 → YB1
     o += stub_hier("YA1", p11["y2"], rot=0, dx=10.16)
-    fb10_right = p10["y1"] if mirror["FB10"] else p10["y2"]
+    fb10_right = p10["y1"] if mirror["MCE10"] else p10["y2"]
     o += [wire(p11["y1"], fb10_right)]
-    fb10_left = p10["y2"] if mirror["FB10"] else p10["y1"]
+    fb10_left = p10["y2"] if mirror["MCE10"] else p10["y1"]
     o += stub_hier("YB1", fb10_left, rot=180, dx=-10.16)
 
     # --- Sense diagonals + center tap ---
-    # First diagonal (mirrored FB10/FB01): YB65 → FB10.S2 → FB10.S1 → FB01.S2 → FB01.S1 → mid
-    # Other diagonal (FB11/FB00): mid → FB11.S2 → FB11.S1 → FB00.S2 → FB00.S1 → YB66
+    # First diagonal (mirrored MCE10/MCE01): YB65 → MCE10.S2 → MCE10.S1 → MCE01.S2 → MCE01.S1 → mid
+    # Other diagonal (MCE11/MCE00): mid → MCE11.S2 → MCE11.S1 → MCE00.S2 → MCE00.S1 → YB66
     mid = (
-        round((positions["FB00"][0] + positions["FB01"][0]) / 2, 2),
-        round((positions["FB00"][1] + positions["FB10"][1]) / 2, 2),
+        round((positions["MCE00"][0] + positions["MCE01"][0]) / 2, 2),
+        round((positions["MCE00"][1] + positions["MCE10"][1]) / 2, 2),
     )
     o += stub_hier("YB65", p10["s2"], rot=180, dx=-10.16)
     o += [wire(p10["s1"], p01["s2"])]
@@ -504,8 +513,8 @@ def build_grid_page(sch_src: str) -> str:
     ]
 
     return page_header(
-        "Ferrite Beads",
-        "2x2 CoreBead; X top/bot Y L/R S diagonal; FB01/FB10 mirror Y",
+        "Magnetic Cores",
+        "2x2 MCE; X top/bot Y L/R S diagonal; MCE01/MCE10 mirror Y",
         BEADS_UUID,
         libs,
     ) + "\n".join(o) + "\n" + page_footer(BEADS_UUID)
@@ -859,7 +868,7 @@ def update_root(phase: int) -> None:
         sheet_box("Sense", "sense.kicad_sch", SENSE_UUID, "6", sx_sense, sy_sense, sense_pins, w=45, h=20),
         *stub_pins(sx_sense, sy_sense, ["YB65", "YB66"], [], w=45),
         sheet_box(
-            "Ferrite Beads",
+            "Magnetic Cores",
             "ferrite_beads.kicad_sch",
             BEADS_UUID,
             "10",

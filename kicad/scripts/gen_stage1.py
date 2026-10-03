@@ -248,20 +248,19 @@ def main() -> None:
         "power:+3V3": extract_symbol(KICAD_SYMS / "power.kicad_sym", "+3V3"),
         "power:GND": extract_symbol(KICAD_SYMS / "power.kicad_sym", "GND"),
         "power:PWR_FLAG": extract_symbol(KICAD_SYMS / "power.kicad_sym", "PWR_FLAG"),
-        "core_memory:CoreBead_3W": extract_symbol(SYM_LIB, "CoreBead_3W"),
+        "core_memory:MCE": extract_symbol(SYM_LIB, "MCE"),
     }
     lib_syms = "\n".join(embed(k, v) for k, v in extracts.items())
     o: list[str] = []
     FP_R = "Resistor_SMD:R_0805_2012Metric"
     FP_C = "Capacitor_SMD:C_0805_2012Metric"
-    FP_FB = "Inductor_SMD:L_1206_3216Metric"
 
     # ========== BOWTIE (left) ==========
     ax, ay = 63.5, 80.0
     bx, by = 114.3, 80.0
     o += [
-        symbol_inst("core_memory:CoreBead_3W", "FB1", "FB_A", ax, ay, list("123456"), footprint=FP_FB),
-        symbol_inst("core_memory:CoreBead_3W", "FB2", "FB_B", bx, by, list("123456"), footprint=FP_FB),
+        symbol_inst("core_memory:MCE", "MCE1", "MCE", ax, ay, list("123456"), footprint=""),
+        symbol_inst("core_memory:MCE", "MCE2", "MCE", bx, by, list("123456"), footprint=""),
     ]
     a = {n: pin_xy(ax, ay, x, y) for n, x, y in [
         ("x1", -7.62, 5.08), ("x2", 7.62, 5.08), ("y1", -7.62, 0), ("y2", 7.62, 0),

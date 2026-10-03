@@ -7,9 +7,9 @@ Creates:
   inhibit.kicad_sch     — series YB65/YB66 drive (regenerated, TC4427A×2 + 2N7002)
   decode_ctrl.kicad_sch — ADDR + bank-enable headers J40–J54 / R40–R54
 
-Root keeps Drive Block, Decode×2, Decoupling×2, Ferrite Beads as sheet stubs + bridging labels.
+Root keeps Drive Block, Decode×2, Decoupling×2, Magnetic Cores as sheet stubs + bridging labels.
 Bypass caps stay on decoupling pages (not recreated here).
-Ferrite Beads page is owned by gen_ferrite_beads_page.py (do not re-extract beads here).
+Magnetic Cores page is owned by gen_ferrite_beads_page.py (do not re-extract cores here).
 """
 from __future__ import annotations
 
@@ -1079,7 +1079,7 @@ def main() -> None:
         [LOGIC_UUID, "Decoupling Logic"],
         [VDRIVE_UUID, "Decoupling VDRIVE"],
         [SENSE_UUID, "Sense"],
-        [BEADS_UUID, "Ferrite Beads"],
+        [BEADS_UUID, "Magnetic Cores"],
         [CCS_UUID, "CCS"],
         [INH_UUID, "Inhibit"],
         [DEC_CTRL_UUID, "Decode CTRL"],

@@ -46,7 +46,7 @@ SHEET_ORDER = [
     ("a1b2c3d4-e5f6-4789-a012-555555555555", "Decoupling Logic"),
     ("a1b2c3d4-e5f6-4789-a012-666666666666", "Decoupling VDRIVE"),
     ("a1b2c3d4-e5f6-4789-a012-777777777777", "Sense"),
-    ("a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb", "Ferrite Beads"),
+    ("a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb", "Magnetic Cores"),
     ("a1b2c3d4-e5f6-4789-a012-888888888888", "CCS"),
     ("a1b2c3d4-e5f6-4789-a012-999999999999", "Inhibit"),
     ("a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaaa", "Decode CTRL"),

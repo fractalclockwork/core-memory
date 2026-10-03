@@ -5,8 +5,8 @@
 	(uuid "a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb")
 	(paper "A3")
 	(title_block
-		(title "Ferrite Beads")
-		(comment 1 "2x2 CoreBead; X top/bot Y L/R S diagonal; FB01/FB10 mirror Y")
+		(title "Magnetic Cores")
+		(comment 1 "2x2 MCE; X top/bot Y L/R S diagonal; MCE01/MCE10 mirror Y")
 	)
 	(lib_symbols
 		(symbol "Device:R"
@@ -149,263 +149,60 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "core_memory:CoreBead_3W"
-			(pin_names
-				(offset 1.016)
-			)
+		(symbol "core_memory:MCE"
+			(pin_names (offset 0))
 			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
+			(in_bom no)
+			(on_board no)
+			(in_pos_files no)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "FB"
-				(at 0 8.89 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
+			(property "Reference" "MCE" (at 0 10.16 0) (effects (font (size 1.27 1.27))))
+			(property "Value" "MCE" (at 0 -10.16 0) (effects (font (size 1.27 1.27))))
+			(property "Footprint" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Datasheet" "" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Description" "Magnetic core element: 50-mil 3-wire toroid. X top/bottom, Y left/right, S on the LL to UR diagonal. SPICE model mce in coremem.cir." (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "ki_keywords" "magnetic core memory toroid mce" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Sim.Device" "SUBCKT" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Sim.Name" "mce" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Sim.Library" "../core_element_sim/models/coremem.cir" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2" (at 0 0 0) (hide yes) (effects (font (size 1.27 1.27))))
+			(symbol "MCE_0_1"
+				(bezier (pts (xy 4.02 4.02) (xy 2.79 5.26) (xy -0.01 4.46) (xy -2.23 2.23))
+					(stroke (width 0.381) (type default)) (fill (type none)))
+				(bezier (pts (xy -2.23 2.23) (xy -4.46 0.01) (xy -5.26 -2.79) (xy -4.02 -4.02))
+					(stroke (width 0.381) (type default)) (fill (type none)))
+				(bezier (pts (xy -4.02 -4.02) (xy -2.79 -5.26) (xy 0.01 -4.46) (xy 2.23 -2.23))
+					(stroke (width 0.381) (type default)) (fill (type none)))
+				(bezier (pts (xy 2.23 -2.23) (xy 4.46 -0.01) (xy 5.26 2.79) (xy 4.02 4.02))
+					(stroke (width 0.381) (type default)) (fill (type none)))
+				(bezier (pts (xy 2.40 2.40) (xy 1.80 3.01) (xy 0.23 2.42) (xy -1.10 1.10))
+					(stroke (width 0.254) (type default)) (fill (type none)))
+				(bezier (pts (xy -1.10 1.10) (xy -2.42 -0.23) (xy -3.01 -1.80) (xy -2.40 -2.40))
+					(stroke (width 0.254) (type default)) (fill (type none)))
+				(bezier (pts (xy -2.40 -2.40) (xy -1.80 -3.01) (xy -0.23 -2.42) (xy 1.10 -1.10))
+					(stroke (width 0.254) (type default)) (fill (type none)))
+				(bezier (pts (xy 1.10 -1.10) (xy 2.42 0.23) (xy 3.01 1.80) (xy 2.40 2.40))
+					(stroke (width 0.254) (type default)) (fill (type none)))
 			)
-			(property "Value" "CoreBead_3W"
-				(at 0 -8.89 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "Ferrite bead stand-in: X top/bot, Y left/right, S on LL→UR diagonal"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "ferrite bead core memory sense"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "CoreBead_3W_0_1"
-				(rectangle
-					(start -5.08 5.08)
-					(end 5.08 -5.08)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-				(polyline
-					(pts
-						(xy -3.81 0) (xy -2.54 0) (xy -1.905 0.635) (xy -0.635 -0.635) (xy 0.635 0.635) (xy 1.905 -0.635)
-						(xy 2.54 0) (xy 3.81 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -3.81 -3.81) (xy 3.81 3.81)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 3.81) (xy 0 2.54) (xy 0.635 1.905) (xy -0.635 0.635) (xy 0.635 -0.635) (xy -0.635 -1.905)
-						(xy 0 -2.54) (xy 0 -3.81)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(text "S"
-					(at -2.54 2.54 0)
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(text "Y"
-					(at 0 2.032 0)
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(text "X"
-					(at 2.032 0 0)
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-			)
-			(symbol "CoreBead_3W_1_1"
-				(pin passive line
-					(at 0 7.62 270)
-					(length 2.54)
-					(name "X1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "X2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -7.62 0 0)
-					(length 2.54)
-					(name "Y1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 0 180)
-					(length 2.54)
-					(name "Y2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -7.62 -5.08 0)
-					(length 2.54)
-					(name "S1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 5.08 180)
-					(length 2.54)
-					(name "S2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
+			(symbol "MCE_1_1"
+				(pin passive line (at 0 7.62 270) (length 2.54)
+					(name "X1" (effects (font (size 1.27 1.27))))
+					(number "1" (effects (font (size 1.27 1.27)))))
+				(pin passive line (at 0 -7.62 90) (length 2.54)
+					(name "X2" (effects (font (size 1.27 1.27))))
+					(number "2" (effects (font (size 1.27 1.27)))))
+				(pin passive line (at -7.62 0 0) (length 2.54)
+					(name "Y1" (effects (font (size 1.27 1.27))))
+					(number "3" (effects (font (size 1.27 1.27)))))
+				(pin passive line (at 7.62 0 180) (length 2.54)
+					(name "Y2" (effects (font (size 1.27 1.27))))
+					(number "4" (effects (font (size 1.27 1.27)))))
+				(pin passive line (at -7.62 -5.08 0) (length 2.54)
+					(name "S1" (effects (font (size 1.27 1.27))))
+					(number "5" (effects (font (size 1.27 1.27)))))
+				(pin passive line (at 7.62 5.08 180) (length 2.54)
+					(name "S2" (effects (font (size 1.27 1.27))))
+					(number "6" (effects (font (size 1.27 1.27)))))
 			)
 			(embedded_fonts no)
 		)
@@ -640,7 +437,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "FERRITE BEADS — 2×2 stand-in\nXA→XB top→bottom; YA→YB right→left\nSense: LL→UR diagonal (FB10/FB01 mirrored about Y), center tap, then LR→UL"
+	(text "MAGNETIC CORES — 2×2 MCE\nXA→XB top→bottom; YA→YB right→left\nSense: LL→UR diagonal (MCE10/MCE01 mirrored about Y), center tap, then LR→UL"
 		(exclude_from_sim no)
 		(at 20 15 0)
 		(effects
@@ -1329,17 +1126,17 @@
 		(uuid "f1791d71-221d-41c7-8a96-ccc400ed0a96")
 	)
 	(symbol
-		(lib_id "core_memory:CoreBead_3W")
+		(lib_id "core_memory:MCE")
 		(at 100.33 54.61 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
 		(dnp no)
 		(uuid "05767c3d-34e1-483e-9d80-6babdc210c65")
-		(property "Reference" "FB00"
+		(property "Reference" "MCE00"
 			(at 102.87 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1350,7 +1147,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "FB_00"
+		(property "Value" "MCE"
 			(at 102.87 44.45 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1361,7 +1158,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
+		(property "Footprint" ""
 			(at 100.33 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -1396,6 +1193,35 @@
 				)
 				(justify left)
 			)
+		)
+
+		(property "Sim.Device" "SUBCKT"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Name" "mce"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Library" "../core_element_sim/models/coremem.cir"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
 		)
 		(pin "1"
 			(uuid "673d9a6b-298d-4532-b73a-2797842055db")
@@ -1418,24 +1244,24 @@
 		(instances
 			(project "core"
 				(path "/fabf9ba2-76e6-4325-a1a0-bc01b9516551/a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
-					(reference "FB00")
+					(reference "MCE00")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "core_memory:CoreBead_3W")
+		(lib_id "core_memory:MCE")
 		(at 161.29 105.41 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
 		(dnp no)
 		(uuid "112522ed-d95f-4d1e-9849-1be5120dae52")
-		(property "Reference" "FB11"
+		(property "Reference" "MCE11"
 			(at 163.83 92.71 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1446,7 +1272,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "FB_11"
+		(property "Value" "MCE"
 			(at 163.83 95.25 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1457,7 +1283,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
+		(property "Footprint" ""
 			(at 161.29 105.41 0)
 			(hide yes)
 			(show_name no)
@@ -1492,6 +1318,35 @@
 				)
 				(justify left)
 			)
+		)
+
+		(property "Sim.Device" "SUBCKT"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Name" "mce"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Library" "../core_element_sim/models/coremem.cir"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
 		)
 		(pin "1"
 			(uuid "d0b17872-e15a-4d9f-b948-8a4ee7eb528e")
@@ -1514,25 +1369,25 @@
 		(instances
 			(project "core"
 				(path "/fabf9ba2-76e6-4325-a1a0-bc01b9516551/a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
-					(reference "FB11")
+					(reference "MCE11")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "core_memory:CoreBead_3W")
+		(lib_id "core_memory:MCE")
 		(at 161.29 54.61 0)
 		(mirror y)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
 		(dnp no)
 		(uuid "2715b807-cb7b-4725-9697-b4ac2865b6e6")
-		(property "Reference" "FB01"
+		(property "Reference" "MCE01"
 			(at 163.83 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1543,7 +1398,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "FB_01"
+		(property "Value" "MCE"
 			(at 163.83 44.45 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1554,7 +1409,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
+		(property "Footprint" ""
 			(at 161.29 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -1589,6 +1444,35 @@
 				)
 				(justify left)
 			)
+		)
+
+		(property "Sim.Device" "SUBCKT"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Name" "mce"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Library" "../core_element_sim/models/coremem.cir"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
 		)
 		(pin "1"
 			(uuid "db303a98-f118-4c3c-882b-5900d94807eb")
@@ -1611,25 +1495,25 @@
 		(instances
 			(project "core"
 				(path "/fabf9ba2-76e6-4325-a1a0-bc01b9516551/a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
-					(reference "FB01")
+					(reference "MCE01")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "core_memory:CoreBead_3W")
+		(lib_id "core_memory:MCE")
 		(at 99.06 105.41 0)
 		(mirror y)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files no)
 		(dnp no)
 		(uuid "6163bca4-6094-4ab5-879e-2c7dd264df26")
-		(property "Reference" "FB10"
+		(property "Reference" "MCE10"
 			(at 101.6 92.71 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1640,7 +1524,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "FB_10"
+		(property "Value" "MCE"
 			(at 101.6 95.25 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -1651,7 +1535,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_1206_3216Metric"
+		(property "Footprint" ""
 			(at 99.06 105.41 0)
 			(hide yes)
 			(show_name no)
@@ -1687,6 +1571,35 @@
 				(justify left)
 			)
 		)
+
+		(property "Sim.Device" "SUBCKT"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Name" "mce"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Library" "../core_element_sim/models/coremem.cir"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
+		(property "Sim.Pins" "1=X1 2=X2 3=Y1 4=Y2 5=S1 6=S2"
+			(at 0 0 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects (font (size 1.27 1.27)) (justify left))
+		)
 		(pin "1"
 			(uuid "098a262b-8e5c-4a49-b9ee-7398815c305f")
 		)
@@ -1708,7 +1621,7 @@
 		(instances
 			(project "core"
 				(path "/fabf9ba2-76e6-4325-a1a0-bc01b9516551/a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
-					(reference "FB10")
+					(reference "MCE10")
 					(unit 1)
 				)
 			)

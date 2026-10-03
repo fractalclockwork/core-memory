@@ -11,7 +11,7 @@ flowchart TB
   Drive[Drive Block N/n]
   CCS[CCS Ic/2 sink]
   Sense[Sense amp latch]
-  Beads[Ferrite Beads stand-in]
+  Beads[Magnetic Cores MCE]
   Inhibit[Inhibit drive]
   Plane[Core plane XA/XB YA/YB]
 
@@ -32,7 +32,7 @@ flowchart TB
 | Block | On sheet | Primary parts | Role |
 |-------|----------|---------------|------|
 | **Sense** | [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) | TLV3501, BAT54S, 74AHC74, 1k iso | Differential sense across YB65/66; clamp; strobe latch to DOUT |
-| **Ferrite Beads** | [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) | CoreBead_3W×4, soft mid R1 | 2×2 plane stand-in; XA→XB / YA→YB; diagonal sense + center tap |
+| **Magnetic Cores** | [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; diagonal sense + center tap |
 | **CCS** | [`ccs.kicad_sch`](../kicad/core/ccs.kicad_sch) | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
 | **Inhibit** | [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) | FDS8958A, TC4427A×2, 2N7002 invert | Series \(-I_c/2\) on folded sense (YB65→fold→YB66→CCS); no 4th inhibit wire |
 | **Drive** | Mid (sheet ×1) | `drive_block` | One TC4427A + FDS8958A + local VDRIVE C30/C31; pins `N_*` / `NAn`/`NBn`; root wires X0 FWD |
@@ -52,36 +52,36 @@ Hierarchical page [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) (root sheet
 - BAT54S clamps to protect the amp during inhibit spikes
 - TLV3501 comparator → 74AHC74 clocked by SENSE STROBE
 
-Plane stand-in (CoreBead) and soft mid-bias live on **Ferrite Beads**. See [theory_of_operation.md](theory_of_operation.md) for the strobe window and [component_selection.md](component_selection.md) §4 for part rationale.
+The plane model (MCE) and soft mid-bias live on **Magnetic Cores**. See [theory_of_operation.md](theory_of_operation.md) for the strobe window and [component_selection.md](component_selection.md) §4 for part rationale.
 
-## Ferrite Beads
+## Magnetic Cores
 
-Hierarchical page [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) (root sheet **Ferrite Beads**).
+Hierarchical page [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) (root sheet **Magnetic Cores**). Each core is an MCE: the six-pin layout of the old ferrite-bead stand-in, drawn as a diagonal toroid, with the [core-element](core_element_sim.md) SPICE model attached.
 
 **Drive hierarchy pins (0-based matrix only):** `XA0`/`XA1`/`XB0`/`XB1`, `YA0`/`YA1`/`YB0`/`YB1` — same semantic class as physical contacts 1–64, indexed 0–63 in the schematic. These participate in the Drive/Decode pin story.
 
 **Sense / fold nets (not Drive/Decode hierarchy):** `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` — physical Y pins 65/66 plus schematic fold-mid; different function (fold + sense/inhibit). On the stand-in sheet they are local labels (and optionally exported for Sense/Inhibit), **not** an extension of the `NAn`/`n` chain. Soft mid R1 10k→AGND at `SENSE_FOLD` (tied to `YA65` for now; plane shunt `YA65`═`YB65`).
 
-2×2 CoreBead stand-in matching plane markings ([img/top.jpeg](img/top.jpeg)):
+2×2 MCE array matching plane markings ([img/top.jpeg](img/top.jpeg)):
 
 ```text
         XA0              XA1
          |                |
-   YB0 --● FB00 ------ ● FB01 -- YA0
+   YB0 --● MCE00 ---- ● MCE01 -- YA0
          |                |
-   YB1 --● FB10 ------ ● FB11 -- YA1
+   YB1 --● MCE10 ---- ● MCE11 -- YA1
          |                |
         XB0              XB1
 ```
 
-- **X** top→bottom: `XA0`→FB00→FB10→`XB0`; `XA1`→FB01→FB11→`XB1`
-- **Y** right→left: `YA0`→FB01→FB00→`YB0`; `YA1`→FB11→FB10→`YB1`
+- **X** top→bottom: `XA0`→MCE00→MCE10→`XB0`; `XA1`→MCE01→MCE11→`XB1`
+- **Y** right→left: `YA0`→MCE01→MCE00→`YB0`; `YA1`→MCE11→MCE10→`YB1`
 - **Sense (two loops + fold):**
-  - YA half: `YA66` ↔ FB11 ↔ FB00 ↔ `YA65`
-  - YB half: `YB66` ↔ FB01 ↔ FB10 ↔ `YB65`
+  - YA half: `YA66` ↔ MCE11 ↔ MCE00 ↔ `YA65`
+  - YB half: `YB66` ↔ MCE01 ↔ MCE10 ↔ `YB65`
   - Fold shunt: `YA65`═`YB65` + R1 10k→AGND
   - Full series path: `YA66` → YA half → fold → YB half → `YB66`
-- **Symbol:** X1/X2 top/bot, Y1/Y2 left/right, S1/S2 on LL→UR diagonal; **FB01** and **FB10** mirrored about Y
+- **Symbol:** diagonal ellipse (toroid). X1/X2 top/bot, Y1/Y2 left/right, S1/S2 on LL→UR diagonal; **MCE01** and **MCE10** mirrored about Y
 
 Each X/Y line pierces only the cores on its column/row. Regen baseline: [`gen_ferrite_beads_page.py`](../kicad/scripts/gen_ferrite_beads_page.py) `--phase 2` (hand-tuned sense fold may supersede the generator).
 
@@ -95,7 +95,7 @@ Common low-side return through a linear MOSFET throttle. The OPA192 closes the l
 
 Hierarchical page [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) (root sheet **Inhibit**). Pins: `YB65`/`YB66`, `CCS_RET`, `VDRIVE`; `INH_EN_n` via on-page header J5.
 
-Reuses the folded sense path (`YA66` ↔ `YB66` via `YA65`═`YB65`; bring-up may still wire Inhibit to `YB65`/`YB66` for the YB half only). Soft mid (Ferrite Beads) + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Both gate drivers are TC4427A: HS←`INH_EN_n`, LS←`INH_LS_en` (2N7002 invert). Polarity convention relative to READ remains open ([design_choices.md](design_choices.md)).
+Reuses the folded sense path (`YA66` ↔ `YB66` via `YA65`═`YB65`; bring-up may still wire Inhibit to `YB65`/`YB66` for the YB half only). Soft mid (Magnetic Cores) + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Both gate drivers are TC4427A: HS←`INH_EN_n`, LS←`INH_LS_en` (2N7002 invert). Polarity convention relative to READ remains open ([design_choices.md](design_choices.md)).
 
 ## Drive Block (1×1)
 
@@ -157,7 +157,7 @@ Pin tokens: **`N`** = axis (`X`/`Y`), **`n`** = HS/LS bank index (`0`…`7`). Hi
 
 Y / REV instances (`BANK_EN`←`REV_EN_n`, outs → `*r_*`) come later. Refs today: U11/U12.
 
-**Bench plane map (1×1 drive):** Drive Block still `XA0`/`XB0` only; Ferrite Beads exposes XA0/1 XB0/1 YA0/1 YB0/1; sense on YB65/66 fold.
+**Bench plane map (1×1 drive):** Drive Block still `XA0`/`XB0` only; Magnetic Cores exposes XA0/1 XB0/1 YA0/1 YB0/1; sense on YB65/66 fold.
 
 ## Decoupling (Logic / VDRIVE)
 

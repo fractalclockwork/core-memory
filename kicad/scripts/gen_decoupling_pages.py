@@ -46,7 +46,7 @@ SHEET_ORDER = [
     (LOGIC_UUID, "Decoupling Logic"),
     (VDRIVE_UUID, "Decoupling VDRIVE"),
     (SENSE_UUID, "Sense"),
-    (BEADS_UUID, "Ferrite Beads"),
+    (BEADS_UUID, "Magnetic Cores"),
     (CCS_UUID, "CCS"),
     (INH_UUID, "Inhibit"),
     (DEC_CTRL_UUID, "Decode CTRL"),

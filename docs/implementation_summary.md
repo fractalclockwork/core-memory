@@ -32,7 +32,7 @@ DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
 | Block | What it does |
 |-------|--------------|
 | Sense | Sheet `sense`: 1k iso, BAT54S, TLV3501 → 74AHC74 |
-| Ferrite Beads | Sheet `ferrite_beads`: FB00–FB11 2×2; fold mid `SENSE_FOLD` (tied to `YA65` for now) |
+| Magnetic Cores | Sheet `ferrite_beads`: MCE00–MCE11 2×2; fold mid `SENSE_FOLD` (tied to `YA65` for now) |
 | CCS | Sheet `ccs`: TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; `CCS_RET` out |
 | Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`NAn`/`NBn`; root = X0 FWD |
 | Inhibit | Sheet `inhibit`: FDS8958A on YB65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
@@ -76,7 +76,7 @@ See [component_selection.md](component_selection.md) §1.
 
 ### Constant-current sink / Sense
 
-Unchanged (TL431, OPA192, IRLZ44N, TLV3501, BAT54S, 74AHC74, 1k iso). Soft mid on Ferrite Beads. DC-coupled Sense locked.
+Unchanged (TL431, OPA192, IRLZ44N, TLV3501, BAT54S, 74AHC74, 1k iso). Soft mid on Magnetic Cores. DC-coupled Sense locked.
 
 ### Inhibit polarity helper
 
@@ -93,14 +93,14 @@ After CCS setpoint:
 3. Inhibit (`INH_EN_n`) if restoring/writing 0
 4. Pulse `REV_EN_n` → WRITE (+Ic/2)
 
-Plane hookup: XA0/XB0 (driven), XA1/XB1 / YA0/YB0 / YA1/YB1 on Ferrite Beads stand-in; sense/inhibit attach per **Bring-Up Deviations** below.
+Plane hookup: XA0/XB0 (driven), XA1/XB1 / YA0/YB0 / YA1/YB1 on the Magnetic Cores sheet (MCE); sense/inhibit attach per **Bring-Up Deviations** below.
 
 ## Bring-Up Deviations
 
 Temporary 1×1 test-state attach points. These are **not** the normative fold topology in [design_spec.md](design_spec.md) / [naming.md](naming.md); do not “resolve” them into the architecture docs.
 
 - **Normative full fold:** two half-loops `YA65`↔`YA66` and `YB65`↔`YB66`, shunt `YA65`═`YB65`, series ends `YA66` / `YB66` for differential READ and series inhibit.
-- **1×1 schematic today:** Inhibit sheet and Sense probe attach on the **YB half only** (`YB65` / `YB66`). Ferrite Beads fold mid is `SENSE_FOLD`, presently tied to `YA65` (same net as the `YA65`═`YB65` shunt).
+- **1×1 schematic today:** Inhibit sheet and Sense probe attach on the **YB half only** (`YB65` / `YB66`). Magnetic Cores fold mid is `SENSE_FOLD`, presently tied to `YA65` (same net as the `YA65`═`YB65` shunt).
 - **Why:** prove the READ → STROBE → INHIBIT → WRITE cycle on one core before wiring the full series path through both halves.
 - **Exit criterion:** when cloning past bring-up, move Sense/Inhibit to `YA66`↔`YB66` and drop this section.
 
