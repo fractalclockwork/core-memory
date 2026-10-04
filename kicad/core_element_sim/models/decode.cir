@@ -1,0 +1,32 @@
+* One decode_block: 74AHC138 (active-low HS) and 74AHC238 (active-high LS).
+* bank_en is active-low (FWD_EN_n or REV_EN_n). dec_en is active-high.
+* Outputs follow the pins linearly. A threshold here is a step the
+* drive edge will not cross.
+* Line = 8*NH + NL. NH bit 0 is nh0. NL bit 0 is nl0.
+.subckt decode nh0 nh1 nh2 nl0 nl1 nl2 bank_en dec_en
++ hs0n hs1n hs2n hs3n hs4n hs5n hs6n hs7n
++ ls0 ls1 ls2 ls3 ls4 ls5 ls6 ls7
+Ben en 0 V=(v(dec_en)/3.3)*(1-v(bank_en)/3.3)
+Bnh0 nh0h 0 V=v(nh0)/3.3
+Bnh1 nh1h 0 V=v(nh1)/3.3
+Bnh2 nh2h 0 V=v(nh2)/3.3
+Bnl0 nl0h 0 V=v(nl0)/3.3
+Bnl1 nl1h 0 V=v(nl1)/3.3
+Bnl2 nl2h 0 V=v(nl2)/3.3
+Bhs0n hs0n 0 V=3.3*(1-v(en)*(1-v(nh0h))*(1-v(nh1h))*(1-v(nh2h)))
+Bhs1n hs1n 0 V=3.3*(1-v(en)*v(nh0h)*(1-v(nh1h))*(1-v(nh2h)))
+Bhs2n hs2n 0 V=3.3*(1-v(en)*(1-v(nh0h))*v(nh1h)*(1-v(nh2h)))
+Bhs3n hs3n 0 V=3.3*(1-v(en)*v(nh0h)*v(nh1h)*(1-v(nh2h)))
+Bhs4n hs4n 0 V=3.3*(1-v(en)*(1-v(nh0h))*(1-v(nh1h))*v(nh2h))
+Bhs5n hs5n 0 V=3.3*(1-v(en)*v(nh0h)*(1-v(nh1h))*v(nh2h))
+Bhs6n hs6n 0 V=3.3*(1-v(en)*(1-v(nh0h))*v(nh1h)*v(nh2h))
+Bhs7n hs7n 0 V=3.3*(1-v(en)*v(nh0h)*v(nh1h)*v(nh2h))
+Bls0 ls0 0 V=3.3*v(en)*(1-v(nl0h))*(1-v(nl1h))*(1-v(nl2h))
+Bls1 ls1 0 V=3.3*v(en)*v(nl0h)*(1-v(nl1h))*(1-v(nl2h))
+Bls2 ls2 0 V=3.3*v(en)*(1-v(nl0h))*v(nl1h)*(1-v(nl2h))
+Bls3 ls3 0 V=3.3*v(en)*v(nl0h)*v(nl1h)*(1-v(nl2h))
+Bls4 ls4 0 V=3.3*v(en)*(1-v(nl0h))*(1-v(nl1h))*v(nl2h)
+Bls5 ls5 0 V=3.3*v(en)*v(nl0h)*(1-v(nl1h))*v(nl2h)
+Bls6 ls6 0 V=3.3*v(en)*(1-v(nl0h))*v(nl1h)*v(nl2h)
+Bls7 ls7 0 V=3.3*v(en)*v(nl0h)*v(nl1h)*v(nl2h)
+.ends

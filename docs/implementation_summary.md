@@ -1,26 +1,26 @@
 # Implementation Summary
 
-Present state of the driver: hierarchical schematic under [`kicad/core/core.kicad_sch`](../kicad/core/core.kicad_sch). **Decode** and **Drive** are reusable blocks with `N`/`n` pins; root places one of each for X FWD / X0 FWD bring-up. Y / REV instances and remaining matrix FETs come later.
+Present state of the driver: hierarchical schematic under [`kicad/core/core.kicad_sch`](../kicad/core/core.kicad_sch). **Decode** and **Drive** are reusable blocks with `N`/`n` pins. Root places four decode calls (X/Y, FWD/REV) and eight drive calls (groups 0 and 1 on each axis and direction). [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch) holds the diodes for lines 0 and 1. HS groups 1–7 and LS groups 2–7 come with the 64-line build.
 
 Part rationale: [component_selection.md](component_selection.md). Architecture: [design_choices.md](design_choices.md), [regions.md](regions.md), [theory_of_operation.md](theory_of_operation.md).
 
 ## Architecture
 
-Three-wire cores (X, Y, sense)—no separate inhibit winding. Sense/inhibit is two independent loops (`YA65`↔`YA66`, `YB65`↔`YB66`), joined on the driver at **`YA66`═`YB65`**. Outer ends `YA65`/`YB66` are shared for differential READ and series inhibit. The schematic array is the 2×2 on Magnetic Cores (one diagonal per loop). Drive is coincident half-select into a shared CCS (`CCS_RET`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
+Three-wire cores (X, Y, sense)—no separate inhibit winding. Sense/inhibit is two independent loops (`YA65`↔`YA66`, `YB65`↔`YB66`), joined on the driver at **`YA66`═`YB65`**. Outer ends `YA65`/`YB66` are shared for differential READ and series inhibit. The schematic array is the 2×2 on Magnetic Cores (one diagonal per loop). Drive is coincident half-select into two sinks (`CCS_X`, `CCS_Y`), with inhibit on its own sink (`CCS_INH`). Forward FET banks do READ (−Ic/2); reverse banks do WRITE (+Ic/2).
 
 ```
 ADDR_XH/XL[2:0] ──┐
 DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
-                  │   U11 138 + U12 238; root = X FWD
+                  │   U11 138 + U12 238; four root calls (X/Y, FWD/REV)
                   ▼
         X_HS{0..7}_n / X_LS{0..7}_en
                   │
                   ▼
-          drive_block (N=axis, n=line)
-          one TC4427A + FDS8958A; root wires X0 FWD only
+          drive_block (N=axis, n=group)
+          TC4427A + FDS8958A; eight root calls; SS14s on steer_2x2
                   └────────┬─────────┘
                            ▼
-                      CCS_RET / plane
+                 CCS_X / CCS_Y / plane
                            │
                   YA65/YB66 sense + inhibit (FDS8958A + TC4427A×2)
 ```
@@ -33,24 +33,24 @@ DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
 |-------|--------------|
 | Sense | Sheet `sense`: 1k iso, BAT54S, TLV3501 → 74AHC74 |
 | Magnetic Cores | Sheet `ferrite_beads`: MCE00–MCE11 2×2; center tap `SENSE_FOLD` (`YA66`═`YB65`) |
-| CCS | Sheet `ccs`: TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; `CCS_RET` out |
-| Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`NAn`/`NBn`; root = X0 FWD |
+| CCS | Sheet `ccs` ×3 (X, Y, inhibit): TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; pin `CCS_RET` |
+| Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`N_HS_OUT`/`N_LS_OUT`; eight root calls; SS14s on `steer_2x2` |
 | Inhibit | Sheet `inhibit`: FDS8958A on YA65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
-| Decode | Sheet `decode_block`: one axis 138+238 + C19/C20; pins `N_HS{0..7}_n`/`N_LS{0..7}_en`; root = X FWD |
-| Decode CTRL | Sheet `decode_ctrl`: J40–J54 / R40–R54 ADDR + bank enables |
-| Decoupling Logic | Sheet `decoupling_logic`: +3V3/+5V bypass (Sense/Latch/CCS) |
+| Decode | Sheet `decode_block`: one axis 138+238 + C19/C20; pins `N_HS{0..7}_n`/`N_LS{0..7}_en`; four root calls (X/Y × FWD/REV) |
+| Decode CTRL | Sheets `decode_ctrl` / `decode_ctrl_y`: pins `ADDR_NH/NL`, `BANK_EN`, `DEC_EN`, `REV_EN_n`; root binds X/Y and `FWD_EN_n` |
+| Decoupling Logic | Sheet `decoupling_logic`: +3V3 bypass (Sense/Latch). CCS +5V is on each CCS instance |
 | Decoupling VDRIVE | Sheet `decoupling_vdrive`: VDRIVE 100n+1u for Inhibit TC4427s |
 
 ## Decode map (one axis on Decode Block)
 
-On [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch) (X FWD on root today):
+On [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch) (X FWD shown; Y and REV are the other three calls):
 
 | Ref | Part | Role | ADDR | Hier outs |
 |-----|------|------|------|-----------|
 | U11 | 74AHC138 | HS | `ADDR_NH[2:0]` | `N_HS0_n` … `N_HS7_n` |
 | U12 | 74AHC238 | LS | `ADDR_NL[2:0]` | `N_LS0_en` … `N_LS7_en` |
 
-**Line select:** `Nn = 8·HS + LS`. Root maps X FWD: `ADDR_NH*`←`ADDR_XH*`, `BANK_EN`←`FWD_EN_n`, outs → `X_HS*_n` / `X_LS*_en`. Headers J40–J54 live on **Decode CTRL**. Local +3V3 100n (C19/C20) lives on **Decode Block**.
+**Line select:** `Nn = 8·HS + LS`. Root maps X FWD: `ADDR_NH*`←`ADDR_XH*`, `BANK_EN`←`FWD_EN_n`, outs → `X_HS*_n` / `X_LS*_en`. Headers J40–J54 live on **Decode CTRL** (X sheet also has `BANK_EN` / `DEC_EN` / `REV_EN_n`; Y sheet is `ADDR_NH/NL` only). Local +3V3 100n (C19/C20) lives on **Decode Block**.
 
 Drive Block consumes `X_HS0_n` / `X_LS0_en` → `N_HSn` / `N_LSn`, plane `XA0`/`XB0`; local VDRIVE bypass C30/C31 on the block.
 
@@ -97,16 +97,15 @@ Plane hookup: XA0/XB0 (driven). The 2×2 on Magnetic Cores also exposes XA1/XB1 
 
 ## Array model
 
-The Magnetic Cores sheet is the sim fixture for coincident address and the series sense string. It is a 2×2 stand-in for core count, not a second fold topology. Drive FET population is still one `drive_block` (X0 FWD); the other three line pairs are stimulated at the Magnetic Cores pins.
+The Magnetic Cores sheet is the sim fixture for coincident address and the series sense string. It is a 2×2 stand-in for core count, not a second fold topology. Drive calls cover groups 0–7 on both axes and both directions. The steer sheet diodes lines 0–63. The transient is still the four cores.
 
-- **Loop A:** `YA65` ↔ MCE00 ↔ MCE11 ↔ `YA66` (stands in for 2,048 cores).
-- **Loop B:** `YB65` ↔ MCE10 ↔ MCE01 ↔ `YB66` (the other 2,048).
+- **Loop A:** `YA65` ↔ MCE11 ↔ MCE00 ↔ `YA66` (stands in for 2,048 cores). MCE00 and MCE11 are mirrored; both ends leave at the YA–XB corner.
+- **Loop B:** `YB65` ↔ MCE10 ↔ MCE01 ↔ `YB66` (the other 2,048). Both ends leave at the YB–XB corner.
 - **Center tap:** `YA66`═`YB65`, R1 10 kΩ→AGND. The plane does not join the loops.
 - **Outer ends:** `YA65` / `YB66` for differential READ and series inhibit.
 
 ## Not implemented yet
 
-- Remaining drive matrix FETs (decode already covers X0–63 / Y0–63; drive still 1×1)
-- Edge receptacles / full connector fan-out
-- RP2040 PIO timing controller
+- A transient of more than the four cores. Groups 2–7 are placed and stay off for a 2×2 address.
+- RP2040 PIO program. The root header only brings the stimulus nets out.
 - Decoder / DOUT LEDs

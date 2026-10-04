@@ -53,7 +53,7 @@ Examples: `XA0`, `XB0`, `YA17`, `YB63`. Physical contact number = \(n+1\).
 | Class | Nets |
 |-------|------|
 | Enables | `FWD_EN_n`, `REV_EN_n`, `INH_EN_n`, `DEC_EN` |
-| Analog / power | `VDRIVE`, `CCS_RET`, `SENSE_P`, `SENSE_N`, `AGND`, `+3V3`, `+5V` |
+| Analog / power | `VDRIVE`, `CCS_X`, `CCS_Y`, `CCS_INH`, `SENSE_P`, `SENSE_N`, `AGND`, `+3V3`, `+5V` |
 | Sense / fold (not Drive/Decode hierarchy) | `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` |
 
 Fold model: two independent loops `YA65`↔`YA66` and `YB65`↔`YB66`. The plane does not join them. Schematic center-tap node is **`SENSE_FOLD`**: `YA66` tied to `YB65`, soft ground 10 kΩ→AGND. Outer ends: `YA65` / `YB66`. See [theory_of_operation.md](theory_of_operation.md).
@@ -64,15 +64,15 @@ Parent nets use §2–§4. **Inside** reusable sheets, pins stay parameterized w
 
 ### Drive Block — [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch)
 
-One TC4427A + FDS8958A + SS14×2 + local VDRIVE bypass. Hierarchical pins:
+One TC4427A + FDS8958A + local VDRIVE bypass. The SS14s sit on [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch), not inside the block. Hierarchical pins:
 
 | Pin | Role | Example parent (X0 FWD) |
 |-----|------|-------------------------|
 | `N_HSn` | HS gate (active-low) | `X_HS0_n` |
 | `N_LSn` | LS gate (active-high) | `X_LS0_en` |
-| `NAn` | Plane HS end | `XA0` |
-| `NBn` | Plane LS end | `XB0` |
-| `VDRIVE` / `CCS_RET` | Rails | globals |
+| `N_HS_OUT` | P-FET switch node | `XHS0` |
+| `N_LS_OUT` | N-FET switch node | `XLS0` |
+| `VDRIVE` / `CCS_RET` | Rails | `VDRIVE`; parent binds `CCS_X` or `CCS_Y` |
 
 ### Decode Block — [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch)
 
@@ -86,6 +86,20 @@ One axis: 74AHC138 HS + 74AHC238 LS. Hierarchical pins:
 | `N_LS{0..7}_en` | LS outs | `X_LS0_en` … `X_LS7_en` |
 
 `line# = 8·HS + LS` (logical 0…63).
+
+### Decode CTRL — [`decode_ctrl.kicad_sch`](../kicad/core/decode_ctrl.kicad_sch)
+
+Address and bank-enable headers. Same split as Drive and Decode: hierarchical pins are the function; root labels are the arguments. One axis of address per sheet. Enable headers exist once (they are not per-axis).
+
+| Pin | Role | Example parent |
+|-----|------|----------------|
+| `ADDR_NH[2:0]` | HS address | `ADDR_XH*` (X sheet) / `ADDR_YH*` (Y sheet) |
+| `ADDR_NL[2:0]` | LS address | `ADDR_XL*` / `ADDR_YL*` |
+| `BANK_EN` | Bank enable, 10 kΩ to +3V3 | `FWD_EN_n` |
+| `DEC_EN` | Chip enable, 10 kΩ to GND | `DEC_EN` |
+| `REV_EN_n` | Reverse bank enable, 10 kΩ to +3V3 | `REV_EN_n` |
+
+`BANK_EN` / `DEC_EN` / `REV_EN_n` are only on the X sheet ([`decode_ctrl.kicad_sch`](../kicad/core/decode_ctrl.kicad_sch), J40–J45 and J52–J54). The Y sheet ([`decode_ctrl_y.kicad_sch`](../kicad/core/decode_ctrl_y.kicad_sch), J46–J51) is the same address pins bound to `ADDR_Y*`, so the enable headers are not cloned.
 
 ## 6. Hierarchy as function call / instance
 
@@ -101,8 +115,8 @@ flowchart LR
   DriveBlock -->|"XA0 XB0"| Plane
 ```
 
-1. **Define once** — atomic `drive_block` / `decode_block` with `N`/`n` hierarchical pins.
-2. **Instantiate on root** — today 1× each (X FWD decode, X0 FWD drive). Later clone for Y and REV (`BANK_EN`←`REV_EN_n`, outs → `*r_*`; drive REV swaps `NAn`/`NBn`).
+1. **Define once** — atomic `drive_block` / `decode_block` / `decode_ctrl` with `N`/`n` hierarchical pins.
+2. **Instantiate on root** — four `decode_block` calls (X/Y, FWD/REV; REV binds `BANK_EN`←`REV_EN_n` and `*r_*` outs) and 32 `drive_block` calls (groups 0–7, X and Y, FWD and REV). FWD sources B and sinks A. REV swaps those ends. `steer_2x2` holds the SS14s for lines 0–63 (`line = 8·HS + LS`). Decode CTRL is the X sheet (address + enables) plus a Y address sheet.
 3. **Scale with buses** — when past 1×1, root may use KiCad buses such as `X_HS[0..7]_n` and `X_LS[0..7]_en` so the top sheet stays a few thick vectors instead of dozens of wires.
 4. **PCB multiplier** — route and pour **one** Drive Block instance cleanly, then use the **Replicate Layout** plugin to copy placement and copper to further instances (7 more for an 8-line bank, or more toward 64). Hierarchy makes instance membership unambiguous for the plugin.
 
@@ -110,10 +124,10 @@ flowchart LR
 
 | Step | Schematic | PCB |
 |------|-----------|-----|
-| Now | 1× decode_block (X FWD), 1× drive_block (X0 FWD) | Single block layout TBD |
-| Next | Y FWD + X/Y REV sheet instances; `*r_*` nets | Replicate Drive Block |
+| Now | 4× decode_block, 8× drive_block, steer_2x2 for lines 0 and 1 | Single block layout TBD |
+| Next | HS groups 1–7 and LS groups 2–7; steer grows to 64 lines | Replicate Drive Block |
 | Later | Buses on root; full 8×8 banks | Replicate across banks |
 
 ## 8. What never enters the Drive/Decode chain
 
-`YA65`, `YB65`, `YA66`, `YB66`, and `SENSE_FOLD` are sense/fold only. They may appear as local labels on the Magnetic Cores sheet or as Sense/Inhibit hierarchical pins, but they are **not** `NAn`/`NBn` with n≥64 and are **not** decode outputs.
+`YA65`, `YB65`, `YA66`, `YB66`, and `SENSE_FOLD` are sense/fold only. They may appear as local labels on the Magnetic Cores sheet or as Sense/Inhibit hierarchical pins, but they are **not** drive switch nodes and are **not** decode outputs.

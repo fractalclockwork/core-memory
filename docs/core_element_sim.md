@@ -85,3 +85,76 @@ Where the waveform is not a scope photo:
 Published read-1 pulses are bell-shaped. Menyuk and Goodenough (1955) describe flux reversal whose rate peaks in the middle of the switch, because that is when the domain-wall area is largest. This model slews \(m\) at a nearly constant rate once \(|H| > H_c\), so \(dB/dt\) is flat for about 1 µs. The spikes at the start and end of each current edge are the reversible term \(\mu_0 \mu_r dH/dt\), not the flip. The 20 Ω dampers are on the testbench, as in the original damping note; at these sense voltages they do not set the 1 µs width.
 
 The read-1 peak (−41 mV) is the ~35 mV remanence reversal plus the reversible edge at the start of the ramp. Polarity follows the drive: negative current produces a negative read-1; the restore is the opposite spike.
+
+## 2×2 addressing
+
+The Magnetic Cores sheet places four of these cores in the plane’s weave: YA loop through MCE11 and MCE00 (mirrored, top-left to bottom-right), YB loop through MCE10 and MCE01, ends at the XB end of each Y edge, fold `YA66`═`YB65`. The batch deck uses that netlist after the sheet’s `Sim.Pins` map, so current XA→XB and YA→YB both add to H, and current YA65→YB66 opposes a positive write.
+
+This deck is the single-sink record. The return is one copy of the schematic CCS (`models/ccs.cir`): TL431 at 2.5 V, the 10 kΩ pot set for 400 mA, OPA192, IRLZ44N, and the 1 Ω sense resistor. Selected ends are switched from a 12 V testbench rail; the other end of each driven line, and the inhibit sink, all return through that one node. The schematic does not: X, Y, and inhibit each have their own sink. In the model the op-amp output is held at 2.39 V, just above the gate that regulates 400 mA, so an open return does not wind the MOSFET up to the +5 V rail between pulses.
+
+```bash
+ngspice -b kicad/core_element_sim/models/array2x2_tb.cir   # RESULT PASS or RESULT FAIL
+python3 kicad/core_element_sim/plot_array.py              # plots/array2x2_response.png
+```
+
+One 46 µs transient, cores starting at \(m=+1\). Each pulse is a 1 µs rise, a 2 µs flat, and a 1 µs fall. Read polarity sinks the A end (current B→A). Write sinks the B end. The last window is a write of X1/Y0 with inhibit current also returned through the CCS.
+
+![Line currents, series sense, and remanence of the four cores.](../kicad/core_element_sim/plots/array2x2_response.png)
+
+What the run checks:
+
+- The sink holds 400 mA on every flat top. A single line carries that whole current. Two lines split it, about 200 mA each. Inhibit is a third path, about 134 mA, and the sum is still 400 mA.
+- That split stays under \(H_c\). Half-select, every address window, the restore, and the inhibited write all leave every core at \(+B_r\).
+- The half-select edge is a reversible spike of about 30 mV on `YA65`−`YB66`, from the single line taking the full 400 mA. Coincident windows are a few millivolts. Nothing on this string is a flip.
+
+## Read / write-back
+
+One shared sink cannot put 400 mA on X and 400 mA on Y together, so a read cannot flip the addressed core. `array2x2_cycle_tb.cir` keeps the same CCS circuit and gives the X lines, the Y lines, and the inhibit path each their own copy, every one set to 400 mA. That is the schematic: root sheets CCS X, CCS Y, and CCS INH.
+
+All four cores start at \(-B_r\). The run visits X00, then X01, then X10, then X11. Each pulse is a 1 µs rise, a 2 µs flat, and a 1 µs fall. X and Y each have one CCS, shared by the two lines of that axis, and only one of those lines is on at a time. Inhibit has its own CCS.
+
+```bash
+ngspice -b kicad/core_element_sim/models/array2x2_cycle_tb.cir   # RESULT PASS or RESULT FAIL
+python3 kicad/core_element_sim/plot_cycle.py                     # plots/array2x2_cycle.png
+```
+
+![Write, read, and write-back of a 1, then of a 0, on all four cores.](../kicad/core_element_sim/plots/array2x2_cycle.png)
+
+What the run checks, on every core:
+
+- Write 1 drives +400 mA on that core’s X line and Y line. The core goes to \(+B_r\). The sense plateau is about −35 mV. The other three cores stay at \(-B_r\).
+- Read drives −400 mA on the same two lines. The core goes to \(-B_r\), and the plateau is about +35 mV.
+- Write-back drives +400 mA again. The core returns to \(+B_r\).
+- Storing a 0 starts with that same read, which clears the 1. The write then adds 400 mA inhibit on YA65→YB66, so the core stays at \(-B_r\) and the plateau collapses. Inhibit current also threads the other three cores and does not flip them.
+- Read of that 0 leaves the core at \(-B_r\). The reversible edge is still there; the flip plateau is not. Write-back of the 0 is the inhibited write again, and the core stays at \(-B_r\).
+
+The same cycle is re-run with the real blocks in place of the ideal switches. `array2x2_drive_tb.cir` puts one `drvleg` on X0. `array2x2_matrix_tb.cir` is the diode matrix (shared group-0 high side, low side selects the line). `array2x2_inhibit_tb.cir` and `array2x2_sense_tb.cir` add inhibit and the sense latch. `array2x2_e2e_tb.cir` starts from `ADDR_*`, `DEC_EN`, `FWD_EN_n`, `REV_EN_n`, `INH_EN_n`, and `SENSE_STROBE`.
+
+```bash
+ngspice -b kicad/core_element_sim/models/array2x2_e2e_tb.cir   # RESULT PASS or RESULT FAIL
+python3 kicad/core_element_sim/plot_e2e.py                     # plots/array2x2_e2e.png
+```
+
+![The same cycle, started from the address pins.](../kicad/core_element_sim/plots/array2x2_e2e.png)
+
+## What each deck includes
+
+Magnetic Cores (four `mce` cores, the fold, and the 10 kΩ center tap) are in every array deck. `array2x2_tb.cir` is the one-sink record. Every other array deck instances the CCS subcircuit three times.
+
+| Deck | Beyond cores and the CCS copies |
+|------|--------------------------------|
+| `array2x2_tb.cir` | One CCS. Ideal line switches. |
+| `array2x2_cycle_tb.cir` | Three CCS copies. Ideal line switches. Oracle for remanence, ±400 mA, and the sense plateau. |
+| `array2x2_drive_tb.cir` | `drive.cir` on the X0 pair. Other switches stay ideal. |
+| `array2x2_matrix_tb.cir` | `drive.cir` on all eight half-bridges, diode steering. |
+| `array2x2_inhibit_tb.cir` | Matrix, plus `inhibit.cir` returned to `CCS_INH`. |
+| `array2x2_sense_tb.cir` | Inhibit deck, plus `sense.cir` and `DOUT`. |
+| `array2x2_e2e_tb.cir` | Sense deck, plus `decode.cir`. Stimulus is the address and enable pins. |
+
+`array2x2_e2e_tb.cir` also has the Decode CTRL pulls: 10 kΩ down on `DEC_EN`, 10 kΩ up on `FWD_EN_n` and `REV_EN_n`. After the cycle the sources open. The pulls hold every gate off, and `DOUT` stays low. During an X0 read, `X_HS2_n` and `Y_HS7_n` stay high and `X_LS2_en` / `Y_LS7_en` stay low, so the groups the 2×2 address does not use stay off.
+
+`array2x2_strobe_tb.cir` is that deck with the sheet sense front-end: 1 kΩ, the clamps, the comparator, and the latch. The strobe is 300 ns into the flat. 200 ns and 250 ns do not latch a logic 1. A following X-only half-select does not latch a 1.
+
+`array2x2_z_tb.cir` inserts one series R and one series L on each drive line and on the sense string. The default is 1 µΩ and 1 pH, and that run still passes. [theory_of_operation.md](theory_of_operation.md) records no numeric weave L or DCR, so there is no second run with a real plane impedance.
+
+Still out of every netlist: the decoupling caps, and C5/C6 inside `ccs.cir`. They sit on ideal rails. The root schematic now has drive groups 0–7, steer diodes for lines 0–63, an edge contact on each plane net, and an RP2040 header on the address and enable nets. The transient is still four cores.

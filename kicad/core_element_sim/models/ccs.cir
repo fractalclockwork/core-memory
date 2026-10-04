@@ -1,0 +1,50 @@
+* Constant-current sink from kicad/core/ccs.kicad_sch.
+*   R7 1k from +5V into U4 TL431 (REF tied to cathode, 2.5 V)
+*   RV1 10k from that rail to GND; wiper is VSET
+*   U3 OPA192, + = VSET, − = ISENSE, out through R8 100 into Q1 gate
+*   Q1 IRLZ44N drain is CCS_RET; source is the top of R9
+*   R9 1 ohm to GND. I = VSET / R9
+*
+* Bypass (C5, C6) is omitted. The op-amp is a 10 MHz GBW, 20 V/µs slew
+* model on the +5 V rail. The output ceiling is 2.39 V (Bclamp), a hair
+* above the gate that regulates 400 mA, so an open return cannot wind
+* the IRLZ44N up to +5 V. Gate capacitance is on the far side of R8.
+* Pin: CCS_RET. +5V and GND are local. Setpoint is ic_half (default 400 mA).
+
+.subckt ccs ccs_ret params: ic_half=0.4
+.param vref=2.5
+.param rpot=10e3
+.param frac={ic_half/vref}
+
+V5 v5 0 DC 5
+R7 v5 vk 1k
+Vtl vk 0 DC {vref}
+Rtop vk vw {rpot*(1-frac)}
+Rbot vw 0 {rpot*frac}
+
+* OPA192: gm integrates on Cint (GBW 10 MHz). tanh caps the slew at 20 V/µs.
+* The buffer is the low output impedance that actually drives Ciss; the
+* integrator current itself cannot. min/max, not limit() — this ngspice
+* returns 0 from limit(). 318e-6, not a trailing m: in a B-source that
+* suffix is a name, not milli.
+Bop 0 nint I=318e-6*tanh((v(vw)-v(isense))/0.318)
+Cint nint 0 15.9p
+Rint nint 0 1G
+Bclamp nint 0 I=(max(v(nint)-2.39,0)+min(v(nint),0))/5
+Ebuf nbuf 0 nint 0 1
+Rout nbuf nout 10
+R8 nout gate 100
+* Hold the gate itself. Drain steps couple through Cgd onto this node,
+* on the far side of R8 from the op-amp clamp.
+Bgate gate 0 I=(max(v(gate)-2.39,0)+min(v(gate),0))/5
+Ciss gate isense 1.7n
+* 10 pF, not the IRLZ44N's ~200 pF Crss. A full Crss couples the drain
+* step through R8 and kicks the gate off the 2.39 V ceiling for the
+* 170 ns the 1.7 nF Ciss takes to recover.
+Cgd gate ccs_ret 10p
+M1 ccs_ret gate isense 0 irlz44n
+Viccs isense r9a 0
+R9 r9a 0 1
+
+.model irlz44n NMOS (LEVEL=1 VTO=1.8 KP=20 LAMBDA=0.02 GAMMA=0)
+.ends

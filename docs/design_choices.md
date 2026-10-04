@@ -12,7 +12,7 @@ The plane has two independent sense/inhibit loops (`YA65`↔`YA66` and `YB65`↔
 
 Each loop’s DCR and inductance are half of a continuous 4,096-core weave. Wiring the loops in series presents that full-array L and DCR to the driver, so \(V_{drive}\) and the CCS current stay at \(I_c/2\).
 
-If the series-loop noise floor is too high on the bench, the deferred alternative is to drive and sense the loops in parallel: `YA65` and `YB65` both fed from the inhibit P-FET, `YA66` and `YB66` both returned to `CCS_RET` (CCS then sinks \(I_c\), and \(V_{drive}\) can be lower), plus a second TLV3501 whose output is OR’d with the first. That is not the 2×2 sim fixture or the initial 8×8 build.
+If the series-loop noise floor is too high on the bench, the deferred alternative is to drive and sense the loops in parallel: `YA65` and `YB65` both fed from the inhibit P-FET, `YA66` and `YB66` both returned to `CCS_INH` (that sink then takes \(I_c\), and \(V_{drive}\) can be lower), plus a second TLV3501 whose output is OR’d with the first. That is not the 2×2 sim fixture or the initial 8×8 build.
 
 ## Steering diodes on the driver board
 
@@ -24,7 +24,7 @@ Driving 64 X and 64 Y lines with one switch each would explode MOSFET and connec
 
 ## Prototype 1×1 before scaling lines
 
-Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on one core (X0∩Y0) before cloning matrix FETs. Drive is one hierarchical page [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch): a single TC4427A (HS+LS) plus one FDS8958A. Hierarchical pins use **`N`** = axis and **`n`** = line (`N_HSn`, `N_LSn`, `NAn`, `NBn`). Decode is one hierarchical page [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch): one axis = 74AHC138 HS + 74AHC238 LS (`ADDR_NH/NL`, `N_HS{0..7}_n`, `N_LS{0..7}_en`; line# = 8·HS + LS). Root places one of each for X FWD / X0 FWD bring-up; Y / REV instances come later (REV will gate `BANK_EN`←`REV_EN_n` and remap outs to `*r_*`; drive REV will swap `NAn`/`NBn`). More FDS8958A drive banks come after this 1×1 FET bring-up works.
+Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on the 2×2 before the 64-line banks. Drive is one hierarchical page [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch): a TC4427A (HS+LS) plus one FDS8958A, with switch-node pins `N_HS_OUT` / `N_LS_OUT`. The SS14s are on [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch). Decode is one hierarchical page [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch): one axis = 74AHC138 HS + 74AHC238 LS (`ADDR_NH/NL`, `N_HS{0..7}_n`, `N_LS{0..7}_en`; line# = 8·HS + LS). Root places four decode calls and eight drive calls. REV binds `BANK_EN`←`REV_EN_n` and remaps outs to `*r_*`. HS groups 1–7 and LS groups 2–7 are the later fan-out.
 
 ## Soft mid-bias and input clamps on sense
 

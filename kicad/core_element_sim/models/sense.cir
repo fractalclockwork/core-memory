@@ -1,0 +1,42 @@
+* Sense latch from sense.kicad_sch.
+* 1 kohm isolation, then the probe. BAT54S clamps are smooth and tiny.
+* The TLV3501 uses the magnitude. 20 mV is the decision level, between
+* the reversible edge and the ~35 mV flip plateau. The 74AHC74 follows
+* SENSE_STROBE and holds on Cqx.
+.subckt sense ya yb strobe dout
+* 1 kohm is the sheet isolation. The rest keeps the probe from
+* pushing the reversible read-0 edge through 15 mV.
+Rya ya mya 1k
+Ryb yb myb 1k
+Rpa mya sa 32k
+Rpb myb sb 32k
+Csa sa 0 15p
+Csb sb 0 15p
+Bcla sa 0 I=200n*tanh(v(sa)/0.35)
+Bclb sb 0 I=200n*tanh(v(sb)/0.35)
+Bmag mag 0 V=sqrt(v(sa,sb)*v(sa,sb)+1e-8)
+Bcmp d 0 V=1.65*(1+tanh((v(mag)-0.020)/0.003))
+Rd d 0 1Meg
+Btrk d qx I=(v(strobe)/3.3)*(v(d)-v(qx))/400
+Cqx qx 0 100p
+Rhold qx 0 200Meg
+Eout dout 0 qx 0 1
+.ends
+
+* Sheet front-end only: 1 kohm, clamps, comparator, latch.
+* No 32 kohm probe. 15 pF is the comparator pin, not that filter.
+.subckt sense_sheet ya yb strobe dout
+Rya ya sa 1k
+Ryb yb sb 1k
+Csa sa 0 15p
+Csb sb 0 15p
+Bcla sa 0 I=200n*tanh(v(sa)/0.35)
+Bclb sb 0 I=200n*tanh(v(sb)/0.35)
+Bmag mag 0 V=sqrt(v(sa,sb)*v(sa,sb)+1e-8)
+Bcmp d 0 V=1.65*(1+tanh((v(mag)-0.020)/0.003))
+Rd d 0 1Meg
+Btrk d qx I=(v(strobe)/3.3)*(v(d)-v(qx))/400
+Cqx qx 0 100p
+Rhold qx 0 200Meg
+Eout dout 0 qx 0 1
+.ends

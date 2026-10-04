@@ -2,7 +2,7 @@
 """Build Decoupling pages (logic + VDRIVE) for shared rails only.
 
 Pages (global power nets — no hierarchical pins):
-  decoupling_logic.kicad_sch  — +3V3 / +5V (Sense, Latch, CCS)
+  decoupling_logic.kicad_sch  — +3V3 (Sense, Latch). CCS +5V bypass lives on ccs.kicad_sch.
   decoupling_vdrive.kicad_sch — VDRIVE 100n+1u for Inhibit TC4427s
 
 Drive Block / Decode Block carry their own per-IC bypass.
@@ -41,15 +41,53 @@ BEADS_UUID = "a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb"
 
 SHEET_ORDER = [
     (ROOT_UUID, "core"),
-    (DRIVE_BLOCK_UUID, "Drive Block"),
-    (DECODE_BLOCK_UUID, "Decode Block"),
+    (DRIVE_BLOCK_UUID, "X0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111112", "X1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111113", "X0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111114", "X1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111115", "Y0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111116", "Y1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111117", "Y0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111118", "Y1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110120", "X2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110121", "X2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110122", "Y2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110123", "Y2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110124", "X3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110125", "X3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110126", "Y3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110127", "Y3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110128", "X4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110129", "X4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012a", "Y4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012b", "Y4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012c", "X5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012d", "X5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012e", "Y5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012f", "Y5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110130", "X6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110131", "X6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110132", "Y6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110133", "Y6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110134", "X7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110135", "X7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110136", "Y7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110137", "Y7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111119", "Steer 2x2"),
+    (DECODE_BLOCK_UUID, "X FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333334", "Y FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333335", "X REV"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333336", "Y REV"),
     (LOGIC_UUID, "Decoupling Logic"),
     (VDRIVE_UUID, "Decoupling VDRIVE"),
     (SENSE_UUID, "Sense"),
     (BEADS_UUID, "Magnetic Cores"),
-    (CCS_UUID, "CCS"),
+    (CCS_UUID, "CCS X"),
+    ("a1b2c3d4-e5f6-4789-a012-888888888889", "CCS Y"),
+    ("a1b2c3d4-e5f6-4789-a012-88888888888a", "CCS INH"),
     (INH_UUID, "Inhibit"),
     (DEC_CTRL_UUID, "Decode CTRL"),
+    ("a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaab", "Decode CTRL Y"),
 ]
 
 FP_C = "Capacitor_SMD:C_0805_2012Metric"
@@ -270,10 +308,9 @@ def build_sch(title: str, comment: str, sheet_uuid: str, lib_syms: str, body: li
 
 def build_logic_page(lib_syms: str) -> str:
     o: list[str] = [
-        text("Logic decoupling — +3V3 / +5V (shared Sense / Latch / CCS)", 20, 12, 1.524),
-        text("Decode Block carries its own +3V3 100n per IC", 20, 18),
+        text("Logic decoupling — +3V3 (Sense / Latch)", 20, 12, 1.524),
+        text("Decode Block carries its own +3V3 100n per IC. CCS carries its own +5V pair.", 20, 18),
     ]
-    # Sense + Latch + CCS
     bypass_pair(
         o, sheet_uuid=LOGIC_UUID, rail_lib="power:+3V3", rail_val="+3V3",
         cref_lo="C1", cref_hi="C2", x=40.0, y=50.0, note="Sense U1 (TLV3501)",
@@ -282,13 +319,9 @@ def build_logic_page(lib_syms: str) -> str:
         o, sheet_uuid=LOGIC_UUID, rail_lib="power:+3V3", rail_val="+3V3",
         cref_lo="C3", cref_hi="C4", x=90.0, y=50.0, note="Latch U2 (74AHC74)",
     )
-    bypass_pair(
-        o, sheet_uuid=LOGIC_UUID, rail_lib="power:+5V", rail_val="+5V",
-        cref_lo="C5", cref_hi="C6", x=140.0, y=50.0, note="CCS U3 (OPA192) +5V",
-    )
     return build_sch(
         "Decoupling Logic",
-        "+3V3 / +5V bypass for Sense / Latch / CCS",
+        "+3V3 bypass for Sense / Latch",
         LOGIC_UUID,
         lib_syms,
         o,
@@ -471,7 +504,7 @@ def main() -> None:
         raise SystemExit("schematic truncated — abort")
 
     # Libs for pages
-    needed_logic = ["Device:C", "power:+3V3", "power:+5V", "power:GND"]
+    needed_logic = ["Device:C", "power:+3V3", "power:GND"]
     needed_vdrive = ["Device:C", "power:VDRIVE", "power:GND"]
     logic_libs = "\n".join(extract_lib(sch, n) for n in needed_logic)
     vdrive_libs = "\n".join(extract_lib(sch, n) for n in needed_vdrive)

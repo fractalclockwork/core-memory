@@ -23,7 +23,7 @@ Each core is a **three-wire** element (X, Y, sense). There is **no separate inhi
 * **Two loops + external fold:** Loop A `YA65`↔`YA66`; Loop B `YB65`↔`YB66`. Driver jumper **`YA66`═`YB65`**. Outer ends: `YA65` / `YB66`. The 2×2 on Magnetic Cores is the schematic stand-in (one diagonal per loop).
 * **Common-Mode Noise Rejection (Read Phase):** A high-speed differential comparator (schematic: TLV3501; see [component_selection.md](component_selection.md)) across `YA65` / `YB66` isolates the millivolt flip spike. Classic techniques: [AN13](appnotes/an13f.pdf).
 * **Center-Tap Bias:** Soft-bias the center tap `YA66`/`YB65` (schematic: 10 kΩ → AGND), not a hard AGND short, so inhibit current traverses both loops into the CCS.
-* **Series Inhibit Drive (Write Phase):** Source \(V_{drive}\) into `YA65` and sink `YB66` to `CCS_RET` at \(-I_c/2\), so current flows Loop A, crosses `YA66`═`YB65`, and returns through Loop B — all cores in series. A parallel-drive alternative (both loops at once, two comparators) is deferred; see [design_choices.md](design_choices.md).
+* **Series Inhibit Drive (Write Phase):** Source \(V_{drive}\) into `YA65` and sink `YB66` to `CCS_INH` at \(-I_c/2\), so current flows Loop A, crosses `YA66`═`YB65`, and returns through Loop B — all cores in series. A parallel-drive alternative (both loops at once, two comparators) is deferred; see [design_choices.md](design_choices.md).
 
 ## 3. Drive Architecture (64x64 Matrix)
 * **Matrix Structure:** Group the 64 lines per axis into 8 rows and 8 columns. Implement 8 High-Side source switches and 8 Low-Side sink switches per axis, per direction (Forward for READ, Reverse for WRITE).
@@ -32,7 +32,7 @@ Each core is a **three-wire** element (X, Y, sense). There is **no separate inhi
 
 ## 4. Current Recommendations ($I_c$)
 * **Coercive Current ($I_c$):** Given the 0.125-inch core diameter, expect a full-select current between 400mA and 800mA. A separate single-core study uses an explicit 50-mil toroid at the top of this current band; it does not replace this paragraph. See [core_element_sim.md](core_element_sim.md). 
-* **Drive Regulation:** The half-select current ($I_c/2$) of 200mA to 400mA must be strictly regulated. Implement an adjustable constant-current sink on the common return path of the Low-Side drivers. A power op-amp driving an N-channel MOSFET, monitored by a low-ohm sense resistor, ensures the current remains perfectly flat despite the inductive load.
+* **Drive Regulation:** The half-select current ($I_c/2$) of 200mA to 400mA must be strictly regulated on each axis at once. Three copies of the same adjustable constant-current sink: `CCS_X` for the X low-side returns, `CCS_Y` for the Y low-side returns, and `CCS_INH` for the inhibit return. One shared sink splits the coincident pulse and the addressed core never sees full-select. A power op-amp driving an N-channel MOSFET, monitored by a low-ohm sense resistor, holds each path flat despite the inductive load.
 
 ## 5. Timing & Sequencing
 Core memory operations require sub-microsecond, deterministic pulse sequencing. A READ destroys the data, so every access is a READ / RESTORE cycle.

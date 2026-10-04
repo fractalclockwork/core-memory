@@ -1,0 +1,9 @@
+* Inhibit path from inhibit.kicad_sch.
+* en is high when the sheet pin INH_EN_n is low.
+* The TC4427A puts that inverted level on the P-FET gate (low gate = on).
+* The 2N7002 inverts INH_EN_n onto the N-FET gate (high = on).
+* ya is the sourced end (YA65). yb is the sunk end (YB66), returned to CCS_INH.
+.subckt inhibit vdrv ya yb ccs en
+Xhs vdrv ya en drvleg
+Xls yb ccs en drvleg
+.ends

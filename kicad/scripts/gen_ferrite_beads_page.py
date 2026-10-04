@@ -4,7 +4,9 @@
 Phase 1: strip FB1/FB2 + soft mid from sense; recreate bowtie topology on
          ferrite_beads; rewire root Sense pins; add Magnetic Cores sheet.
 Phase 2: replace bowtie with physically oriented 2×2 (XA→XB top→bottom,
-         YA→YB right→left; sense on diagonals with center tap after 2 cores).
+         YA→YB right→left). Sense: YA loop is the TL–BR diagonal (MCE00 and
+         MCE11 mirrored), YB loop is the BL–TR diagonal; both loop ends leave
+         at the XB end of that Y edge. Center tap YA66=YB65 after two cores.
 
 Usage:
   uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 1
@@ -40,15 +42,53 @@ VDRIVE_UUID = "a1b2c3d4-e5f6-4789-a012-666666666666"
 
 SHEET_ORDER = [
     (ROOT_UUID, "core"),
-    (DRIVE_BLOCK_UUID, "Drive Block"),
-    (DECODE_BLOCK_UUID, "Decode Block"),
+    (DRIVE_BLOCK_UUID, "X0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111112", "X1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111113", "X0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111114", "X1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111115", "Y0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111116", "Y1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111117", "Y0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111118", "Y1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110120", "X2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110121", "X2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110122", "Y2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110123", "Y2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110124", "X3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110125", "X3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110126", "Y3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110127", "Y3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110128", "X4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110129", "X4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012a", "Y4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012b", "Y4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012c", "X5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012d", "X5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012e", "Y5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012f", "Y5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110130", "X6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110131", "X6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110132", "Y6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110133", "Y6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110134", "X7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110135", "X7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110136", "Y7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110137", "Y7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111119", "Steer 2x2"),
+    (DECODE_BLOCK_UUID, "X FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333334", "Y FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333335", "X REV"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333336", "Y REV"),
     (LOGIC_UUID, "Decoupling Logic"),
     (VDRIVE_UUID, "Decoupling VDRIVE"),
     (SENSE_UUID, "Sense"),
     (BEADS_UUID, "Magnetic Cores"),
-    (CCS_UUID, "CCS"),
+    (CCS_UUID, "CCS X"),
+    ("a1b2c3d4-e5f6-4789-a012-888888888889", "CCS Y"),
+    ("a1b2c3d4-e5f6-4789-a012-88888888888a", "CCS INH"),
     (INH_UUID, "Inhibit"),
     (DEC_CTRL_UUID, "Decode CTRL"),
+    ("a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaab", "Decode CTRL Y"),
 ]
 
 BEAD_REFS = {"FB1", "FB2", "R1", "R2", "#PWR_AGND", "#FLG_AGND"}
@@ -306,6 +346,36 @@ def page_footer(page_uuid: str) -> str:
 '''
 
 
+def y_edge(pins: dict[str, tuple[float, float]], mirrored: bool, side: str) -> tuple[float, float]:
+    """Y pin on the left or right side of the symbol.
+
+    Unmirrored, Y1 is left and Y2 is right. mirror_y swaps those sides.
+    Callers attach YA to the right pin and YB to the left pin.
+    """
+    if side == "right":
+        return pins["y1"] if mirrored else pins["y2"]
+    if side == "left":
+        return pins["y2"] if mirrored else pins["y1"]
+    raise ValueError(side)
+
+
+def mce_spice(*, y_swap: bool) -> list[tuple[str, str]]:
+    """SPICE pin map so XA→XB and YA→YB both add +H, and YA65→YB66 is −Is.
+
+    The subcircuit treats pin1→pin2 as +H. A mirrored core already has its
+    right-hand Y pin as Y1, so YA→YB is +H. An unmirrored core needs Y1/Y2
+    swapped. Every core in this weave is entered at symbol S1; mapping that
+    pin to subckt S2 makes the documented inhibit direction oppose a +H write.
+    """
+    y_pins = "3=Y2 4=Y1" if y_swap else "3=Y1 4=Y2"
+    return [
+        ("Sim.Device", "SUBCKT"),
+        ("Sim.Name", "mce"),
+        ("Sim.Library", "../core_element_sim/models/coremem.cir"),
+        ("Sim.Pins", f"1=X1 2=X2 {y_pins} 5=S2 6=S1"),
+    ]
+
+
 def bead_pins(sx: float, sy: float, *, mirror_y: bool = False) -> dict[str, tuple[float, float]]:
     """Pin positions for MCE: X top/bot, Y L/R, S on LL→UR diagonal.
 
@@ -419,8 +489,9 @@ def build_grid_page(sch_src: str) -> str:
         text(
             "MAGNETIC CORES — 2×2 MCE\\n"
             "XA→XB top→bottom; YA→YB right→left\\n"
-            "Sense loops: YA65–MCE00–MCE11–YA66 and YB65–MCE10–MCE01–YB66; center tap YA66=YB65",
-            20, 15, 1.524,
+            "YA loop TL–BR (MCE00/MCE11 mirrored): YA65–MCE11–MCE00–YA66 at YA–XB\\n"
+            "YB loop BL–TR: YB65–MCE10–MCE01–YB66 at YB–XB; center tap YA66=YB65",
+            20, 12, 1.524,
         ),
     ]
 
@@ -433,78 +504,99 @@ def build_grid_page(sch_src: str) -> str:
         "MCE10": (c0x, c0y + gap_y),
         "MCE11": (c0x + gap_x, c0y + gap_y),
     }
-    # Flip MCE01 (UR) and MCE10 (LL) about Y so their S diagonal matches the
-    # physical anti-diagonal weave (LR↔UL on those cores).
-    mirror = {"MCE00": False, "MCE01": True, "MCE10": True, "MCE11": False}
+    # Photo: the TL–BR sense pass (\\) is the YA loop, so those cores are
+    # mirrored (S on UL–LR). The return pass (/) is the YB loop, unmirrored.
+    mirror = {"MCE00": True, "MCE01": False, "MCE10": False, "MCE11": True}
     pins = {}
     for ref, (sx, sy) in positions.items():
         my = mirror[ref]
         o.append(symbol_inst(
             "core_memory:MCE", ref, "MCE", sx, sy, list("123456"),
-            footprint="", mirror_y=my, bom=False, on_board=False, extra=MCE_SPICE,
+            footprint="", mirror_y=my, bom=False, on_board=False,
+            extra=mce_spice(y_swap=not my),
         ))
         pins[ref] = bead_pins(sx, sy, mirror_y=my)
 
     p00, p01, p10, p11 = pins["MCE00"], pins["MCE01"], pins["MCE10"], pins["MCE11"]
 
-    # --- X columns (top → bottom via X1/X2) ---
+    def chain(pts: list[tuple[float, float]]) -> list[str]:
+        return [wire(a, b) for a, b in zip(pts, pts[1:])]
+
+    # --- X columns (top → bottom via X1/X2; mirror does not move X) ---
     # XA0 → MCE00.X1 → MCE00.X2 → MCE10.X1 → MCE10.X2 → XB0
     o += stub_hier_v("XA0", p00["x1"], dy=-10.16)
     o += [wire(p00["x2"], p10["x1"])]
     o += stub_hier_v("XB0", p10["x2"], dy=10.16)
 
-    # XA1 → FB01.X1 → FB01.X2 → FB11.X1 → FB11.X2 → XB1
+    # XA1 → MCE01.X1 → MCE01.X2 → MCE11.X1 → MCE11.X2 → XB1
     o += stub_hier_v("XA1", p01["x1"], dy=-10.16)
     o += [wire(p01["x2"], p11["x1"])]
     o += stub_hier_v("XB1", p11["x2"], dy=10.16)
 
-    # --- Y rows (right → left via Y1/Y2; mirrored beads swap which name is on each side) ---
-    # YA0 (right of MCE01) → across → YB0 (left of MCE00)
-    o += stub_hier("YA0", p01["y1"] if mirror["MCE01"] else p01["y2"], rot=0, dx=10.16)
-    # MCE01 left pin → MCE00 right pin
-    fb01_left = p01["y2"] if mirror["MCE01"] else p01["y1"]
-    fb00_right = p00["y2"]
-    o += [wire(fb01_left, fb00_right)]
-    o += stub_hier("YB0", p00["y1"], rot=180, dx=-10.16)
+    # --- Y rows (right → left). YA on the right-hand pin, YB on the left. ---
+    o += stub_hier("YA0", y_edge(p01, mirror["MCE01"], "right"), rot=0, dx=10.16)
+    o += [wire(y_edge(p01, mirror["MCE01"], "left"), y_edge(p00, mirror["MCE00"], "right"))]
+    o += stub_hier("YB0", y_edge(p00, mirror["MCE00"], "left"), rot=180, dx=-10.16)
 
-    # YA1 → FB11 → FB10 → YB1
-    o += stub_hier("YA1", p11["y2"], rot=0, dx=10.16)
-    fb10_right = p10["y1"] if mirror["MCE10"] else p10["y2"]
-    o += [wire(p11["y1"], fb10_right)]
-    fb10_left = p10["y2"] if mirror["MCE10"] else p10["y1"]
-    o += stub_hier("YB1", fb10_left, rot=180, dx=-10.16)
+    o += stub_hier("YA1", y_edge(p11, mirror["MCE11"], "right"), rot=0, dx=10.16)
+    o += [wire(y_edge(p11, mirror["MCE11"], "left"), y_edge(p10, mirror["MCE10"], "right"))]
+    o += stub_hier("YB1", y_edge(p10, mirror["MCE10"], "left"), rot=180, dx=-10.16)
 
-    # --- Sense diagonals + external center tap ---
-    # Loop A: YA65 ↔ MCE00 ↔ MCE11 ↔ YA66
-    # Loop B: YB65 ↔ MCE10 ↔ MCE01 ↔ YB66
-    # YA66 and YB65 meet only at SENSE_FOLD (driver jumper, 10k to AGND).
-    mid = (
-        round((positions["MCE00"][0] + positions["MCE01"][0]) / 2, 2),
-        round((positions["MCE00"][1] + positions["MCE10"][1]) / 2, 2),
-    )
-    o += stub_hier("YA65", p00["s2"], rot=0, dx=10.16)
-    o += [wire(p00["s1"], p11["s2"]), wire(p11["s1"], mid)]
-    o += [wire(p10["s1"], p01["s2"]), wire(p10["s2"], mid)]
-    o += stub_hier("YB66", p01["s1"], rot=0, dx=10.16)
+    # --- Sense diagonals. Both ends of a loop sit at the XB end of its Y edge. ---
+    # YA (mirrored, \\): YA65 → MCE11.S1 → MCE11.S2 → MCE00.S1 → MCE00.S2 → YA66
+    # YB (unmirrored, /): YB65 → MCE10.S1 → MCE10.S2 → MCE01.S1 → MCE01.S2 → YB66
+    # YA66 and YB65 meet at SENSE_FOLD (driver jumper, 10k to AGND).
+    o += stub_hier("YA65", p11["s1"], rot=0, dx=12.7)
+    o += [wire(p11["s2"], p00["s1"])]
+    o += [wire(p10["s2"], p01["s1"])]
+
+    # Loop-A return and the fold run under the array, between the two XB corners.
+    left_x = round(p10["s1"][0] - 20.32, 2)
+    bus_y = round(p10["x2"][1] + 22.86, 2)
+    fold = (round((positions["MCE00"][0] + positions["MCE01"][0]) / 2, 2), bus_y)
+    ya66 = (round(p11["s1"][0] + 16.0, 2), bus_y)
+    yb_tee = (left_x, p10["s1"][1])
+    o += chain([
+        p00["s2"],
+        (left_x, p00["s2"][1]),
+        yb_tee,
+        (left_x, bus_y),
+        fold,
+        ya66,
+    ])
+    o += chain([p10["s1"], yb_tee])
     o += [
-        junction(mid),
-        label("SENSE_FOLD", (mid[0] + 2.54, mid[1])),
-        label("YA66", (mid[0] + 5.08, mid[1])),
-        label("YB65", (mid[0] - 2.54, mid[1]), 180),
+        junction((left_x, bus_y)),
+        junction(fold),
+        junction(yb_tee),
+        label("YA66", ya66, 0),
+        label("SENSE_FOLD", (fold[0] + 2.54, fold[1])),
+        label("YB65", yb_tee, 180),
     ]
 
-    # Soft mid R1
-    r1 = (mid[0], mid[1] + 25.4)
+    # Loop-B return comes back over the top to the YB–XB corner.
+    top_y = round(p01["x1"][1] - 16.0, 2)
+    yb66 = (round(left_x - 8.0, 2), round(p10["s1"][1] + 6.0, 2))
+    o += chain([
+        p01["s2"],
+        (p01["s2"][0], top_y),
+        (yb66[0], top_y),
+        yb66,
+    ])
+    o += [hier("YB66", "passive", yb66, 180)]
+
+    # Soft mid R1 on the fold.
+    r1 = (fold[0], round(bus_y + 20.32, 2))
     o.append(symbol_inst("Device:R", "R1", "10k", r1[0], r1[1], ["1", "2"], footprint=FP_R))
     r1t, r1b = pin_xy(r1[0], r1[1], 0, 3.81), pin_xy(r1[0], r1[1], 0, -3.81)
-    o += [wire(mid, r1t)]
-    ag = (r1b[0], r1b[1] + 5.08)
+    o += [wire(fold, r1t)]
+    ag = (r1b[0], round(r1b[1] + 5.08, 2))
     o += [wire(r1b, ag), power("power:GND", "#PWR_AGND", "AGND", ag[0], ag[1])]
-    flg = (ag[0], ag[1] + 10.16)
+    flg = (ag[0], round(ag[1] + 10.16, 2))
     o += [wire(ag, flg), power("power:PWR_FLAG", "#FLG_AGND", "PWR_FLAG", flg[0], flg[1])]
 
     # R2 DNP across outer ends YA65/YB66
-    r2 = (mid[0] + 40.64, mid[1] + 25.4)
+    r2 = (round(ya66[0] + 25.4, 2), round((p11["s1"][1] + bus_y) / 2, 2))
     o.append(symbol_inst("Device:R", "R2", "DNP", r2[0], r2[1], ["1", "2"], rot=90, dnp=True, footprint=FP_R))
     r2l, r2r = pin_xy(r2[0], r2[1], 0, 3.81, 90), pin_xy(r2[0], r2[1], 0, -3.81, 90)
     o += [
@@ -516,7 +608,7 @@ def build_grid_page(sch_src: str) -> str:
 
     return page_header(
         "Magnetic Cores",
-        "2x2 MCE; X/Y address weave; sense loops joined at YA66=YB65",
+        "2x2 MCE; YA loop mirrored TL-BR; YB loop BL-TR; 65/66 at XB end",
         BEADS_UUID,
         libs,
     ) + "\n".join(o) + "\n" + page_footer(BEADS_UUID)

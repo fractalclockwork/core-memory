@@ -34,18 +34,63 @@ ROOT_UUID = "fabf9ba2-76e6-4325-a1a0-bc01b9516551"
 DRIVE_BLOCK_UUID = "a1b2c3d4-e5f6-4789-a012-111111111111"
 DECODE_BLOCK_UUID = "a1b2c3d4-e5f6-4789-a012-333333333333"
 OLD_DEC_REV_UUID = "a1b2c3d4-e5f6-4789-a012-444444444444"
+# name, uuid, page, x, y, axis, bank  (bank is FWD or REV)
+DECODE_CALLS = [
+    ("X FWD", DECODE_BLOCK_UUID, "3", 400.0, 190.0, "X", "FWD"),
+    ("Y FWD", "a1b2c3d4-e5f6-4789-a012-333333333334", "22", 490.0, 190.0, "Y", "FWD"),
+    ("X REV", "a1b2c3d4-e5f6-4789-a012-333333333335", "23", 400.0, 250.0, "X", "REV"),
+    ("Y REV", "a1b2c3d4-e5f6-4789-a012-333333333336", "24", 490.0, 250.0, "Y", "REV"),
+]
 
 SHEET_ORDER = [
     (ROOT_UUID, "core"),
-    (DRIVE_BLOCK_UUID, "Drive Block"),
-    (DECODE_BLOCK_UUID, "Decode Block"),
+    (DRIVE_BLOCK_UUID, "X0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111112", "X1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111113", "X0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111114", "X1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111115", "Y0 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111116", "Y1 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111117", "Y0 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111118", "Y1 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110120", "X2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110121", "X2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110122", "Y2 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110123", "Y2 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110124", "X3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110125", "X3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110126", "Y3 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110127", "Y3 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110128", "X4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110129", "X4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012a", "Y4 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012b", "Y4 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012c", "X5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012d", "X5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012e", "Y5 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-11111111012f", "Y5 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110130", "X6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110131", "X6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110132", "Y6 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110133", "Y6 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110134", "X7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110135", "X7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110136", "Y7 FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-111111110137", "Y7 REV"),
+    ("a1b2c3d4-e5f6-4789-a012-111111111119", "Steer 2x2"),
+    (DECODE_BLOCK_UUID, "X FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333334", "Y FWD"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333335", "X REV"),
+    ("a1b2c3d4-e5f6-4789-a012-333333333336", "Y REV"),
     ("a1b2c3d4-e5f6-4789-a012-555555555555", "Decoupling Logic"),
     ("a1b2c3d4-e5f6-4789-a012-666666666666", "Decoupling VDRIVE"),
     ("a1b2c3d4-e5f6-4789-a012-777777777777", "Sense"),
     ("a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb", "Magnetic Cores"),
-    ("a1b2c3d4-e5f6-4789-a012-888888888888", "CCS"),
+    ("a1b2c3d4-e5f6-4789-a012-888888888888", "CCS X"),
+    ("a1b2c3d4-e5f6-4789-a012-888888888889", "CCS Y"),
+    ("a1b2c3d4-e5f6-4789-a012-88888888888a", "CCS INH"),
     ("a1b2c3d4-e5f6-4789-a012-999999999999", "Inhibit"),
     ("a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaaa", "Decode CTRL"),
+    ("a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaab", "Decode CTRL Y"),
 ]
 
 DEC_PATH = f"/{ROOT_UUID}/{DECODE_BLOCK_UUID}"
@@ -80,7 +125,7 @@ SHEET_X = 400.0
 SHEET_Y = 190.0
 SHEET_W = 70.0
 SHEET_PAGE = "3"
-TITLE = "DECODE — Decode Block (N=axis, n=HS/LS bank); X FWD wired for 1×1 bring-up"
+TITLE = "DECODE — four decode_block calls (X/Y, FWD/REV); ADDR_Y and REV_EN_n are driven"
 OLD_TITLES = (
     "DECODE — 12-bit ADDR",
     "DECODE — Decode Block",
@@ -152,13 +197,23 @@ def prop(name: str, value: str, at: str, hide: bool = False) -> str:
 \t\t)'''
 
 
+def bump_ref(ref: str, i: int) -> str:
+    if i == 0:
+        return ref
+    return re.sub(r"\d+", lambda m: str(int(m.group(0)) + i * 100), ref, count=1)
+
+
 def instances(ref: str, unit: int = 1) -> str:
+    body = "\n".join(
+        f'''\t\t\t\t(path "/{ROOT_UUID}/{call[1]}"
+\t\t\t\t\t(reference "{bump_ref(ref, i)}")
+\t\t\t\t\t(unit {unit})
+\t\t\t\t)'''
+        for i, call in enumerate(DECODE_CALLS)
+    )
     return f'''\t\t(instances
 \t\t\t(project "{PROJECT}"
-\t\t\t\t(path "{DEC_PATH}"
-\t\t\t\t\t(reference "{ref}")
-\t\t\t\t\t(unit {unit})
-\t\t\t\t)
+{body}
 \t\t\t)
 \t\t)'''
 
@@ -454,8 +509,29 @@ def sheet_pin(name: str, shape: str, x: float, y: float, rot: int) -> str:
 \t\t)'''
 
 
-def sheet_block() -> str:
-    sx, sy = SHEET_X, SHEET_Y
+def parent_nets(axis: str, bank: str) -> dict[str, str]:
+    hsuf = "_n" if bank == "FWD" else "r_n"
+    lsuf = "_en" if bank == "FWD" else "r_en"
+    en = "FWD_EN_n" if bank == "FWD" else "REV_EN_n"
+    nets = {
+        "ADDR_NH0": f"ADDR_{axis}H0",
+        "ADDR_NH1": f"ADDR_{axis}H1",
+        "ADDR_NH2": f"ADDR_{axis}H2",
+        "ADDR_NL0": f"ADDR_{axis}L0",
+        "ADDR_NL1": f"ADDR_{axis}L1",
+        "ADDR_NL2": f"ADDR_{axis}L2",
+        "BANK_EN": en,
+        "DEC_EN": "DEC_EN",
+    }
+    for i in range(8):
+        nets[f"N_HS{i}_n"] = f"{axis}_HS{i}{hsuf}"
+        nets[f"N_LS{i}_en"] = f"{axis}_LS{i}{lsuf}"
+    return nets
+
+
+def sheet_block(call: tuple) -> tuple[str, dict[str, str]]:
+    sheet_name, uuid_, page, sx, sy, axis, bank = call
+    nets = parent_nets(axis, bank)
     w, h = SHEET_W, sheet_height()
     pitch_in = 3.81
     pitch_out = 2.54
@@ -476,8 +552,8 @@ def sheet_block() -> str:
 \t\t(dnp no)
 \t\t(stroke (width 0.1524) (type solid))
 \t\t(fill (color 0 0 0 0))
-\t\t(uuid "{DECODE_BLOCK_UUID}")
-\t\t(property "Sheetname" "Decode Block"
+\t\t(uuid "{uuid_}")
+\t\t(property "Sheetname" "{sheet_name}"
 \t\t\t(at {sx} {round(sy - 1.27, 2)} 0)
 \t\t\t(show_name no)
 \t\t\t(do_not_autoplace no)
@@ -493,15 +569,15 @@ def sheet_block() -> str:
 \t\t(instances
 \t\t\t(project "{PROJECT}"
 \t\t\t\t(path "/{ROOT_UUID}"
-\t\t\t\t\t(page "{SHEET_PAGE}")
+\t\t\t\t\t(page "{page}")
 \t\t\t\t)
 \t\t\t)
 \t\t)
-\t)'''
+\t)''', nets
 
 
-def sheet_stubs() -> list[str]:
-    sx, sy = SHEET_X, SHEET_Y
+def sheet_stubs(call: tuple, nets: dict[str, str]) -> list[str]:
+    _sheet_name, _uuid, _page, sx, sy, _axis, _bank = call
     w = SHEET_W
     pitch_in = 3.81
     pitch_out = 2.54
@@ -509,11 +585,11 @@ def sheet_stubs() -> list[str]:
     for i, name in enumerate(IN_PINS):
         py = round(sy + 4.0 + i * pitch_in, 2)
         outer = (round(sx - 12.7, 2), py)
-        o += [wire((sx, py), outer), label(PARENT_NETS[name], outer, 180)]
+        o += [wire((sx, py), outer), label(nets[name], outer, 180)]
     for i, name in enumerate(OUT_PINS):
         py = round(sy + 4.0 + i * pitch_out, 2)
         outer = (round(sx + w + 12.7, 2), py)
-        o += [wire((sx + w, py), outer), label(PARENT_NETS[name], outer)]
+        o += [wire((sx + w, py), outer), label(nets[name], outer)]
     return o
 
 
@@ -564,7 +640,7 @@ def retarget_root(sch: str) -> str:
     if len(remove) > 1:
         multi = True
 
-    sch = renumber_after_decode_collapse(sch, multi)
+    del multi
 
     remove = []
     decode_pins = set()
@@ -606,24 +682,11 @@ def retarget_root(sch: str) -> str:
             remove.append((start, end))
 
     sch = drop_spans(sch, remove)
-    chunks = [text(TITLE, 400, 185, 1.524), sheet_block(), *sheet_stubs()]
-    # Decode CTRL still emits Y ADDR + REV_EN_n; terminate until Y/REV instances exist
-    for net, y in (
-        ("ADDR_YH0", 265.56),
-        ("ADDR_YH1", 270.64),
-        ("ADDR_YH2", 275.72),
-        ("ADDR_YL0", 280.80),
-        ("ADDR_YL1", 285.88),
-        ("ADDR_YL2", 290.96),
-        ("REV_EN_n", 306.20),
-    ):
-        # NC at the existing CTRL stub label x≈80.16
-        chunks.append(
-            f'''\t(no_connect
-\t\t(at 80.16 {y})
-\t\t(uuid "{uid()}")
-\t)'''
-        )
+    chunks = [text(TITLE, 400, 185, 1.524)]
+    for call in DECODE_CALLS:
+        block, nets = sheet_block(call)
+        chunks.append(block)
+        chunks.extend(sheet_stubs(call, nets))
     marker = "\t(sheet_instances"
     if marker not in sch:
         marker = "(sheet_instances"

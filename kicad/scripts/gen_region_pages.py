@@ -5,10 +5,11 @@ Creates:
   sense.kicad_sch       — comparator / latch (extracted from root; beads separate)
   ccs.kicad_sch         — Ic/2 sink (extracted)
   inhibit.kicad_sch     — series YA65/YB66 drive (regenerated, TC4427A×2 + 2N7002)
-  decode_ctrl.kicad_sch — ADDR + bank-enable headers J40–J54 / R40–R54
+  decode_ctrl.kicad_sch   — one axis of ADDR_NH/NL + BANK_EN/DEC_EN/REV_EN_n (X + enables)
+  decode_ctrl_y.kicad_sch — same address pins, Y binding (no second enable headers)
 
 Root keeps Drive Block, Decode×2, Decoupling×2, Magnetic Cores as sheet stubs + bridging labels.
-Bypass caps stay on decoupling pages (not recreated here).
+CCS is one sheet called three times (CCS X / Y / INH). Each instance carries its own +5V bypass.
 Magnetic Cores page is owned by gen_ferrite_beads_page.py (do not re-extract cores here).
 """
 from __future__ import annotations
@@ -27,8 +28,11 @@ PROJECT = "core"
 ROOT_UUID = "fabf9ba2-76e6-4325-a1a0-bc01b9516551"
 SENSE_UUID = "a1b2c3d4-e5f6-4789-a012-777777777777"
 CCS_UUID = "a1b2c3d4-e5f6-4789-a012-888888888888"
+CCS_Y_UUID = "a1b2c3d4-e5f6-4789-a012-888888888889"
+CCS_I_UUID = "a1b2c3d4-e5f6-4789-a012-88888888888a"
 INH_UUID = "a1b2c3d4-e5f6-4789-a012-999999999999"
 DEC_CTRL_UUID = "a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaaa"
+DEC_CTRL_Y_UUID = "a1b2c3d4-e5f6-4789-a012-aaaaaaaaaaab"
 DRIVE_BLOCK_UUID = "a1b2c3d4-e5f6-4789-a012-111111111111"
 DECODE_BLOCK_UUID = "a1b2c3d4-e5f6-4789-a012-333333333333"
 LOGIC_UUID = "a1b2c3d4-e5f6-4789-a012-555555555555"
@@ -59,6 +63,33 @@ DECODE_CTRL_PWR = tuple(f"#PWR_R{n}" for n in range(40, 55))
 INH_FLAT_REFS = {"Q4", "U7", "U8", "Q7", "J5", "R14", "R25"}
 INH_FLAT_PWR = ("#PWR_U7", "#PWR_U8", "#PWR_R14", "#PWR_R25", "#PWR_Q7")
 
+# Block pins (N = axis). Parent nets are the root labels — same split as decode_block.
+ADDR_NH = ("ADDR_NH0", "ADDR_NH1", "ADDR_NH2")
+ADDR_NL = ("ADDR_NL0", "ADDR_NL1", "ADDR_NL2")
+ADDR_PINS = ADDR_NH + ADDR_NL
+# X sheet also carries the shared enables. Order matches decode_block inputs, then REV.
+X_PIN_ORDER = ADDR_PINS + ("BANK_EN", "DEC_EN", "REV_EN_n")
+Y_PIN_ORDER = ADDR_PINS
+X_PARENT = {
+    "ADDR_NH0": "ADDR_XH0",
+    "ADDR_NH1": "ADDR_XH1",
+    "ADDR_NH2": "ADDR_XH2",
+    "ADDR_NL0": "ADDR_XL0",
+    "ADDR_NL1": "ADDR_XL1",
+    "ADDR_NL2": "ADDR_XL2",
+    "BANK_EN": "FWD_EN_n",
+    "DEC_EN": "DEC_EN",
+    "REV_EN_n": "REV_EN_n",
+}
+Y_PARENT = {
+    "ADDR_NH0": "ADDR_YH0",
+    "ADDR_NH1": "ADDR_YH1",
+    "ADDR_NH2": "ADDR_YH2",
+    "ADDR_NL0": "ADDR_YL0",
+    "ADDR_NL1": "ADDR_YL1",
+    "ADDR_NL2": "ADDR_YL2",
+}
+# Root-label names (classify / legacy strip). Not sheet pin names.
 ADDR_GROUPS = [
     ["ADDR_XH0", "ADDR_XH1", "ADDR_XH2"],
     ["ADDR_XL0", "ADDR_XL1", "ADDR_XL2"],
@@ -67,6 +98,16 @@ ADDR_GROUPS = [
 ]
 ADDR_NETS = [n for g in ADDR_GROUPS for n in g]
 EN_NETS = ["DEC_EN", "FWD_EN_n", "REV_EN_n"]
+
+# Root sheet geometry. gen_xy_decode_page.py no_connects use these coordinates.
+DCTRL_X, DCTRL_W = 20.0, 50.0
+DCTRL_SY = 230.0
+DCTRL_Y_SY = 300.0
+DCTRL_LABEL_X = round(DCTRL_X + DCTRL_W + 10.16, 2)  # 80.16
+
+
+def dctrl_pin_y(sy: float, index: int) -> float:
+    return round(sy + 5.08 + index * 5.08, 2)
 
 FP_R = "Resistor_SMD:R_0805_2012Metric"
 FP_J = "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
@@ -339,10 +380,10 @@ def page_header(title: str, comment: str, page_uuid: str, libs: str) -> str:
 '''
 
 
-def page_footer(page_uuid: str) -> str:
+def page_footer(page_uuid: str, page: str = "1") -> str:
     return f'''\t(sheet_instances
 \t\t(path "/{ROOT_UUID}/{page_uuid}"
-\t\t\t(page "1")
+\t\t\t(page "{page}")
 \t\t)
 \t)
 \t(embedded_fonts no)
@@ -425,7 +466,7 @@ def classify_region(item: str) -> str | None:
             return "inh_flat"
         if name in {"YA65", "YB65", "YB66", "CCS_RET", "VDRIVE"} and 191 < y < 380 and x < 200:
             return "inh_flat"
-        if name in ADDR_NETS + EN_NETS and y >= 190 and x >= 200:
+        if name in ADDR_NETS + EN_NETS and y >= 190 and (x >= 200 or x < 150):
             return "decode_ctrl"
         return None
 
@@ -681,14 +722,26 @@ def build_inhibit_page(sch: str) -> str:
 # ----- decode_ctrl page -----
 
 
-def build_decode_ctrl_page(sch: str) -> str:
+def build_decode_ctrl_page(
+    sch: str,
+    *,
+    sheet_uuid: str,
+    page: str,
+    channels: list[tuple[str, str, str, str]],
+    comment: str,
+) -> str:
+    """channels: (pin, jref, rref, pull) pull is 'down' or 'up'.
+
+    Hierarchical labels are the block pins (ADDR_NH0, BANK_EN, …).
+    The parent net is a root label, not a name inside this sheet.
+    """
     lib_ids = ["Connector:Conn_01x01", "Device:R", "power:GND", "power:+3V3"]
     libs = "\n".join(extract_lib(sch, lid) for lid in lib_ids)
     o: list[str] = [
         text("DECODE CTRL — address + bank enables", 20, 20, 1.524),
-        text("Headers J40–J54; 10k fail-safe pull-downs / pull-ups", 20, 28),
+        text("Pins ADDR_NH/NL, BANK_EN, DEC_EN, REV_EN_n. Root binds the axis and FWD/REV.", 20, 28),
     ]
-    su = DEC_CTRL_UUID
+    su = sheet_uuid
 
     def sym(lib_id, ref, value, x, y, pins, *, rot=0, footprint=""):
         return symbol_inst(lib_id, ref, value, x, y, pins, rot=rot, footprint=footprint, sheet_uuid=su)
@@ -696,62 +749,53 @@ def build_decode_ctrl_page(sch: str) -> str:
     def pwr(lib_id, ref, value, x, y):
         return power(lib_id, ref, value, x, y, sheet_uuid=su)
 
-    def header_pulldown(jref, rref, net, x, y):
-        o.append(sym("Connector:Conn_01x01", jref, net, x, y, ["1"], footprint=FP_J))
+    def header(jref, rref, pin, x, y, pull):
+        o.append(sym("Connector:Conn_01x01", jref, pin, x, y, ["1"], footprint=FP_J))
         jp = pin_xy(x, y, -5.08, 0, 0)
         junc = (round(jp[0] - 5.08, 2), y)
+        hp = (round(junc[0] - 7.62, 2), y)
         o.extend([
-            wire(jp, junc), junction(junc),
-            hier(net, "output", (round(junc[0] - 7.62, 2), y), 180),
-            wire((round(junc[0] - 2.54, 2), y), (round(junc[0] - 7.62, 2), y)),
+            wire(jp, hp),
+            junction(junc),
+            hier(pin, "output", hp, 180),
         ])
-        rx, ry = round(junc[0] - 12.7, 2), round(y + 12.7, 2)
-        o.append(sym("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
-        rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
-        o.extend([
-            wire(rt, (rx, junc[1])), wire((rx, junc[1]), junc), junction((rx, junc[1])),
-            pwr("power:GND", f"#PWR_{rref}", "GND", rx, round(rb[1] + 7.62, 2)),
-            wire(rb, (rx, round(rb[1] + 7.62, 2))),
-        ])
+        if pull == "down":
+            rx, ry = round(junc[0] - 12.7, 2), round(y + 12.7, 2)
+            o.append(sym("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
+            rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
+            o.extend([
+                wire(rt, (rx, junc[1])), wire((rx, junc[1]), junc), junction((rx, junc[1])),
+                pwr("power:GND", f"#PWR_{rref}", "GND", rx, round(rb[1] + 7.62, 2)),
+                wire(rb, (rx, round(rb[1] + 7.62, 2))),
+            ])
+        else:
+            rx, ry = round(junc[0] - 12.7, 2), round(y - 12.7, 2)
+            o.append(sym("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
+            rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
+            o.extend([
+                wire(rb, (rx, junc[1])), wire((rx, junc[1]), junc), junction((rx, junc[1])),
+                pwr("power:+3V3", f"#PWR_{rref}", "+3V3", rx, round(rt[1] - 7.62, 2)),
+                wire(rt, (rx, round(rt[1] - 7.62, 2))),
+            ])
 
-    def header_pullup(jref, rref, net, x, y):
-        o.append(sym("Connector:Conn_01x01", jref, net, x, y, ["1"], footprint=FP_J))
-        jp = pin_xy(x, y, -5.08, 0, 0)
-        junc = (round(jp[0] - 5.08, 2), y)
-        o.extend([
-            wire(jp, junc), junction(junc),
-            hier(net, "output", (round(junc[0] - 7.62, 2), y), 180),
-            wire((round(junc[0] - 2.54, 2), y), (round(junc[0] - 7.62, 2), y)),
-        ])
-        rx, ry = round(junc[0] - 12.7, 2), round(y - 12.7, 2)
-        o.append(sym("Device:R", rref, "10k", rx, ry, ["1", "2"], footprint=FP_R))
-        rt, rb = pin_xy(rx, ry, 0, 3.81), pin_xy(rx, ry, 0, -3.81)
-        o.extend([
-            wire(rb, (rx, junc[1])), wire((rx, junc[1]), junc), junction((rx, junc[1])),
-            pwr("power:+3V3", f"#PWR_{rref}", "+3V3", rx, round(rt[1] - 7.62, 2)),
-            wire(rt, (rx, round(rt[1] - 7.62, 2))),
-        ])
-
-    base_x, base_y = 80.0, 50.0
-    group_pitch = 38.1
-    j_n, r_n = 40, 40
-    for gi, group in enumerate(ADDR_GROUPS):
-        gy = round(base_y + gi * group_pitch, 2)
-        for bi, net in enumerate(group):
-            header_pulldown(f"J{j_n}", f"R{r_n}", net, round(base_x + bi * 22.86, 2), gy)
-            j_n += 1
-            r_n += 1
-    en_y = round(base_y + 4 * group_pitch, 2)
-    header_pulldown("J52", "R52", "DEC_EN", base_x, en_y)
-    header_pullup("J53", "R53", "FWD_EN_n", round(base_x + 22.86, 2), en_y)
-    header_pullup("J54", "R54", "REV_EN_n", round(base_x + 45.72, 2), en_y)
+    addr = [c for c in channels if c[0].startswith("ADDR_")]
+    enables = [c for c in channels if not c[0].startswith("ADDR_")]
+    base_x, base_y, group_pitch = 80.0, 50.0, 38.1
+    for gi in range(0, len(addr), 3):
+        gy = round(base_y + (gi // 3) * group_pitch, 2)
+        for bi, (pin, jref, rref, pull) in enumerate(addr[gi : gi + 3]):
+            header(jref, rref, pin, round(base_x + bi * 22.86, 2), gy, pull)
+    if enables:
+        en_y = round(base_y + ((len(addr) + 2) // 3) * group_pitch, 2)
+        for bi, (pin, jref, rref, pull) in enumerate(enables):
+            header(jref, rref, pin, round(base_x + bi * 22.86, 2), en_y, pull)
 
     return page_header(
         "Decode Control",
-        "ADDR + DEC_EN / FWD_EN_n / REV_EN_n headers",
-        DEC_CTRL_UUID,
+        comment,
+        sheet_uuid,
         libs,
-    ) + "\n".join(o) + "\n" + page_footer(DEC_CTRL_UUID)
+    ) + "\n".join(o) + "\n" + page_footer(sheet_uuid, page)
 
 
 # ----- root sheet boxes -----
@@ -825,22 +869,34 @@ def sheet_box(
 \t)'''
 
 
-def stub_pins(sx: float, sy: float, pins_left: list[str], pins_right: list[str], *, w: float = 55.0) -> list[str]:
-    """Local labels + short wires on root for sheet pins."""
+def stub_pins(
+    sx: float,
+    sy: float,
+    pins_left: list[str],
+    pins_right: list[str],
+    *,
+    w: float = 55.0,
+    label_of: dict[str, str] | None = None,
+) -> list[str]:
+    """Local labels + short wires on root for sheet pins.
+
+    label_of maps a block pin name to the parent net on the root.
+    """
+    names = label_of or {}
     o: list[str] = []
     for i, name in enumerate(pins_left):
         py = round(sy + 5.08 + i * 5.08, 2)
         px = sx
         o += [
             wire((round(px - 10.16, 2), py), (px, py)),
-            label(name, (round(px - 10.16, 2), py), 180),
+            label(names.get(name, name), (round(px - 10.16, 2), py), 180),
         ]
     for i, name in enumerate(pins_right):
         py = round(sy + 5.08 + i * 5.08, 2)
         px = round(sx + w, 2)
         o += [
             wire((px, py), (round(px + 10.16, 2), py)),
-            label(name, (round(px + 10.16, 2), py)),
+            label(names.get(name, name), (round(px + 10.16, 2), py)),
         ]
     return o
 
@@ -857,11 +913,254 @@ def strip_region_sheets(sch: str) -> str:
                 "ccs.kicad_sch",
                 "inhibit.kicad_sch",
                 "decode_ctrl.kicad_sch",
+                "decode_ctrl_y.kicad_sch",
             )
         ):
             continue
         keep.append(it)
     return sch[:body_start] + "\n".join(keep) + "\n" + sch[si:]
+
+
+def alt_ccs_ref(ref: str, tag: str, delta: int) -> str:
+    if ref.startswith("#"):
+        return f"{ref}_{tag}"
+    m = re.match(r"^([A-Z]+)(\d+)$", ref)
+    if not m:
+        return f"{ref}_{tag}"
+    return f"{m.group(1)}{int(m.group(2)) + delta}"
+
+
+def ccs_instance_paths(ref: str, unit: int = 1) -> str:
+    rows = [
+        (CCS_UUID, ref),
+        (CCS_Y_UUID, alt_ccs_ref(ref, "Y", 100)),
+        (CCS_I_UUID, alt_ccs_ref(ref, "I", 200)),
+    ]
+    body = "\n".join(
+        f'\t\t\t\t(path "/{ROOT_UUID}/{uuid_}"\n'
+        f'\t\t\t\t\t(reference "{r}")\n'
+        f'\t\t\t\t\t(unit {unit})\n'
+        f'\t\t\t\t)'
+        for uuid_, r in rows
+    )
+    return f'''\t\t(instances
+\t\t\t(project "{PROJECT}"
+{body}
+\t\t\t)
+\t\t)'''
+
+
+def expand_ccs_instances(text: str) -> str:
+    """Give every CCS symbol a reference on the Y and inhibit sheet paths."""
+    if CCS_Y_UUID in text:
+        return text
+    path_x = f"/{ROOT_UUID}/{CCS_UUID}"
+    pat = re.compile(
+        r'\(path "' + re.escape(path_x) + r'"\s*'
+        r'\(reference "([^"]+)"\)\s*'
+        r'\(unit (\d+)\)\s*'
+        r'\)'
+    )
+
+    def repl(m: re.Match[str]) -> str:
+        ref, unit = m.group(1), m.group(2)
+        extra = []
+        for uuid_, r in (
+            (CCS_Y_UUID, alt_ccs_ref(ref, "Y", 100)),
+            (CCS_I_UUID, alt_ccs_ref(ref, "I", 200)),
+        ):
+            extra.append(
+                f'(path "/{ROOT_UUID}/{uuid_}"\n'
+                f'\t\t\t\t\t(reference "{r}")\n'
+                f'\t\t\t\t\t(unit {unit})\n'
+                f'\t\t\t\t)'
+            )
+        return m.group(0) + "\n\t\t\t\t" + "\n\t\t\t\t".join(extra)
+
+    return pat.sub(repl, text)
+
+
+def add_ccs_bypass(page_text: str) -> str:
+    if '(property "Reference" "C5"' in page_text:
+        return page_text
+    if '(symbol "Device:C"' not in page_text:
+        host = (CORE / "decoupling_logic.kicad_sch").read_text()
+        if '(symbol "Device:C"' not in host:
+            host = SCH.read_text()
+        lib = extract_lib(host, "Device:C")
+        page_text = page_text.replace("(lib_symbols\n", "(lib_symbols\n" + lib + "\n", 1)
+    o: list[str] = [
+        text(
+            "Local +5V bypass — clones with each CCS instance",
+            210,
+            28,
+            1.016,
+        )
+    ]
+    x, y = 240.0, 55.0
+    rail_y, gnd_y = 39.76, 70.24
+    for lib_id, ref, val, px, py in (
+        ("power:+5V", "#PWR_C5_V", "+5V", x, rail_y),
+        ("power:GND", "#PWR_C5_G", "GND", x, gnd_y),
+    ):
+        o.append(
+            f'''\t(symbol
+\t\t(lib_id "{lib_id}")
+\t\t(at {px} {py} 0)
+\t\t(unit 1)
+\t\t(body_style 1)
+\t\t(exclude_from_sim no)
+\t\t(in_bom yes)
+\t\t(on_board yes)
+\t\t(in_pos_files yes)
+\t\t(dnp no)
+\t\t(uuid "{uid()}")
+{prop("Reference", ref, f"{px} {py + 2.54} 0", hide=True)}
+{prop("Value", val, f"{px} {py - 2.54} 0")}
+{prop("Footprint", "", f"{px} {py} 0", hide=True)}
+{prop("Datasheet", "", f"{px} {py} 0", hide=True)}
+{prop("Description", "", f"{px} {py} 0", hide=True)}
+\t\t(pin "1" (uuid "{uid()}"))
+{ccs_instance_paths(ref)}
+\t)'''
+        )
+    for cref, cval, dx in (("C5", "100n", -7.62), ("C6", "1u", 7.62)):
+        cx = round(x + dx, 2)
+        ct, cb = pin_xy(cx, y, 0, 3.81), pin_xy(cx, y, 0, -3.81)
+        o.append(
+            f'''\t(symbol
+\t\t(lib_id "Device:C")
+\t\t(at {cx} {y} 0)
+\t\t(unit 1)
+\t\t(body_style 1)
+\t\t(exclude_from_sim no)
+\t\t(in_bom yes)
+\t\t(on_board yes)
+\t\t(in_pos_files yes)
+\t\t(dnp no)
+\t\t(uuid "{uid()}")
+{prop("Reference", cref, f"{cx + 2.54} {y - 10.16} 0")}
+{prop("Value", cval, f"{cx + 2.54} {y - 7.62} 0")}
+{prop("Footprint", "Capacitor_SMD:C_0805_2012Metric", f"{cx} {y} 0", hide=True)}
+{prop("Datasheet", "", f"{cx} {y} 0", hide=True)}
+{prop("Description", "", f"{cx} {y} 0", hide=True)}
+\t\t(pin "1" (uuid "{uid()}"))
+\t\t(pin "2" (uuid "{uid()}"))
+{ccs_instance_paths(cref)}
+\t)'''
+        )
+        o += [
+            wire(ct, (cx, rail_y)),
+            wire((cx, rail_y), (x, rail_y)),
+            junction((cx, rail_y)),
+            wire(cb, (cx, gnd_y)),
+            wire((cx, gnd_y), (x, gnd_y)),
+            junction((cx, gnd_y)),
+        ]
+    o += [junction((x, rail_y)), junction((x, gnd_y))]
+    page_text = page_text.replace(
+        '(comment 1 "Ic/2 constant-current sink")',
+        '(comment 1 "Ic/2 sink; local +5V 100n+1u; root binds CCS_X / CCS_Y / CCS_INH")',
+        1,
+    )
+    block = "\n".join(o)
+    marker = "\t(sheet_instances"
+    if marker in page_text:
+        return page_text.replace(marker, block + "\n" + marker, 1)
+    stripped = page_text.rstrip()
+    if not stripped.endswith(")"):
+        raise SystemExit("ccs sheet has no closing paren")
+    sheet_inst = (
+        '\t(sheet_instances\n\t\t(path "/"\n\t\t\t(page "7")\n\t\t)\n\t)\n'
+    )
+    return stripped[:-1] + block + "\n" + sheet_inst + ")\n"
+
+
+def relabel_at(sch: str, old: str, at: str, new: str) -> str:
+    needle = f'(label "{old}"\n\t\t(at {at}'
+    done = f'(label "{new}"\n\t\t(at {at}'
+    if done in sch:
+        return sch
+    if needle not in sch:
+        raise SystemExit(f"missing label {old} at {at}")
+    return sch.replace(needle, done, 1)
+
+
+def ensure_three_ccs(sch: str) -> str:
+    """One ccs.kicad_sch, three root calls: CCS_X, CCS_Y, CCS_INH."""
+    page = CORE / "ccs.kicad_sch"
+    page.write_text(add_ccs_bypass(expand_ccs_instances(page.read_text())))
+
+    sch = relabel_at(sch, "CCS_RET", "387.3 39.24 180", "CCS_X")
+    sch = relabel_at(sch, "CCS_RET", "9.84 100.08 180", "CCS_X")
+    sch = relabel_at(sch, "CCS_RET", "9.84 155.24 180", "CCS_INH")
+
+    sch = sch.replace(
+        f'(uuid "{CCS_UUID}")\n\t\t(property "Sheetname" "CCS"',
+        f'(uuid "{CCS_UUID}")\n\t\t(property "Sheetname" "CCS X"',
+        1,
+    )
+
+    if f'(uuid "{CCS_Y_UUID}")' not in sch:
+        extra = [
+            sheet_box(
+                "CCS Y",
+                "ccs.kicad_sch",
+                CCS_Y_UUID,
+                "12",
+                80.0,
+                95.0,
+                [("CCS_RET", "passive", "left")],
+                w=45,
+                h=20,
+            ),
+            *stub_pins(80.0, 95.0, ["CCS_RET"], [], w=45, label_of={"CCS_RET": "CCS_Y"}),
+            sheet_box(
+                "CCS INH",
+                "ccs.kicad_sch",
+                CCS_I_UUID,
+                "13",
+                140.0,
+                95.0,
+                [("CCS_RET", "passive", "left")],
+                w=45,
+                h=20,
+            ),
+            *stub_pins(140.0, 95.0, ["CCS_RET"], [], w=45, label_of={"CCS_RET": "CCS_INH"}),
+        ]
+        marker = "\t(sheet_instances"
+        if marker not in sch:
+            raise SystemExit("root sheet_instances missing")
+        sch = sch.replace(marker, "\n".join(extra) + "\n" + marker, 1)
+
+    pro = json.loads(PRO.read_text())
+    rows = pro.get("sheets", [])
+    out: list = []
+    placed = False
+    for row in rows:
+        if row[0] in {CCS_UUID, CCS_Y_UUID, CCS_I_UUID}:
+            continue
+        out.append(row)
+        if row[0] == "a1b2c3d4-e5f6-4789-a012-bbbbbbbbbbbb":
+            out.extend(
+                [
+                    [CCS_UUID, "CCS X"],
+                    [CCS_Y_UUID, "CCS Y"],
+                    [CCS_I_UUID, "CCS INH"],
+                ]
+            )
+            placed = True
+    if not placed:
+        out.extend(
+            [
+                [CCS_UUID, "CCS X"],
+                [CCS_Y_UUID, "CCS Y"],
+                [CCS_I_UUID, "CCS INH"],
+            ]
+        )
+    pro["sheets"] = out
+    PRO.write_text(json.dumps(pro, indent=2) + "\n")
+    return sch
 
 
 def main() -> None:
@@ -882,7 +1181,13 @@ def main() -> None:
     for it in items:
         # Drop prior region sheet boxes (re-placed below)
         if it.lstrip().startswith("(sheet") and any(
-            f in it for f in ("sense.kicad_sch", "ccs.kicad_sch", "inhibit.kicad_sch", "decode_ctrl.kicad_sch")
+            f in it for f in (
+                "sense.kicad_sch",
+                "ccs.kicad_sch",
+                "inhibit.kicad_sch",
+                "decode_ctrl.kicad_sch",
+                "decode_ctrl_y.kicad_sch",
+            )
         ):
             continue
         reg = classify_region(it)
@@ -918,31 +1223,110 @@ def main() -> None:
         "power:PWR_FLAG",
     ]
 
-    write_extracted_page(
-        CORE / "sense.kicad_sch",
-        "Sense",
-        "TLV3501 / 74AHC74 latch (beads on ferrite_beads)",
-        SENSE_UUID,
-        buckets["sense"],
-        sense_libs,
-        sch,
-        SENSE_HIER,
-    )
-    write_extracted_page(
-        CORE / "ccs.kicad_sch",
-        "CCS",
-        "Ic/2 constant-current sink",
-        CCS_UUID,
-        buckets["ccs"],
-        ccs_libs,
-        sch,
-        CCS_HIER,
-    )
+    def bucket_has_ref(items: list[str], ref: str) -> bool:
+        return any(f'Reference" "{ref}"' in it for it in items)
 
-    (CORE / "inhibit.kicad_sch").write_text(build_inhibit_page(sch))
-    print("Wrote inhibit.kicad_sch")
-    (CORE / "decode_ctrl.kicad_sch").write_text(build_decode_ctrl_page(sch))
+    # Re-running this migrator must not replace a finished hierarchical page
+    # with the handful of root stubs that still mention those nets.
+    if bucket_has_ref(buckets["sense"], "U1"):
+        write_extracted_page(
+            CORE / "sense.kicad_sch",
+            "Sense",
+            "TLV3501 / 74AHC74 latch (beads on ferrite_beads)",
+            SENSE_UUID,
+            buckets["sense"],
+            sense_libs,
+            sch,
+            SENSE_HIER,
+        )
+    else:
+        print("Sense already hierarchical; left sense.kicad_sch")
+    if bucket_has_ref(buckets["ccs"], "U3"):
+        write_extracted_page(
+            CORE / "ccs.kicad_sch",
+            "CCS",
+            "Ic/2 constant-current sink",
+            CCS_UUID,
+            buckets["ccs"],
+            ccs_libs,
+            sch,
+            CCS_HIER,
+        )
+    else:
+        print("CCS already hierarchical; left ccs.kicad_sch")
+
+    if bucket_has_ref(buckets["inh_flat"], "U7"):
+        (CORE / "inhibit.kicad_sch").write_text(build_inhibit_page(sch))
+        print("Wrote inhibit.kicad_sch")
+    else:
+        print("Inhibit already hierarchical; left inhibit.kicad_sch")
+
+    # X instance carries address + the one set of enable headers.
+    # Y instance is address only so J52–J54 are not cloned.
+    x_channels = [
+        ("ADDR_NH0", "J40", "R40", "down"),
+        ("ADDR_NH1", "J41", "R41", "down"),
+        ("ADDR_NH2", "J42", "R42", "down"),
+        ("ADDR_NL0", "J43", "R43", "down"),
+        ("ADDR_NL1", "J44", "R44", "down"),
+        ("ADDR_NL2", "J45", "R45", "down"),
+        ("BANK_EN", "J53", "R53", "up"),
+        ("DEC_EN", "J52", "R52", "down"),
+        ("REV_EN_n", "J54", "R54", "up"),
+    ]
+    y_channels = [
+        ("ADDR_NH0", "J46", "R46", "down"),
+        ("ADDR_NH1", "J47", "R47", "down"),
+        ("ADDR_NH2", "J48", "R48", "down"),
+        ("ADDR_NL0", "J49", "R49", "down"),
+        ("ADDR_NL1", "J50", "R50", "down"),
+        ("ADDR_NL2", "J51", "R51", "down"),
+    ]
+    (CORE / "decode_ctrl.kicad_sch").write_text(
+        build_decode_ctrl_page(
+            sch,
+            sheet_uuid=DEC_CTRL_UUID,
+            page="9",
+            channels=x_channels,
+            comment="ADDR_NH/NL + BANK_EN/DEC_EN/REV_EN_n; root binds X and FWD_EN_n",
+        )
+    )
     print("Wrote decode_ctrl.kicad_sch")
+    (CORE / "decode_ctrl_y.kicad_sch").write_text(
+        build_decode_ctrl_page(
+            sch,
+            sheet_uuid=DEC_CTRL_Y_UUID,
+            page="11",
+            channels=y_channels,
+            comment="ADDR_NH/NL only; root binds Y. Enables stay on Decode CTRL",
+        )
+    )
+    print("Wrote decode_ctrl_y.kicad_sch")
+
+    if not bucket_has_ref(buckets["sense"], "U1"):
+        # Pages already live in hierarchy. Rebuilding the root from classify()
+        # drops sheet stubs. Only ensure the Y ctrl sheet is in the project index.
+        pro = json.loads(PRO.read_text())
+        sheets = pro.get("sheets", [])
+        if not any(row[0] == DEC_CTRL_Y_UUID for row in sheets):
+            updated: list = []
+            placed = False
+            for row in sheets:
+                updated.append(row)
+                if row[0] == DEC_CTRL_UUID:
+                    updated.append([DEC_CTRL_Y_UUID, "Decode CTRL Y"])
+                    placed = True
+            if not placed:
+                updated.append([DEC_CTRL_Y_UUID, "Decode CTRL Y"])
+            pro["sheets"] = updated
+            PRO.write_text(json.dumps(pro, indent=2) + "\n")
+            print("Added Decode CTRL Y to core.kicad_pro")
+        else:
+            print("Root left intact; decode_ctrl pages refreshed")
+        sch = ensure_three_ccs(SCH.read_text())
+        SCH.write_text(sch)
+        print("CCS X / CCS Y / CCS INH")
+        return
 
     # Rebuild root body: keep + new sheets/stubs/titles (no flat sense/ccs/inh/decode_ctrl)
     sense_left = ["YA65", "YB66"]
@@ -950,13 +1334,15 @@ def main() -> None:
     ccs_left = ["CCS_RET"]
     inh_left = ["INH_EN_n", "VDRIVE", "CCS_RET"]
     inh_right = ["YA65", "YB66"]
-    dec_ctrl_right = ADDR_NETS + EN_NETS
+    x_pins = list(X_PIN_ORDER)
+    y_pins = list(Y_PIN_ORDER)
 
     # Layout: left column for Sense/CCS/Inhibit/DecodeCtrl; Drive/Decode stay
     sx_sense, sy_sense = 20.0, 25.0
     sx_ccs, sy_ccs = 20.0, 95.0
     sx_inh, sy_inh = 20.0, 140.0
-    sx_dctrl, sy_dctrl = 20.0, 230.0
+    sx_dctrl, sy_dctrl = DCTRL_X, DCTRL_SY
+    sy_dctrl_y = DCTRL_Y_SY
 
     o: list[str] = list(buckets["keep"])
     o += [
@@ -975,7 +1361,7 @@ def main() -> None:
         ),
         *stub_pins(sx_sense, sy_sense, sense_left, sense_right, w=45),
         sheet_box(
-            "CCS",
+            "CCS X",
             "ccs.kicad_sch",
             CCS_UUID,
             "7",
@@ -985,7 +1371,7 @@ def main() -> None:
             w=45,
             h=20,
         ),
-        *stub_pins(sx_ccs, sy_ccs, ccs_left, [], w=45),
+        *stub_pins(sx_ccs, sy_ccs, ccs_left, [], w=45, label_of={"CCS_RET": "CCS_X"}),
         sheet_box(
             "Inhibit",
             "inhibit.kicad_sch",
@@ -997,7 +1383,14 @@ def main() -> None:
             + [(n, "passive", "right") for n in inh_right],
             w=55,
         ),
-        *stub_pins(sx_inh, sy_inh, inh_left, inh_right, w=55),
+        *stub_pins(
+            sx_inh,
+            sy_inh,
+            inh_left,
+            inh_right,
+            w=55,
+            label_of={"CCS_RET": "CCS_INH"},
+        ),
         sheet_box(
             "Decode CTRL",
             "decode_ctrl.kicad_sch",
@@ -1005,20 +1398,31 @@ def main() -> None:
             "9",
             sx_dctrl,
             sy_dctrl,
-            [(n, "output", "right") for n in dec_ctrl_right],
-            w=50,
-            h=max(40.0, 8.0 + 5.08 * len(dec_ctrl_right)),
+            [(n, "output", "right") for n in x_pins],
+            w=DCTRL_W,
+            h=max(40.0, 8.0 + 5.08 * len(x_pins)),
         ),
-        *stub_pins(sx_dctrl, sy_dctrl, [], dec_ctrl_right, w=50),
+        *stub_pins(sx_dctrl, sy_dctrl, [], x_pins, w=DCTRL_W, label_of=X_PARENT),
+        sheet_box(
+            "Decode CTRL Y",
+            "decode_ctrl_y.kicad_sch",
+            DEC_CTRL_Y_UUID,
+            "11",
+            sx_dctrl,
+            sy_dctrl_y,
+            [(n, "output", "right") for n in y_pins],
+            w=DCTRL_W,
+            h=max(40.0, 8.0 + 5.08 * len(y_pins)),
+        ),
+        *stub_pins(sx_dctrl, sy_dctrl_y, [], y_pins, w=DCTRL_W, label_of=Y_PARENT),
     ]
-
     new_sch = sch[:body_start] + "\n".join(o) + "\n" + sch[si:]
 
     # Ensure Decode Block still has ADDR/EN labels on sheet pins (not stolen by decode_ctrl strip)
     def ensure_decode_addr_stubs(sch_text: str) -> str:
         need = ADDR_NETS + EN_NETS
         extras = []
-        for sheet_name, sx in (("Decode Block", 400.0),):
+        for sheet_name, sx in (("X FWD", 400.0), ("Y FWD", 490.0), ("X REV", 400.0), ("Y REV", 490.0)):
             block_m = None
             for sm in re.finditer(r'\t\(sheet\n', sch_text):
                 start = sm.start()
@@ -1074,18 +1478,59 @@ def main() -> None:
     pro = json.loads(PRO.read_text())
     pro["sheets"] = [
         [ROOT_UUID, "core"],
-        [DRIVE_BLOCK_UUID, "Drive Block"],
-        [DECODE_BLOCK_UUID, "Decode Block"],
+        [DRIVE_BLOCK_UUID, "X0 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111112", "X1 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111113", "X0 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111114", "X1 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111115", "Y0 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111116", "Y1 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111117", "Y0 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111118", "Y1 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110120", "X2 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110121", "X2 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110122", "Y2 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110123", "Y2 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110124", "X3 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110125", "X3 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110126", "Y3 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110127", "Y3 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110128", "X4 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110129", "X4 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012a", "Y4 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012b", "Y4 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012c", "X5 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012d", "X5 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012e", "Y5 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-11111111012f", "Y5 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110130", "X6 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110131", "X6 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110132", "Y6 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110133", "Y6 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110134", "X7 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110135", "X7 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110136", "Y7 FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-111111110137", "Y7 REV"],
+        ["a1b2c3d4-e5f6-4789-a012-111111111119", "Steer 2x2"],
+        [DECODE_BLOCK_UUID, "X FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-333333333334", "Y FWD"],
+        ["a1b2c3d4-e5f6-4789-a012-333333333335", "X REV"],
+        ["a1b2c3d4-e5f6-4789-a012-333333333336", "Y REV"],
         [LOGIC_UUID, "Decoupling Logic"],
         [VDRIVE_UUID, "Decoupling VDRIVE"],
         [SENSE_UUID, "Sense"],
         [BEADS_UUID, "Magnetic Cores"],
-        [CCS_UUID, "CCS"],
+        [CCS_UUID, "CCS X"],
+        [CCS_Y_UUID, "CCS Y"],
+        [CCS_I_UUID, "CCS INH"],
         [INH_UUID, "Inhibit"],
         [DEC_CTRL_UUID, "Decode CTRL"],
+        [DEC_CTRL_Y_UUID, "Decode CTRL Y"],
     ]
     PRO.write_text(json.dumps(pro, indent=2) + "\n")
     print("Updated core.kicad_pro sheets")
+    sch = ensure_three_ccs(SCH.read_text())
+    SCH.write_text(sch)
+    print("CCS X / CCS Y / CCS INH")
 
 
 if __name__ == "__main__":

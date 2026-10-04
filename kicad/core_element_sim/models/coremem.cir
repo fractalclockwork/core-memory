@@ -12,13 +12,13 @@
 *   A  = 0.255 mm * 0.38 mm = 0.097e-6 m^2
 * Half-select 400 mA -> H = I/Lm ~ 127 A/m (below Hc, no flip).
 * Full-select 800 mA -> H ~ 255 A/m (above Hc, flip).
-* Run with UIC so Cm starts at m=+1 (stored +Br).
+* Run with UIC. Cm starts at m0 (default +1, stored +Br).
 *
 * Pins X1 X2 Y1 Y2 S1 S2 match the MCE symbol (same places as CoreBead_3W).
 * B is a sim-only probe, 1 V = 1 T. The 6-pin mce wrapper keeps B internal.
 
 .subckt coremem X1 X2 Y1 Y2 S1 S2 B params:
-+ Hc=150 Br=0.18 Bs=0.20 Lm=0.00314 A=0.097u Tsw=1u mur=20
++ Hc=150 Br=0.18 Bs=0.20 Lm=0.00314 A=0.097u Tsw=1u mur=20 m0=1
 
 .param mu0=1.2566370614e-6
 .param Heps=4
@@ -32,16 +32,18 @@ Vs S1 nS 0
 BH H 0 V = (I(Vx)+I(Vy)+I(Vs))/Lm
 
 * Normalized remanence. IC is applied by "tran ... uic".
-Cm m 0 1 IC=1
+Cm m 0 1 IC={m0}
 Rm m 0 1e12
 
 * |H|<Hc holds m. |H|>Hc slews m toward the driven rail in about Tsw.
 * tanh(*) is ~1 in the interior and 0 at the destination rail, so the
 * state can leave the opposite rail and stops when it arrives.
+* The soft wall past +/-1 replaces a hard min/max. That kink collapsed
+* the timestep whenever inhibit held every core on the rail.
 Bdm 0 m I =
 + {rate}*(0.5*(1+tanh((v(H)-{Hc})/{Heps})))*tanh((1-v(m))/{meps})
 + - {rate}*(0.5*(1+tanh((-{Hc}-v(H))/{Heps})))*tanh((v(m)+1)/{meps})
-+ + (min(1, max(-1, v(m)))-v(m))/50n
++ - (ln(1+exp(min(20,200*(v(m)-1)))) - ln(1+exp(min(20,200*(-v(m)-1))))) / 200u
 
 * V = A*dB/dt on every winding (mutual). Irreversible part is A*Br*dm/dt.
 * Reversible part follows dH/dt through a 20 ns lag so a PWL corner is not an impulse.
@@ -59,6 +61,6 @@ BB B 0 V = min({Bs}, max(-{Bs}, {Br}*v(m)+{mu0*mur}*v(H)))
 .ends
 
 * Schematic pinout: X1 X2 Y1 Y2 S1 S2. Flux node B stays inside (1 V = 1 T).
-.subckt mce X1 X2 Y1 Y2 S1 S2
-Xcore X1 X2 Y1 Y2 S1 S2 B coremem
+.subckt mce X1 X2 Y1 Y2 S1 S2 params: m0=1
+Xcore X1 X2 Y1 Y2 S1 S2 B coremem m0={m0}
 .ends

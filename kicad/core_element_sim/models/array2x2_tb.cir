@@ -1,0 +1,432 @@
+* 2x2 coincident-current testbench with the CCS on the shared return.
+* Weave matches ferrite_beads.kicad_sch after Sim.Pins:
+*   XA->XB and YA->YB are both +H (pin1->pin2 on the subcircuit).
+*   YA65->YB66 enters each core at S2 and leaves at S1, so Is is negative
+*   and inhibit current on that path opposes a +H write.
+*
+* Cores: X00 = X0/Y0, X01 = X1/Y0, X10 = X0/Y1, X11 = X1/Y1.
+* Drive is a switched 12 V rail into the selected end. The other end returns
+* through CCS_RET. Read sinks the A end (current B->A, negative below).
+* Write sinks the B end. Inhibit sources YA65 and sinks YB66, same CCS.
+* 1 us edges, then a 2 us flat so the OPA192 can finish slewing, then
+* a 1 us fall. 10k from the fold to ground.
+*   2-6 us    XA0 read                         half-select
+*   8-12 us   XA0 + YA0 read                   X00
+*  14-18 us   XA1 + YA0 read                   X01
+*  20-24 us   XA0 + YA1 read                   X10
+*  26-30 us   XA1 + YA1 read                   X11
+*  32-36 us   XA0 + YA0 write                  restore X00
+*  38-42 us   XA1 + YA0 write, inhibit         write X01
+*
+* One CCS (ccs.cir) is the schematic sink: TL431 + pot + OPA192 + IRLZ44N
+* + 1 ohm, setpoint 400 mA. X, Y, and inhibit all return to that one node,
+* so two lines share the 400 mA. VDRIVE = 12 V is testbench headroom, not
+* a frozen rail. The OPA192 output is held at 2.39 V (ccs.cir) so the
+* IRLZ44N cannot idle enhanced, and a turn-on cannot outrun the setpoint.
+*
+* Positive probe current is A->B. Batch: ngspice -b array2x2_tb.cir
+* Prints RESULT PASS or RESULT FAIL.
+
+.include coremem.cir
+.include ccs.cir
+
+.param vdrive=12
+
+Vdrive vdrv 0 DC {vdrive}
+Viccs ccs_ret ccs_in 0
+Xccs ccs_in ccs ic_half=0.4
+Rsw ccs_ret 0 10Meg
+Rbleed xa0d 0 10Meg
+Rbleed2 xa1d 0 10Meg
+Rbleed3 ya0d 0 10Meg
+Rbleed4 ya1d 0 10Meg
+
+Rfold FOLD 0 10k
+
+* X1 X2 Y1 Y2 S1 S2
+X00 XA0 nX0 nY0 YB0 FOLD nSA mce
+X10 nX0 XB0 nY1 YB1 nSB FOLD mce
+X01 XA1 nX1 YA0 nY0 YB66 nSB mce
+X11 nX1 XB1 YA1 nY1 nSA YA65 mce
+
+Bdiff DIFF 0 V = V(YA65)-V(YB66)
+
+* Ammeters. Positive I(Vixa*) is into the A pin (A->B).
+Vixa0 xa0d XA0 0
+Vixa1 xa1d XA1 0
+Viya0 ya0d YA0 0
+Viya1 ya1d YA1 0
+Vinh inhd YA65 0
+Bpxa0 PXA0 0 V = I(Vixa0)
+Bpxa1 PXA1 0 V = I(Vixa1)
+Bpya0 PYA0 0 V = I(Viya0)
+Bpya1 PYA1 0 V = I(Viya1)
+Bpinh PINH 0 V = I(Vinh)
+Bpiccs PICCS 0 V = I(Viccs)
+
+* Ramps from a few hundred ohms down to 1 ohm so the line current
+* rises with the 1 us edge instead of stepping. The CCS sets the top.
+.subckt drvsw a b ctl
+Bsw a b I=(v(ctl)>0.02 ? v(a,b)/(1+400*(1-min(v(ctl),1))) : 0)
+.ends
+
+* Read: source the B end from VDRIVE, sink the A end into the CCS.
+* Write: source the A end, sink the B end.
+Xxa0_ra xa0d ccs_ret g_xa0_r drvsw
+Xxa0_rb vdrv XB0 g_xa0_r drvsw
+Xxa0_wa vdrv xa0d g_xa0_w drvsw
+Xxa0_wb XB0 ccs_ret g_xa0_w drvsw
+Xxa1_ra xa1d ccs_ret g_xa1_r drvsw
+Xxa1_rb vdrv XB1 g_xa1_r drvsw
+Xxa1_wa vdrv xa1d g_xa1_w drvsw
+Xxa1_wb XB1 ccs_ret g_xa1_w drvsw
+Xya0_ra ya0d ccs_ret g_ya0_r drvsw
+Xya0_rb vdrv YB0 g_ya0_r drvsw
+Xya0_wa vdrv ya0d g_ya0_w drvsw
+Xya0_wb YB0 ccs_ret g_ya0_w drvsw
+Xya1_ra ya1d ccs_ret g_ya1_r drvsw
+Xya1_rb vdrv YB1 g_ya1_r drvsw
+Xinh_a vdrv inhd g_inh drvsw
+Xinh_b YB66 ccs_ret g_inh drvsw
+
+Vg_xa0_r g_xa0_r 0 PWL(0 0
++ 2u 0 3u 1 5u 1 6u 0
++ 8u 0 9u 1 11u 1 12u 0
++ 20u 0 21u 1 23u 1 24u 0)
+Vg_xa0_w g_xa0_w 0 PWL(0 0
++ 32u 0 33u 1 35u 1 36u 0)
+Vg_xa1_r g_xa1_r 0 PWL(0 0
++ 14u 0 15u 1 17u 1 18u 0
++ 26u 0 27u 1 29u 1 30u 0)
+Vg_xa1_w g_xa1_w 0 PWL(0 0
++ 38u 0 39u 1 41u 1 42u 0)
+Vg_ya0_r g_ya0_r 0 PWL(0 0
++ 8u 0 9u 1 11u 1 12u 0
++ 14u 0 15u 1 17u 1 18u 0)
+Vg_ya0_w g_ya0_w 0 PWL(0 0
++ 32u 0 33u 1 35u 1 36u 0
++ 38u 0 39u 1 41u 1 42u 0)
+Vg_ya1_r g_ya1_r 0 PWL(0 0
++ 20u 0 21u 1 23u 1 24u 0
++ 26u 0 27u 1 29u 1 30u 0)
+Vg_inh g_inh 0 PWL(0 0
++ 38u 0 39u 1 41u 1 42u 0)
+
+.options reltol=1e-4 method=gear
+.tran 20n 46u uic
+
+.control
+set nobreak
+set noaskquit
+run
+
+meas tran m00_half FIND v(x00.xcore.m) AT=6.5u
+meas tran m01_half FIND v(x01.xcore.m) AT=6.5u
+meas tran m10_half FIND v(x10.xcore.m) AT=6.5u
+meas tran m11_half FIND v(x11.xcore.m) AT=6.5u
+
+meas tran m00_r00 FIND v(x00.xcore.m) AT=12.5u
+meas tran m01_r00 FIND v(x01.xcore.m) AT=12.5u
+meas tran m10_r00 FIND v(x10.xcore.m) AT=12.5u
+meas tran m11_r00 FIND v(x11.xcore.m) AT=12.5u
+
+meas tran m00_r01 FIND v(x00.xcore.m) AT=18.5u
+meas tran m01_r01 FIND v(x01.xcore.m) AT=18.5u
+meas tran m10_r01 FIND v(x10.xcore.m) AT=18.5u
+meas tran m11_r01 FIND v(x11.xcore.m) AT=18.5u
+
+meas tran m00_r10 FIND v(x00.xcore.m) AT=24.5u
+meas tran m01_r10 FIND v(x01.xcore.m) AT=24.5u
+meas tran m10_r10 FIND v(x10.xcore.m) AT=24.5u
+meas tran m11_r10 FIND v(x11.xcore.m) AT=24.5u
+
+meas tran m00_r11 FIND v(x00.xcore.m) AT=30.5u
+meas tran m01_r11 FIND v(x01.xcore.m) AT=30.5u
+meas tran m10_r11 FIND v(x10.xcore.m) AT=30.5u
+meas tran m11_r11 FIND v(x11.xcore.m) AT=30.5u
+
+meas tran m00_rst FIND v(x00.xcore.m) AT=36.5u
+meas tran m01_rst FIND v(x01.xcore.m) AT=36.5u
+meas tran m10_rst FIND v(x10.xcore.m) AT=36.5u
+meas tran m11_rst FIND v(x11.xcore.m) AT=36.5u
+
+meas tran m00_inh FIND v(x00.xcore.m) AT=42.5u
+meas tran m01_inh FIND v(x01.xcore.m) AT=42.5u
+meas tran m10_inh FIND v(x10.xcore.m) AT=42.5u
+meas tran m11_inh FIND v(x11.xcore.m) AT=42.5u
+
+meas tran half_max MAX v(diff) FROM=2u TO=6.5u
+meas tran half_min MIN v(diff) FROM=2u TO=6.5u
+meas tran r00_max MAX v(diff) FROM=8u TO=12.5u
+meas tran r00_min MIN v(diff) FROM=8u TO=12.5u
+meas tran r01_max MAX v(diff) FROM=14u TO=18.5u
+meas tran r01_min MIN v(diff) FROM=14u TO=18.5u
+meas tran r10_max MAX v(diff) FROM=20u TO=24.5u
+meas tran r10_min MIN v(diff) FROM=20u TO=24.5u
+meas tran r11_max MAX v(diff) FROM=26u TO=30.5u
+meas tran r11_min MIN v(diff) FROM=26u TO=30.5u
+meas tran rst_max MAX v(diff) FROM=32u TO=36.5u
+meas tran rst_min MIN v(diff) FROM=32u TO=36.5u
+meas tran inh_max MAX v(diff) FROM=38u TO=42.5u
+meas tran inh_min MIN v(diff) FROM=38u TO=42.5u
+
+* Middle of the 2 us flat, after the OPA192 has slewed down from the rail.
+meas tran iccs_half AVG i(Viccs) FROM=4.2u TO=4.8u
+meas tran ixa0_half AVG i(Vixa0) FROM=4.2u TO=4.8u
+meas tran iccs_r00 AVG i(Viccs) FROM=10.2u TO=10.8u
+meas tran ixa0_r00 AVG i(Vixa0) FROM=10.2u TO=10.8u
+meas tran iya0_r00 AVG i(Viya0) FROM=10.2u TO=10.8u
+meas tran iccs_r01 AVG i(Viccs) FROM=16.2u TO=16.8u
+meas tran ixa1_r01 AVG i(Vixa1) FROM=16.2u TO=16.8u
+meas tran iya0_r01 AVG i(Viya0) FROM=16.2u TO=16.8u
+meas tran iccs_rst AVG i(Viccs) FROM=34.2u TO=34.8u
+meas tran ixa0_rst AVG i(Vixa0) FROM=34.2u TO=34.8u
+meas tran iya0_rst AVG i(Viya0) FROM=34.2u TO=34.8u
+meas tran iccs_inh AVG i(Viccs) FROM=40.2u TO=40.8u
+meas tran iinh_inh AVG i(Vinh) FROM=40.2u TO=40.8u
+
+print m00_half m01_half m10_half m11_half
+print m00_r00 m01_r00 m10_r00 m11_r00
+print m00_r01 m01_r01 m10_r01 m11_r01
+print m00_r10 m01_r10 m10_r10 m11_r10
+print m00_r11 m01_r11 m10_r11 m11_r11
+print m00_rst m01_rst m10_rst m11_rst
+print m00_inh m01_inh m10_inh m11_inh
+print half_max half_min r00_max r00_min
+print r01_max r01_min r10_max r10_min
+print r11_max r11_min rst_max rst_min inh_max inh_min
+print iccs_half ixa0_half iccs_r00 ixa0_r00 iya0_r00
+print iccs_r01 ixa1_r01 iya0_r01
+print iccs_rst ixa0_rst iya0_rst iccs_inh iinh_inh
+
+let fail = 0
+* Shared 400 mA sink: one line gets ~400 mA, two lines share it, nobody flips.
+if m00_half < 0.9
+  let fail = 1
+  echo FAIL half-select flipped X00
+end
+if m01_half < 0.9
+  let fail = 1
+  echo FAIL half-select flipped X01
+end
+if m10_half < 0.9
+  let fail = 1
+  echo FAIL half-select flipped X10
+end
+if m11_half < 0.9
+  let fail = 1
+  echo FAIL half-select flipped X11
+end
+if m00_r00 < 0.9
+  let fail = 1
+  echo FAIL X00 left +Br on the shared sink
+end
+if m01_r00 < 0.9
+  let fail = 1
+  echo FAIL X01 left +Br on the shared sink
+end
+if m10_r00 < 0.9
+  let fail = 1
+  echo FAIL X10 left +Br on the shared sink
+end
+if m11_r00 < 0.9
+  let fail = 1
+  echo FAIL X11 left +Br on the shared sink
+end
+if m00_r01 < 0.9
+  let fail = 1
+  echo FAIL X00 moved during X01 window
+end
+if m01_r01 < 0.9
+  let fail = 1
+  echo FAIL X01 moved during X01 window
+end
+if m10_r01 < 0.9
+  let fail = 1
+  echo FAIL X10 moved during X01 window
+end
+if m11_r01 < 0.9
+  let fail = 1
+  echo FAIL X11 moved during X01 window
+end
+if m00_r10 < 0.9
+  let fail = 1
+  echo FAIL X00 moved during X10 window
+end
+if m01_r10 < 0.9
+  let fail = 1
+  echo FAIL X01 moved during X10 window
+end
+if m10_r10 < 0.9
+  let fail = 1
+  echo FAIL X10 moved during X10 window
+end
+if m11_r10 < 0.9
+  let fail = 1
+  echo FAIL X11 moved during X10 window
+end
+if m00_r11 < 0.9
+  let fail = 1
+  echo FAIL X00 moved during X11 window
+end
+if m01_r11 < 0.9
+  let fail = 1
+  echo FAIL X01 moved during X11 window
+end
+if m10_r11 < 0.9
+  let fail = 1
+  echo FAIL X10 moved during X11 window
+end
+if m11_r11 < 0.9
+  let fail = 1
+  echo FAIL X11 moved during X11 window
+end
+if m00_rst < 0.9
+  let fail = 1
+  echo FAIL X00 moved during restore window
+end
+if m01_rst < 0.9
+  let fail = 1
+  echo FAIL X01 moved during restore window
+end
+if m10_rst < 0.9
+  let fail = 1
+  echo FAIL X10 moved during restore window
+end
+if m11_rst < 0.9
+  let fail = 1
+  echo FAIL X11 moved during restore window
+end
+if m00_inh < 0.9
+  let fail = 1
+  echo FAIL X00 moved during inhibit window
+end
+if m01_inh < 0.9
+  let fail = 1
+  echo FAIL X01 moved during inhibit window
+end
+if m10_inh < 0.9
+  let fail = 1
+  echo FAIL X10 moved during inhibit window
+end
+if m11_inh < 0.9
+  let fail = 1
+  echo FAIL X11 moved during inhibit window
+end
+
+let half_pk = half_max
+if abs(half_min) > half_pk
+  let half_pk = abs(half_min)
+end
+* The single-line rise ends in a reversible spike of about 30 mV.
+* A real flip on this string is larger than that.
+if half_pk > 45m
+  let fail = 1
+  echo FAIL half-select sense looks like a flip
+end
+let r00_pk = r00_max
+if abs(r00_min) > r00_pk
+  let r00_pk = abs(r00_min)
+end
+if r00_pk > 15m
+  let fail = 1
+  echo FAIL X00 window produced a flip-sized pulse
+end
+let rst_pk = rst_max
+if abs(rst_min) > rst_pk
+  let rst_pk = abs(rst_min)
+end
+if rst_pk > 15m
+  let fail = 1
+  echo FAIL restore window produced a flip-sized pulse
+end
+let inh_pk = inh_max
+if abs(inh_min) > inh_pk
+  let inh_pk = abs(inh_min)
+end
+if inh_pk > 15m
+  let fail = 1
+  echo FAIL inhibit window produced a flip-sized pulse
+end
+
+* CCS holds 400 mA. One line carries it; two lines split it.
+if iccs_half < 0.34
+  let fail = 1
+  echo FAIL CCS half-select current low
+end
+if iccs_half > 0.46
+  let fail = 1
+  echo FAIL CCS half-select current high
+end
+if ixa0_half > -0.34
+  let fail = 1
+  echo FAIL XA0 half-select weaker than -340 mA
+end
+if ixa0_half < -0.46
+  let fail = 1
+  echo FAIL XA0 half-select stronger than -460 mA
+end
+if iccs_r00 < 0.34
+  let fail = 1
+  echo FAIL CCS X00-window current low
+end
+if iccs_r00 > 0.46
+  let fail = 1
+  echo FAIL CCS X00-window current high
+end
+if ixa0_r00 > -0.14
+  let fail = 1
+  echo FAIL XA0 share in X00 window too small
+end
+if ixa0_r00 < -0.26
+  let fail = 1
+  echo FAIL XA0 share in X00 window too large
+end
+if iya0_r00 > -0.14
+  let fail = 1
+  echo FAIL YA0 share in X00 window too small
+end
+if iya0_r00 < -0.26
+  let fail = 1
+  echo FAIL YA0 share in X00 window too large
+end
+if iccs_rst < 0.34
+  let fail = 1
+  echo FAIL CCS restore current low
+end
+if iccs_rst > 0.46
+  let fail = 1
+  echo FAIL CCS restore current high
+end
+if ixa0_rst < 0.14
+  let fail = 1
+  echo FAIL XA0 restore share too small
+end
+if ixa0_rst > 0.26
+  let fail = 1
+  echo FAIL XA0 restore share too large
+end
+if iccs_inh < 0.34
+  let fail = 1
+  echo FAIL CCS inhibit-window current low
+end
+if iccs_inh > 0.46
+  let fail = 1
+  echo FAIL CCS inhibit-window current high
+end
+if iinh_inh < 0.08
+  let fail = 1
+  echo FAIL inhibit share too small
+end
+if iinh_inh > 0.20
+  let fail = 1
+  echo FAIL inhibit share too large
+end
+
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end

@@ -40,10 +40,10 @@ YA65 ── Loop A (2048) ── YA66 ════ YB65 ── Loop B (2048) ─
 ```
 
 - **READ:** Differential sense across the outer ends `YA65` / `YB66` (1 kΩ isolation into `SENSE_P` / `SENSE_N`).
-- **INHIBIT:** Source \(V_{drive}\) into `YA65`, traverse Loop A, cross the `YA66`═`YB65` jumper, traverse Loop B, and sink `YB66` into `CCS_RET`. Series \(-I_c/2\) puts all 4,096 cores in one string. Because the halves are in series, \(V_{drive}\) headroom and CCS current stay at the single-weave values.
+- **INHIBIT:** Source \(V_{drive}\) into `YA65`, traverse Loop A, cross the `YA66`═`YB65` jumper, traverse Loop B, and sink `YB66` into `CCS_INH`. Series \(-I_c/2\) puts all 4,096 cores in one string. Because the halves are in series, \(V_{drive}\) headroom and the inhibit sink stay at the single-weave values. X and Y each have their own sink (`CCS_X`, `CCS_Y`) so coincident half-select is \(I_c/2\) on each axis.
 - **Soft ground:** 10 kΩ from the center tap (`YA66`/`YB65`) → AGND, not a hard AGND short, so inhibit current continues through Loop B into the CCS instead of dumping at the mid.
 
-The schematic array is the 2×2 on the Magnetic Cores sheet: one diagonal stands in for Loop A (`YA65`↔MCE00↔MCE11↔`YA66`), the other for Loop B (`YB65`↔MCE10↔MCE01↔`YB66`). X and Y address lines on that sheet are unchanged. Plane photos: [img/](img/); sources in [references.md](references.md).
+The schematic array is the 2×2 on the Magnetic Cores sheet. Loop A is the top-left to bottom-right pass (`YA65`↔MCE11↔MCE00↔`YA66`), with MCE00 and MCE11 mirrored so the sense pins follow that diagonal; both ends sit at the YA–XB corner. Loop B is the other diagonal (`YB65`↔MCE10↔MCE01↔`YB66`), ends at the YB–XB corner. X and Y address lines on that sheet are unchanged. Plane photos: [img/](img/); sources in [references.md](references.md).
 
 ```mermaid
 flowchart LR
@@ -73,7 +73,7 @@ sequenceDiagram
   Note over X,CCS: READ phase
   X->>CCS: drive -Ic/2 on selected X
   Y->>CCS: drive -Ic/2 on selected Y
-  Note over S: wait ~150-300 ns for ringing
+  Note over S: 300 ns into the READ flat
   S->>S: SENSE STROBE clocks comparator into 74AHC74
 
   alt restore or write 0
@@ -86,13 +86,13 @@ sequenceDiagram
 ```
 
 1. **READ** — Drive \(-I_c/2\) into the addressed X and Y lines (forward polarity for read). Only the selected core sees full \(I_c\).
-2. **SENSE STROBE** — After ~150–300 ns for capacitive ringing to settle, clock the D flip-flop that samples the TLV3501 comparator across the outer ends `YA65` / `YB66`.
+2. **SENSE STROBE** — 300 ns into the READ flat, clock the D flip-flop that samples the TLV3501 comparator across the outer ends `YA65` / `YB66`. Earlier than that, the flip plateau is not up yet, and `DOUT` does not reach a logic 1.
 3. **INHIBIT** — If writing or restoring a 0, drive \(-I_c/2\) from `YA65` through both loops and the `YA66`═`YB65` center tap, sinking at `YB66`, so the subsequent WRITE cannot flip that core to 1.
 4. **WRITE** — Drive \(+I_c/2\) into the same X and Y lines (reverse polarity) to restore or write 1 when inhibit is off.
 
 ## Constant-current sink
 
-Low-side matrix returns share an adjustable constant-current sink that holds \(I_c/2\) flat into the inductive load. The CCS block on the schematic implements this with a TL431 reference, multi-turn trimpot, OPA192 feedback amp, IRLZ44N throttle MOSFET, and a 1 Ω sense resistor. Without regulation, pulse amplitude would wander with temperature, MOSFET Rds(on), and wiring resistance, corrupting half-select margins.
+X lines, Y lines, and the inhibit path each return through their own adjustable constant-current sink (`CCS_X`, `CCS_Y`, `CCS_INH`). Each holds \(I_c/2\) flat into its load. The CCS block is one sheet, called three times: TL431 reference, multi-turn trimpot, OPA192 feedback amp, IRLZ44N throttle MOSFET, and a 1 Ω sense resistor. Without regulation, pulse amplitude would wander with temperature, MOSFET Rds(on), and wiring resistance, corrupting half-select margins. One shared return cannot supply X and Y together; the two lines would split the current and stay under \(H_c\).
 
 ## Timing controller
 

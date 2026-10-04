@@ -1,0 +1,1709 @@
+* X0 uses drvpair (TC4427A + FDS8958A) and SS14. Other lines stay ideal drvsw.
+* Write, read, and write-back of a 1 and a 0 on every core of the 2x2.
+* Same weave and Sim.Pins map as array2x2_tb.cir.
+*
+* One CCS for the X lines, one for the Y lines, one for inhibit, each 400 mA.
+* Only one line on an axis is driven at a time, so that axis sink is the
+* full half-select. All four cores start at m=-1.
+*
+* X00  X0/Y0  2 write 1, 8 read 1, 14 write-back 1, 20 clear, 26 write 0, 32 read 0, 38 write-back 0
+* X01  X1/Y0  44 write 1, 50 read 1, 56 write-back 1, 62 clear, 68 write 0, 74 read 0, 80 write-back 0
+* X10  X0/Y1  86 write 1, 92 read 1, 98 write-back 1, 104 clear, 110 write 0, 116 read 0, 122 write-back 0
+* X11  X1/Y1  128 write 1, 134 read 1, 140 write-back 1, 146 clear, 152 write 0, 158 read 0, 164 write-back 0
+*
+* 1 us edges, 2 us flat, 1 us fall. Read sinks the A end (B->A).
+* Write sinks the B end. Inhibit sources YA65 and sinks YB66.
+* VDRIVE = 12 V is testbench headroom, not a frozen rail.
+*
+* Positive probe current is A->B. Batch: ngspice -b array2x2_drive_tb.cir
+* Prints RESULT PASS or RESULT FAIL.
+
+.include coremem.cir
+.include ccs.cir
+.include drive.cir
+
+.param vdrive=12
+
+Vdrive vdrv 0 DC {vdrive}
+Viccsx ccs_x ccs_xin 0
+Viccsy ccs_y ccs_yin 0
+Viccsi ccs_i ccs_iin 0
+Xccs_x ccs_xin ccs ic_half=0.4
+Xccs_y ccs_yin ccs ic_half=0.4
+Xccs_i ccs_iin ccs ic_half=0.4
+Rx ccs_x 0 10Meg
+Ry ccs_y 0 10Meg
+Ri ccs_i 0 10Meg
+
+Rxa0 xa0d 0 10Meg
+Rxa1 xa1d 0 10Meg
+Rya0 ya0d 0 10Meg
+Rya1 ya1d 0 10Meg
+Rfold FOLD 0 10k
+
+* X1 X2 Y1 Y2 S1 S2
+X00 XA0 nX0 nY0 YB0 FOLD nSA mce m0=-1
+X10 nX0 XB0 nY1 YB1 nSB FOLD mce m0=-1
+X01 XA1 nX1 YA0 nY0 YB66 nSB mce m0=-1
+X11 nX1 XB1 YA1 nY1 nSA YA65 mce m0=-1
+
+Bdiff DIFF 0 V = V(YA65)-V(YB66)
+
+Vixa0 xa0d XA0 0
+Vixa1 xa1d XA1 0
+Viya0 ya0d YA0 0
+Viya1 ya1d YA1 0
+Vinh inhd YA65 0
+Bpxa0 PXA0 0 V = I(Vixa0)
+Bpxa1 PXA1 0 V = I(Vixa1)
+Bpya0 PYA0 0 V = I(Viya0)
+Bpya1 PYA1 0 V = I(Viya1)
+Bpinh PINH 0 V = I(Vinh)
+Bpiccsx PICCSX 0 V = I(Viccsx)
+Bpiccsy PICCSY 0 V = I(Viccsy)
+Bpiccsi PICCSI 0 V = I(Viccsi)
+
+* Ramps from a few hundred ohms down to 1 ohm across the 1 us edge.
+.subckt drvsw a b ctl
+Bsw a b I=(v(ctl)>0.02 ? v(a,b)/(1+400*(1-min(v(ctl),1))) : 0)
+.ends
+
+* Read: source B from VDRIVE, sink A into that axis CCS.
+* Write: source A, sink B. Both lines of an axis share that axis CCS.
+* X0 FWD/READ and REV/WRITE are drvleg (FET Ron + SS14). Other lines stay ideal.
+* These PWLs are active-high enables. The sheet's HS pin is active-low;
+* decode (later) inverts before this ctl.
+Xxa0_rb vdrv XB0 g_x0r drvleg
+Xxa0_ra xa0d ccs_x g_x0r drvleg
+Xxa0_wa vdrv xa0d g_x0w drvleg
+Xxa0_wb XB0 ccs_x g_x0w drvleg
+Xxa1_ra xa1d ccs_x g_x1r drvsw
+Xxa1_rb vdrv XB1 g_x1r drvsw
+Xxa1_wa vdrv xa1d g_x1w drvsw
+Xxa1_wb XB1 ccs_x g_x1w drvsw
+Xya0_ra ya0d ccs_y g_y0r drvsw
+Xya0_rb vdrv YB0 g_y0r drvsw
+Xya0_wa vdrv ya0d g_y0w drvsw
+Xya0_wb YB0 ccs_y g_y0w drvsw
+Xya1_ra ya1d ccs_y g_y1r drvsw
+Xya1_rb vdrv YB1 g_y1r drvsw
+Xya1_wa vdrv ya1d g_y1w drvsw
+Xya1_wb YB1 ccs_y g_y1w drvsw
+Xinh_a vdrv inhd g_inh drvsw
+Xinh_b YB66 ccs_i g_inh drvsw
+
+Vg_x0w g_x0w 0 PWL(
++ 0 0
++ 2u 0 3u 1 5u 1 6u 0
++ 14u 0 15u 1 17u 1 18u 0
++ 26u 0 27u 1 29u 1 30u 0
++ 38u 0 39u 1 41u 1 42u 0
++ 86u 0 87u 1 89u 1 90u 0
++ 98u 0 99u 1 101u 1 102u 0
++ 110u 0 111u 1 113u 1 114u 0
++ 122u 0 123u 1 125u 1 126u 0)
+Vg_x0r g_x0r 0 PWL(
++ 0 0
++ 8u 0 9u 1 11u 1 12u 0
++ 20u 0 21u 1 23u 1 24u 0
++ 32u 0 33u 1 35u 1 36u 0
++ 92u 0 93u 1 95u 1 96u 0
++ 104u 0 105u 1 107u 1 108u 0
++ 116u 0 117u 1 119u 1 120u 0)
+Vg_x1w g_x1w 0 PWL(
++ 0 0
++ 44u 0 45u 1 47u 1 48u 0
++ 56u 0 57u 1 59u 1 60u 0
++ 68u 0 69u 1 71u 1 72u 0
++ 80u 0 81u 1 83u 1 84u 0
++ 128u 0 129u 1 131u 1 132u 0
++ 140u 0 141u 1 143u 1 144u 0
++ 152u 0 153u 1 155u 1 156u 0
++ 164u 0 165u 1 167u 1 168u 0)
+Vg_x1r g_x1r 0 PWL(
++ 0 0
++ 50u 0 51u 1 53u 1 54u 0
++ 62u 0 63u 1 65u 1 66u 0
++ 74u 0 75u 1 77u 1 78u 0
++ 134u 0 135u 1 137u 1 138u 0
++ 146u 0 147u 1 149u 1 150u 0
++ 158u 0 159u 1 161u 1 162u 0)
+Vg_y0w g_y0w 0 PWL(
++ 0 0
++ 2u 0 3u 1 5u 1 6u 0
++ 14u 0 15u 1 17u 1 18u 0
++ 26u 0 27u 1 29u 1 30u 0
++ 38u 0 39u 1 41u 1 42u 0
++ 44u 0 45u 1 47u 1 48u 0
++ 56u 0 57u 1 59u 1 60u 0
++ 68u 0 69u 1 71u 1 72u 0
++ 80u 0 81u 1 83u 1 84u 0)
+Vg_y0r g_y0r 0 PWL(
++ 0 0
++ 8u 0 9u 1 11u 1 12u 0
++ 20u 0 21u 1 23u 1 24u 0
++ 32u 0 33u 1 35u 1 36u 0
++ 50u 0 51u 1 53u 1 54u 0
++ 62u 0 63u 1 65u 1 66u 0
++ 74u 0 75u 1 77u 1 78u 0)
+Vg_y1w g_y1w 0 PWL(
++ 0 0
++ 86u 0 87u 1 89u 1 90u 0
++ 98u 0 99u 1 101u 1 102u 0
++ 110u 0 111u 1 113u 1 114u 0
++ 122u 0 123u 1 125u 1 126u 0
++ 128u 0 129u 1 131u 1 132u 0
++ 140u 0 141u 1 143u 1 144u 0
++ 152u 0 153u 1 155u 1 156u 0
++ 164u 0 165u 1 167u 1 168u 0)
+Vg_y1r g_y1r 0 PWL(
++ 0 0
++ 92u 0 93u 1 95u 1 96u 0
++ 104u 0 105u 1 107u 1 108u 0
++ 116u 0 117u 1 119u 1 120u 0
++ 134u 0 135u 1 137u 1 138u 0
++ 146u 0 147u 1 149u 1 150u 0
++ 158u 0 159u 1 161u 1 162u 0)
+Vg_inh g_inh 0 PWL(
++ 0 0
++ 26u 0 27u 1 29u 1 30u 0
++ 38u 0 39u 1 41u 1 42u 0
++ 68u 0 69u 1 71u 1 72u 0
++ 80u 0 81u 1 83u 1 84u 0
++ 110u 0 111u 1 113u 1 114u 0
++ 122u 0 123u 1 125u 1 126u 0
++ 152u 0 153u 1 155u 1 156u 0
++ 164u 0 165u 1 167u 1 168u 0)
+
+* Trap steps through the inhibited write. Gear collapses the timestep
+* while every core sits on the remanence rail.
+.options reltol=1e-3 method=trap
+.tran 20n 170u uic
+
+.control
+set nobreak
+set noaskquit
+run
+
+* State 0.5 us after each pulse. Sense plateau is after the rise.
+meas tran m_x00_x00_w1 FIND v(x00.xcore.m) AT=6.5u
+meas tran m_x01_x00_w1 FIND v(x01.xcore.m) AT=6.5u
+meas tran m_x10_x00_w1 FIND v(x10.xcore.m) AT=6.5u
+meas tran m_x11_x00_w1 FIND v(x11.xcore.m) AT=6.5u
+meas tran smax_x00_w1 MAX v(diff) FROM=3.15u TO=5u
+meas tran smin_x00_w1 MIN v(diff) FROM=3.15u TO=5u
+meas tran ix_x00_w1 AVG i(Vixa0) FROM=4.2u TO=4.8u
+meas tran iy_x00_w1 AVG i(Viya0) FROM=4.2u TO=4.8u
+meas tran m_x00_x00_r1 FIND v(x00.xcore.m) AT=12.5u
+meas tran m_x01_x00_r1 FIND v(x01.xcore.m) AT=12.5u
+meas tran m_x10_x00_r1 FIND v(x10.xcore.m) AT=12.5u
+meas tran m_x11_x00_r1 FIND v(x11.xcore.m) AT=12.5u
+meas tran smax_x00_r1 MAX v(diff) FROM=9.15u TO=11u
+meas tran smin_x00_r1 MIN v(diff) FROM=9.15u TO=11u
+meas tran ix_x00_r1 AVG i(Vixa0) FROM=10.2u TO=10.8u
+meas tran iy_x00_r1 AVG i(Viya0) FROM=10.2u TO=10.8u
+meas tran m_x00_x00_b1 FIND v(x00.xcore.m) AT=18.5u
+meas tran m_x01_x00_b1 FIND v(x01.xcore.m) AT=18.5u
+meas tran m_x10_x00_b1 FIND v(x10.xcore.m) AT=18.5u
+meas tran m_x11_x00_b1 FIND v(x11.xcore.m) AT=18.5u
+meas tran smax_x00_b1 MAX v(diff) FROM=15.15u TO=17u
+meas tran smin_x00_b1 MIN v(diff) FROM=15.15u TO=17u
+meas tran ix_x00_b1 AVG i(Vixa0) FROM=16.2u TO=16.8u
+meas tran iy_x00_b1 AVG i(Viya0) FROM=16.2u TO=16.8u
+meas tran m_x00_x00_clr FIND v(x00.xcore.m) AT=24.5u
+meas tran m_x01_x00_clr FIND v(x01.xcore.m) AT=24.5u
+meas tran m_x10_x00_clr FIND v(x10.xcore.m) AT=24.5u
+meas tran m_x11_x00_clr FIND v(x11.xcore.m) AT=24.5u
+meas tran smax_x00_clr MAX v(diff) FROM=21.15u TO=23u
+meas tran smin_x00_clr MIN v(diff) FROM=21.15u TO=23u
+meas tran ix_x00_clr AVG i(Vixa0) FROM=22.2u TO=22.8u
+meas tran iy_x00_clr AVG i(Viya0) FROM=22.2u TO=22.8u
+meas tran m_x00_x00_w0 FIND v(x00.xcore.m) AT=30.5u
+meas tran m_x01_x00_w0 FIND v(x01.xcore.m) AT=30.5u
+meas tran m_x10_x00_w0 FIND v(x10.xcore.m) AT=30.5u
+meas tran m_x11_x00_w0 FIND v(x11.xcore.m) AT=30.5u
+meas tran smax_x00_w0 MAX v(diff) FROM=27.15u TO=29u
+meas tran smin_x00_w0 MIN v(diff) FROM=27.15u TO=29u
+meas tran ix_x00_w0 AVG i(Vixa0) FROM=28.2u TO=28.8u
+meas tran iy_x00_w0 AVG i(Viya0) FROM=28.2u TO=28.8u
+meas tran ii_x00_w0 AVG i(Vinh) FROM=28.2u TO=28.8u
+meas tran m_x00_x00_r0 FIND v(x00.xcore.m) AT=36.5u
+meas tran m_x01_x00_r0 FIND v(x01.xcore.m) AT=36.5u
+meas tran m_x10_x00_r0 FIND v(x10.xcore.m) AT=36.5u
+meas tran m_x11_x00_r0 FIND v(x11.xcore.m) AT=36.5u
+meas tran smax_x00_r0 MAX v(diff) FROM=33.15u TO=35u
+meas tran smin_x00_r0 MIN v(diff) FROM=33.15u TO=35u
+meas tran ix_x00_r0 AVG i(Vixa0) FROM=34.2u TO=34.8u
+meas tran iy_x00_r0 AVG i(Viya0) FROM=34.2u TO=34.8u
+meas tran m_x00_x00_b0 FIND v(x00.xcore.m) AT=42.5u
+meas tran m_x01_x00_b0 FIND v(x01.xcore.m) AT=42.5u
+meas tran m_x10_x00_b0 FIND v(x10.xcore.m) AT=42.5u
+meas tran m_x11_x00_b0 FIND v(x11.xcore.m) AT=42.5u
+meas tran smax_x00_b0 MAX v(diff) FROM=39.15u TO=41u
+meas tran smin_x00_b0 MIN v(diff) FROM=39.15u TO=41u
+meas tran ix_x00_b0 AVG i(Vixa0) FROM=40.2u TO=40.8u
+meas tran iy_x00_b0 AVG i(Viya0) FROM=40.2u TO=40.8u
+meas tran ii_x00_b0 AVG i(Vinh) FROM=40.2u TO=40.8u
+meas tran m_x00_x01_w1 FIND v(x00.xcore.m) AT=48.5u
+meas tran m_x01_x01_w1 FIND v(x01.xcore.m) AT=48.5u
+meas tran m_x10_x01_w1 FIND v(x10.xcore.m) AT=48.5u
+meas tran m_x11_x01_w1 FIND v(x11.xcore.m) AT=48.5u
+meas tran smax_x01_w1 MAX v(diff) FROM=45.15u TO=47u
+meas tran smin_x01_w1 MIN v(diff) FROM=45.15u TO=47u
+meas tran ix_x01_w1 AVG i(Vixa1) FROM=46.2u TO=46.8u
+meas tran iy_x01_w1 AVG i(Viya0) FROM=46.2u TO=46.8u
+meas tran m_x00_x01_r1 FIND v(x00.xcore.m) AT=54.5u
+meas tran m_x01_x01_r1 FIND v(x01.xcore.m) AT=54.5u
+meas tran m_x10_x01_r1 FIND v(x10.xcore.m) AT=54.5u
+meas tran m_x11_x01_r1 FIND v(x11.xcore.m) AT=54.5u
+meas tran smax_x01_r1 MAX v(diff) FROM=51.15u TO=53u
+meas tran smin_x01_r1 MIN v(diff) FROM=51.15u TO=53u
+meas tran ix_x01_r1 AVG i(Vixa1) FROM=52.2u TO=52.8u
+meas tran iy_x01_r1 AVG i(Viya0) FROM=52.2u TO=52.8u
+meas tran m_x00_x01_b1 FIND v(x00.xcore.m) AT=60.5u
+meas tran m_x01_x01_b1 FIND v(x01.xcore.m) AT=60.5u
+meas tran m_x10_x01_b1 FIND v(x10.xcore.m) AT=60.5u
+meas tran m_x11_x01_b1 FIND v(x11.xcore.m) AT=60.5u
+meas tran smax_x01_b1 MAX v(diff) FROM=57.15u TO=59u
+meas tran smin_x01_b1 MIN v(diff) FROM=57.15u TO=59u
+meas tran ix_x01_b1 AVG i(Vixa1) FROM=58.2u TO=58.8u
+meas tran iy_x01_b1 AVG i(Viya0) FROM=58.2u TO=58.8u
+meas tran m_x00_x01_clr FIND v(x00.xcore.m) AT=66.5u
+meas tran m_x01_x01_clr FIND v(x01.xcore.m) AT=66.5u
+meas tran m_x10_x01_clr FIND v(x10.xcore.m) AT=66.5u
+meas tran m_x11_x01_clr FIND v(x11.xcore.m) AT=66.5u
+meas tran smax_x01_clr MAX v(diff) FROM=63.15u TO=65u
+meas tran smin_x01_clr MIN v(diff) FROM=63.15u TO=65u
+meas tran ix_x01_clr AVG i(Vixa1) FROM=64.2u TO=64.8u
+meas tran iy_x01_clr AVG i(Viya0) FROM=64.2u TO=64.8u
+meas tran m_x00_x01_w0 FIND v(x00.xcore.m) AT=72.5u
+meas tran m_x01_x01_w0 FIND v(x01.xcore.m) AT=72.5u
+meas tran m_x10_x01_w0 FIND v(x10.xcore.m) AT=72.5u
+meas tran m_x11_x01_w0 FIND v(x11.xcore.m) AT=72.5u
+meas tran smax_x01_w0 MAX v(diff) FROM=69.15u TO=71u
+meas tran smin_x01_w0 MIN v(diff) FROM=69.15u TO=71u
+meas tran ix_x01_w0 AVG i(Vixa1) FROM=70.2u TO=70.8u
+meas tran iy_x01_w0 AVG i(Viya0) FROM=70.2u TO=70.8u
+meas tran ii_x01_w0 AVG i(Vinh) FROM=70.2u TO=70.8u
+meas tran m_x00_x01_r0 FIND v(x00.xcore.m) AT=78.5u
+meas tran m_x01_x01_r0 FIND v(x01.xcore.m) AT=78.5u
+meas tran m_x10_x01_r0 FIND v(x10.xcore.m) AT=78.5u
+meas tran m_x11_x01_r0 FIND v(x11.xcore.m) AT=78.5u
+meas tran smax_x01_r0 MAX v(diff) FROM=75.15u TO=77u
+meas tran smin_x01_r0 MIN v(diff) FROM=75.15u TO=77u
+meas tran ix_x01_r0 AVG i(Vixa1) FROM=76.2u TO=76.8u
+meas tran iy_x01_r0 AVG i(Viya0) FROM=76.2u TO=76.8u
+meas tran m_x00_x01_b0 FIND v(x00.xcore.m) AT=84.5u
+meas tran m_x01_x01_b0 FIND v(x01.xcore.m) AT=84.5u
+meas tran m_x10_x01_b0 FIND v(x10.xcore.m) AT=84.5u
+meas tran m_x11_x01_b0 FIND v(x11.xcore.m) AT=84.5u
+meas tran smax_x01_b0 MAX v(diff) FROM=81.15u TO=83u
+meas tran smin_x01_b0 MIN v(diff) FROM=81.15u TO=83u
+meas tran ix_x01_b0 AVG i(Vixa1) FROM=82.2u TO=82.8u
+meas tran iy_x01_b0 AVG i(Viya0) FROM=82.2u TO=82.8u
+meas tran ii_x01_b0 AVG i(Vinh) FROM=82.2u TO=82.8u
+meas tran m_x00_x10_w1 FIND v(x00.xcore.m) AT=90.5u
+meas tran m_x01_x10_w1 FIND v(x01.xcore.m) AT=90.5u
+meas tran m_x10_x10_w1 FIND v(x10.xcore.m) AT=90.5u
+meas tran m_x11_x10_w1 FIND v(x11.xcore.m) AT=90.5u
+meas tran smax_x10_w1 MAX v(diff) FROM=87.15u TO=89u
+meas tran smin_x10_w1 MIN v(diff) FROM=87.15u TO=89u
+meas tran ix_x10_w1 AVG i(Vixa0) FROM=88.2u TO=88.8u
+meas tran iy_x10_w1 AVG i(Viya1) FROM=88.2u TO=88.8u
+meas tran m_x00_x10_r1 FIND v(x00.xcore.m) AT=96.5u
+meas tran m_x01_x10_r1 FIND v(x01.xcore.m) AT=96.5u
+meas tran m_x10_x10_r1 FIND v(x10.xcore.m) AT=96.5u
+meas tran m_x11_x10_r1 FIND v(x11.xcore.m) AT=96.5u
+meas tran smax_x10_r1 MAX v(diff) FROM=93.15u TO=95u
+meas tran smin_x10_r1 MIN v(diff) FROM=93.15u TO=95u
+meas tran ix_x10_r1 AVG i(Vixa0) FROM=94.2u TO=94.8u
+meas tran iy_x10_r1 AVG i(Viya1) FROM=94.2u TO=94.8u
+meas tran m_x00_x10_b1 FIND v(x00.xcore.m) AT=102.5u
+meas tran m_x01_x10_b1 FIND v(x01.xcore.m) AT=102.5u
+meas tran m_x10_x10_b1 FIND v(x10.xcore.m) AT=102.5u
+meas tran m_x11_x10_b1 FIND v(x11.xcore.m) AT=102.5u
+meas tran smax_x10_b1 MAX v(diff) FROM=99.15u TO=101u
+meas tran smin_x10_b1 MIN v(diff) FROM=99.15u TO=101u
+meas tran ix_x10_b1 AVG i(Vixa0) FROM=100.2u TO=100.8u
+meas tran iy_x10_b1 AVG i(Viya1) FROM=100.2u TO=100.8u
+meas tran m_x00_x10_clr FIND v(x00.xcore.m) AT=108.5u
+meas tran m_x01_x10_clr FIND v(x01.xcore.m) AT=108.5u
+meas tran m_x10_x10_clr FIND v(x10.xcore.m) AT=108.5u
+meas tran m_x11_x10_clr FIND v(x11.xcore.m) AT=108.5u
+meas tran smax_x10_clr MAX v(diff) FROM=105.15u TO=107u
+meas tran smin_x10_clr MIN v(diff) FROM=105.15u TO=107u
+meas tran ix_x10_clr AVG i(Vixa0) FROM=106.2u TO=106.8u
+meas tran iy_x10_clr AVG i(Viya1) FROM=106.2u TO=106.8u
+meas tran m_x00_x10_w0 FIND v(x00.xcore.m) AT=114.5u
+meas tran m_x01_x10_w0 FIND v(x01.xcore.m) AT=114.5u
+meas tran m_x10_x10_w0 FIND v(x10.xcore.m) AT=114.5u
+meas tran m_x11_x10_w0 FIND v(x11.xcore.m) AT=114.5u
+meas tran smax_x10_w0 MAX v(diff) FROM=111.15u TO=113u
+meas tran smin_x10_w0 MIN v(diff) FROM=111.15u TO=113u
+meas tran ix_x10_w0 AVG i(Vixa0) FROM=112.2u TO=112.8u
+meas tran iy_x10_w0 AVG i(Viya1) FROM=112.2u TO=112.8u
+meas tran ii_x10_w0 AVG i(Vinh) FROM=112.2u TO=112.8u
+meas tran m_x00_x10_r0 FIND v(x00.xcore.m) AT=120.5u
+meas tran m_x01_x10_r0 FIND v(x01.xcore.m) AT=120.5u
+meas tran m_x10_x10_r0 FIND v(x10.xcore.m) AT=120.5u
+meas tran m_x11_x10_r0 FIND v(x11.xcore.m) AT=120.5u
+meas tran smax_x10_r0 MAX v(diff) FROM=117.15u TO=119u
+meas tran smin_x10_r0 MIN v(diff) FROM=117.15u TO=119u
+meas tran ix_x10_r0 AVG i(Vixa0) FROM=118.2u TO=118.8u
+meas tran iy_x10_r0 AVG i(Viya1) FROM=118.2u TO=118.8u
+meas tran m_x00_x10_b0 FIND v(x00.xcore.m) AT=126.5u
+meas tran m_x01_x10_b0 FIND v(x01.xcore.m) AT=126.5u
+meas tran m_x10_x10_b0 FIND v(x10.xcore.m) AT=126.5u
+meas tran m_x11_x10_b0 FIND v(x11.xcore.m) AT=126.5u
+meas tran smax_x10_b0 MAX v(diff) FROM=123.15u TO=125u
+meas tran smin_x10_b0 MIN v(diff) FROM=123.15u TO=125u
+meas tran ix_x10_b0 AVG i(Vixa0) FROM=124.2u TO=124.8u
+meas tran iy_x10_b0 AVG i(Viya1) FROM=124.2u TO=124.8u
+meas tran ii_x10_b0 AVG i(Vinh) FROM=124.2u TO=124.8u
+meas tran m_x00_x11_w1 FIND v(x00.xcore.m) AT=132.5u
+meas tran m_x01_x11_w1 FIND v(x01.xcore.m) AT=132.5u
+meas tran m_x10_x11_w1 FIND v(x10.xcore.m) AT=132.5u
+meas tran m_x11_x11_w1 FIND v(x11.xcore.m) AT=132.5u
+meas tran smax_x11_w1 MAX v(diff) FROM=129.15u TO=131u
+meas tran smin_x11_w1 MIN v(diff) FROM=129.15u TO=131u
+meas tran ix_x11_w1 AVG i(Vixa1) FROM=130.2u TO=130.8u
+meas tran iy_x11_w1 AVG i(Viya1) FROM=130.2u TO=130.8u
+meas tran m_x00_x11_r1 FIND v(x00.xcore.m) AT=138.5u
+meas tran m_x01_x11_r1 FIND v(x01.xcore.m) AT=138.5u
+meas tran m_x10_x11_r1 FIND v(x10.xcore.m) AT=138.5u
+meas tran m_x11_x11_r1 FIND v(x11.xcore.m) AT=138.5u
+meas tran smax_x11_r1 MAX v(diff) FROM=135.15u TO=137u
+meas tran smin_x11_r1 MIN v(diff) FROM=135.15u TO=137u
+meas tran ix_x11_r1 AVG i(Vixa1) FROM=136.2u TO=136.8u
+meas tran iy_x11_r1 AVG i(Viya1) FROM=136.2u TO=136.8u
+meas tran m_x00_x11_b1 FIND v(x00.xcore.m) AT=144.5u
+meas tran m_x01_x11_b1 FIND v(x01.xcore.m) AT=144.5u
+meas tran m_x10_x11_b1 FIND v(x10.xcore.m) AT=144.5u
+meas tran m_x11_x11_b1 FIND v(x11.xcore.m) AT=144.5u
+meas tran smax_x11_b1 MAX v(diff) FROM=141.15u TO=143u
+meas tran smin_x11_b1 MIN v(diff) FROM=141.15u TO=143u
+meas tran ix_x11_b1 AVG i(Vixa1) FROM=142.2u TO=142.8u
+meas tran iy_x11_b1 AVG i(Viya1) FROM=142.2u TO=142.8u
+meas tran m_x00_x11_clr FIND v(x00.xcore.m) AT=150.5u
+meas tran m_x01_x11_clr FIND v(x01.xcore.m) AT=150.5u
+meas tran m_x10_x11_clr FIND v(x10.xcore.m) AT=150.5u
+meas tran m_x11_x11_clr FIND v(x11.xcore.m) AT=150.5u
+meas tran smax_x11_clr MAX v(diff) FROM=147.15u TO=149u
+meas tran smin_x11_clr MIN v(diff) FROM=147.15u TO=149u
+meas tran ix_x11_clr AVG i(Vixa1) FROM=148.2u TO=148.8u
+meas tran iy_x11_clr AVG i(Viya1) FROM=148.2u TO=148.8u
+meas tran m_x00_x11_w0 FIND v(x00.xcore.m) AT=156.5u
+meas tran m_x01_x11_w0 FIND v(x01.xcore.m) AT=156.5u
+meas tran m_x10_x11_w0 FIND v(x10.xcore.m) AT=156.5u
+meas tran m_x11_x11_w0 FIND v(x11.xcore.m) AT=156.5u
+meas tran smax_x11_w0 MAX v(diff) FROM=153.15u TO=155u
+meas tran smin_x11_w0 MIN v(diff) FROM=153.15u TO=155u
+meas tran ix_x11_w0 AVG i(Vixa1) FROM=154.2u TO=154.8u
+meas tran iy_x11_w0 AVG i(Viya1) FROM=154.2u TO=154.8u
+meas tran ii_x11_w0 AVG i(Vinh) FROM=154.2u TO=154.8u
+meas tran m_x00_x11_r0 FIND v(x00.xcore.m) AT=162.5u
+meas tran m_x01_x11_r0 FIND v(x01.xcore.m) AT=162.5u
+meas tran m_x10_x11_r0 FIND v(x10.xcore.m) AT=162.5u
+meas tran m_x11_x11_r0 FIND v(x11.xcore.m) AT=162.5u
+meas tran smax_x11_r0 MAX v(diff) FROM=159.15u TO=161u
+meas tran smin_x11_r0 MIN v(diff) FROM=159.15u TO=161u
+meas tran ix_x11_r0 AVG i(Vixa1) FROM=160.2u TO=160.8u
+meas tran iy_x11_r0 AVG i(Viya1) FROM=160.2u TO=160.8u
+meas tran m_x00_x11_b0 FIND v(x00.xcore.m) AT=168.5u
+meas tran m_x01_x11_b0 FIND v(x01.xcore.m) AT=168.5u
+meas tran m_x10_x11_b0 FIND v(x10.xcore.m) AT=168.5u
+meas tran m_x11_x11_b0 FIND v(x11.xcore.m) AT=168.5u
+meas tran smax_x11_b0 MAX v(diff) FROM=165.15u TO=167u
+meas tran smin_x11_b0 MIN v(diff) FROM=165.15u TO=167u
+meas tran ix_x11_b0 AVG i(Vixa1) FROM=166.2u TO=166.8u
+meas tran iy_x11_b0 AVG i(Viya1) FROM=166.2u TO=166.8u
+meas tran ii_x11_b0 AVG i(Vinh) FROM=166.2u TO=166.8u
+
+print m_x00_x00_w1 m_x01_x00_w1 m_x10_x00_w1 m_x11_x00_w1 smax_x00_w1 smin_x00_w1 ix_x00_w1 iy_x00_w1
+print m_x00_x00_r1 m_x01_x00_r1 m_x10_x00_r1 m_x11_x00_r1 smax_x00_r1 smin_x00_r1 ix_x00_r1 iy_x00_r1
+print m_x00_x00_b1 m_x01_x00_b1 m_x10_x00_b1 m_x11_x00_b1 smax_x00_b1 smin_x00_b1 ix_x00_b1 iy_x00_b1
+print m_x00_x00_clr m_x01_x00_clr m_x10_x00_clr m_x11_x00_clr smax_x00_clr smin_x00_clr ix_x00_clr iy_x00_clr
+print m_x00_x00_w0 m_x01_x00_w0 m_x10_x00_w0 m_x11_x00_w0 smax_x00_w0 smin_x00_w0 ix_x00_w0 iy_x00_w0 ii_x00_w0
+print m_x00_x00_r0 m_x01_x00_r0 m_x10_x00_r0 m_x11_x00_r0 smax_x00_r0 smin_x00_r0 ix_x00_r0 iy_x00_r0
+print m_x00_x00_b0 m_x01_x00_b0 m_x10_x00_b0 m_x11_x00_b0 smax_x00_b0 smin_x00_b0 ix_x00_b0 iy_x00_b0 ii_x00_b0
+print m_x00_x01_w1 m_x01_x01_w1 m_x10_x01_w1 m_x11_x01_w1 smax_x01_w1 smin_x01_w1 ix_x01_w1 iy_x01_w1
+print m_x00_x01_r1 m_x01_x01_r1 m_x10_x01_r1 m_x11_x01_r1 smax_x01_r1 smin_x01_r1 ix_x01_r1 iy_x01_r1
+print m_x00_x01_b1 m_x01_x01_b1 m_x10_x01_b1 m_x11_x01_b1 smax_x01_b1 smin_x01_b1 ix_x01_b1 iy_x01_b1
+print m_x00_x01_clr m_x01_x01_clr m_x10_x01_clr m_x11_x01_clr smax_x01_clr smin_x01_clr ix_x01_clr iy_x01_clr
+print m_x00_x01_w0 m_x01_x01_w0 m_x10_x01_w0 m_x11_x01_w0 smax_x01_w0 smin_x01_w0 ix_x01_w0 iy_x01_w0 ii_x01_w0
+print m_x00_x01_r0 m_x01_x01_r0 m_x10_x01_r0 m_x11_x01_r0 smax_x01_r0 smin_x01_r0 ix_x01_r0 iy_x01_r0
+print m_x00_x01_b0 m_x01_x01_b0 m_x10_x01_b0 m_x11_x01_b0 smax_x01_b0 smin_x01_b0 ix_x01_b0 iy_x01_b0 ii_x01_b0
+print m_x00_x10_w1 m_x01_x10_w1 m_x10_x10_w1 m_x11_x10_w1 smax_x10_w1 smin_x10_w1 ix_x10_w1 iy_x10_w1
+print m_x00_x10_r1 m_x01_x10_r1 m_x10_x10_r1 m_x11_x10_r1 smax_x10_r1 smin_x10_r1 ix_x10_r1 iy_x10_r1
+print m_x00_x10_b1 m_x01_x10_b1 m_x10_x10_b1 m_x11_x10_b1 smax_x10_b1 smin_x10_b1 ix_x10_b1 iy_x10_b1
+print m_x00_x10_clr m_x01_x10_clr m_x10_x10_clr m_x11_x10_clr smax_x10_clr smin_x10_clr ix_x10_clr iy_x10_clr
+print m_x00_x10_w0 m_x01_x10_w0 m_x10_x10_w0 m_x11_x10_w0 smax_x10_w0 smin_x10_w0 ix_x10_w0 iy_x10_w0 ii_x10_w0
+print m_x00_x10_r0 m_x01_x10_r0 m_x10_x10_r0 m_x11_x10_r0 smax_x10_r0 smin_x10_r0 ix_x10_r0 iy_x10_r0
+print m_x00_x10_b0 m_x01_x10_b0 m_x10_x10_b0 m_x11_x10_b0 smax_x10_b0 smin_x10_b0 ix_x10_b0 iy_x10_b0 ii_x10_b0
+print m_x00_x11_w1 m_x01_x11_w1 m_x10_x11_w1 m_x11_x11_w1 smax_x11_w1 smin_x11_w1 ix_x11_w1 iy_x11_w1
+print m_x00_x11_r1 m_x01_x11_r1 m_x10_x11_r1 m_x11_x11_r1 smax_x11_r1 smin_x11_r1 ix_x11_r1 iy_x11_r1
+print m_x00_x11_b1 m_x01_x11_b1 m_x10_x11_b1 m_x11_x11_b1 smax_x11_b1 smin_x11_b1 ix_x11_b1 iy_x11_b1
+print m_x00_x11_clr m_x01_x11_clr m_x10_x11_clr m_x11_x11_clr smax_x11_clr smin_x11_clr ix_x11_clr iy_x11_clr
+print m_x00_x11_w0 m_x01_x11_w0 m_x10_x11_w0 m_x11_x11_w0 smax_x11_w0 smin_x11_w0 ix_x11_w0 iy_x11_w0 ii_x11_w0
+print m_x00_x11_r0 m_x01_x11_r0 m_x10_x11_r0 m_x11_x11_r0 smax_x11_r0 smin_x11_r0 ix_x11_r0 iy_x11_r0
+print m_x00_x11_b0 m_x01_x11_b0 m_x10_x11_b0 m_x11_x11_b0 smax_x11_b0 smin_x11_b0 ix_x11_b0 iy_x11_b0 ii_x11_b0
+
+let fail = 0
+
+if m_x00_x00_w1 < 0.9
+  let fail = 1
+  echo FAIL X00 write 1 did not set X00
+end
+if m_x01_x00_w1 > -0.9
+  let fail = 1
+  echo FAIL X00 write 1 left X01 high
+end
+if m_x10_x00_w1 > -0.9
+  let fail = 1
+  echo FAIL X00 write 1 left X10 high
+end
+if m_x11_x00_w1 > -0.9
+  let fail = 1
+  echo FAIL X00 write 1 left X11 high
+end
+let pk = smax_x00_w1
+if abs(smin_x00_w1) > pk
+  let pk = abs(smin_x00_w1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X00 write 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X00 write 1 sense above 80 mV
+end
+if ix_x00_w1 < 0.34
+  let fail = 1
+  echo FAIL X00 write 1 X current low
+end
+if ix_x00_w1 > 0.46
+  let fail = 1
+  echo FAIL X00 write 1 X current high
+end
+if iy_x00_w1 < 0.34
+  let fail = 1
+  echo FAIL X00 write 1 Y current low
+end
+if iy_x00_w1 > 0.46
+  let fail = 1
+  echo FAIL X00 write 1 Y current high
+end
+if m_x00_x00_r1 > -0.9
+  let fail = 1
+  echo FAIL X00 read 1 left X00 high
+end
+if m_x01_x00_r1 > -0.9
+  let fail = 1
+  echo FAIL X00 read 1 left X01 high
+end
+if m_x10_x00_r1 > -0.9
+  let fail = 1
+  echo FAIL X00 read 1 left X10 high
+end
+if m_x11_x00_r1 > -0.9
+  let fail = 1
+  echo FAIL X00 read 1 left X11 high
+end
+let pk = smax_x00_r1
+if abs(smin_x00_r1) > pk
+  let pk = abs(smin_x00_r1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X00 read 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X00 read 1 sense above 80 mV
+end
+if ix_x00_r1 > -0.34
+  let fail = 1
+  echo FAIL X00 read 1 X current weak
+end
+if ix_x00_r1 < -0.46
+  let fail = 1
+  echo FAIL X00 read 1 X current strong
+end
+if iy_x00_r1 > -0.34
+  let fail = 1
+  echo FAIL X00 read 1 Y current weak
+end
+if iy_x00_r1 < -0.46
+  let fail = 1
+  echo FAIL X00 read 1 Y current strong
+end
+if m_x00_x00_b1 < 0.9
+  let fail = 1
+  echo FAIL X00 write-back 1 did not set X00
+end
+if m_x01_x00_b1 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 1 left X01 high
+end
+if m_x10_x00_b1 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 1 left X10 high
+end
+if m_x11_x00_b1 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 1 left X11 high
+end
+let pk = smax_x00_b1
+if abs(smin_x00_b1) > pk
+  let pk = abs(smin_x00_b1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X00 write-back 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X00 write-back 1 sense above 80 mV
+end
+if ix_x00_b1 < 0.34
+  let fail = 1
+  echo FAIL X00 write-back 1 X current low
+end
+if ix_x00_b1 > 0.46
+  let fail = 1
+  echo FAIL X00 write-back 1 X current high
+end
+if iy_x00_b1 < 0.34
+  let fail = 1
+  echo FAIL X00 write-back 1 Y current low
+end
+if iy_x00_b1 > 0.46
+  let fail = 1
+  echo FAIL X00 write-back 1 Y current high
+end
+if m_x00_x00_clr > -0.9
+  let fail = 1
+  echo FAIL X00 clear left X00 high
+end
+if m_x01_x00_clr > -0.9
+  let fail = 1
+  echo FAIL X00 clear left X01 high
+end
+if m_x10_x00_clr > -0.9
+  let fail = 1
+  echo FAIL X00 clear left X10 high
+end
+if m_x11_x00_clr > -0.9
+  let fail = 1
+  echo FAIL X00 clear left X11 high
+end
+let pk = smax_x00_clr
+if abs(smin_x00_clr) > pk
+  let pk = abs(smin_x00_clr)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X00 clear sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X00 clear sense above 80 mV
+end
+if ix_x00_clr > -0.34
+  let fail = 1
+  echo FAIL X00 clear X current weak
+end
+if ix_x00_clr < -0.46
+  let fail = 1
+  echo FAIL X00 clear X current strong
+end
+if iy_x00_clr > -0.34
+  let fail = 1
+  echo FAIL X00 clear Y current weak
+end
+if iy_x00_clr < -0.46
+  let fail = 1
+  echo FAIL X00 clear Y current strong
+end
+if m_x00_x00_w0 > -0.9
+  let fail = 1
+  echo FAIL X00 write 0 left X00 high
+end
+if m_x01_x00_w0 > -0.9
+  let fail = 1
+  echo FAIL X00 write 0 left X01 high
+end
+if m_x10_x00_w0 > -0.9
+  let fail = 1
+  echo FAIL X00 write 0 left X10 high
+end
+if m_x11_x00_w0 > -0.9
+  let fail = 1
+  echo FAIL X00 write 0 left X11 high
+end
+let pk = smax_x00_w0
+if abs(smin_x00_w0) > pk
+  let pk = abs(smin_x00_w0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X00 write 0 produced a flip plateau
+end
+if ix_x00_w0 < 0.34
+  let fail = 1
+  echo FAIL X00 write 0 X current low
+end
+if ix_x00_w0 > 0.46
+  let fail = 1
+  echo FAIL X00 write 0 X current high
+end
+if iy_x00_w0 < 0.34
+  let fail = 1
+  echo FAIL X00 write 0 Y current low
+end
+if iy_x00_w0 > 0.46
+  let fail = 1
+  echo FAIL X00 write 0 Y current high
+end
+if ii_x00_w0 < 0.34
+  let fail = 1
+  echo FAIL X00 write 0 inhibit current low
+end
+if ii_x00_w0 > 0.46
+  let fail = 1
+  echo FAIL X00 write 0 inhibit current high
+end
+if m_x00_x00_r0 > -0.9
+  let fail = 1
+  echo FAIL X00 read 0 left X00 high
+end
+if m_x01_x00_r0 > -0.9
+  let fail = 1
+  echo FAIL X00 read 0 left X01 high
+end
+if m_x10_x00_r0 > -0.9
+  let fail = 1
+  echo FAIL X00 read 0 left X10 high
+end
+if m_x11_x00_r0 > -0.9
+  let fail = 1
+  echo FAIL X00 read 0 left X11 high
+end
+let pk = smax_x00_r0
+if abs(smin_x00_r0) > pk
+  let pk = abs(smin_x00_r0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X00 read 0 produced a flip plateau
+end
+if ix_x00_r0 > -0.34
+  let fail = 1
+  echo FAIL X00 read 0 X current weak
+end
+if ix_x00_r0 < -0.46
+  let fail = 1
+  echo FAIL X00 read 0 X current strong
+end
+if iy_x00_r0 > -0.34
+  let fail = 1
+  echo FAIL X00 read 0 Y current weak
+end
+if iy_x00_r0 < -0.46
+  let fail = 1
+  echo FAIL X00 read 0 Y current strong
+end
+if m_x00_x00_b0 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 0 left X00 high
+end
+if m_x01_x00_b0 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 0 left X01 high
+end
+if m_x10_x00_b0 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 0 left X10 high
+end
+if m_x11_x00_b0 > -0.9
+  let fail = 1
+  echo FAIL X00 write-back 0 left X11 high
+end
+let pk = smax_x00_b0
+if abs(smin_x00_b0) > pk
+  let pk = abs(smin_x00_b0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X00 write-back 0 produced a flip plateau
+end
+if ix_x00_b0 < 0.34
+  let fail = 1
+  echo FAIL X00 write-back 0 X current low
+end
+if ix_x00_b0 > 0.46
+  let fail = 1
+  echo FAIL X00 write-back 0 X current high
+end
+if iy_x00_b0 < 0.34
+  let fail = 1
+  echo FAIL X00 write-back 0 Y current low
+end
+if iy_x00_b0 > 0.46
+  let fail = 1
+  echo FAIL X00 write-back 0 Y current high
+end
+if ii_x00_b0 < 0.34
+  let fail = 1
+  echo FAIL X00 write-back 0 inhibit current low
+end
+if ii_x00_b0 > 0.46
+  let fail = 1
+  echo FAIL X00 write-back 0 inhibit current high
+end
+if m_x00_x01_w1 > -0.9
+  let fail = 1
+  echo FAIL X01 write 1 left X00 high
+end
+if m_x01_x01_w1 < 0.9
+  let fail = 1
+  echo FAIL X01 write 1 did not set X01
+end
+if m_x10_x01_w1 > -0.9
+  let fail = 1
+  echo FAIL X01 write 1 left X10 high
+end
+if m_x11_x01_w1 > -0.9
+  let fail = 1
+  echo FAIL X01 write 1 left X11 high
+end
+let pk = smax_x01_w1
+if abs(smin_x01_w1) > pk
+  let pk = abs(smin_x01_w1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X01 write 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X01 write 1 sense above 80 mV
+end
+if ix_x01_w1 < 0.34
+  let fail = 1
+  echo FAIL X01 write 1 X current low
+end
+if ix_x01_w1 > 0.46
+  let fail = 1
+  echo FAIL X01 write 1 X current high
+end
+if iy_x01_w1 < 0.34
+  let fail = 1
+  echo FAIL X01 write 1 Y current low
+end
+if iy_x01_w1 > 0.46
+  let fail = 1
+  echo FAIL X01 write 1 Y current high
+end
+if m_x00_x01_r1 > -0.9
+  let fail = 1
+  echo FAIL X01 read 1 left X00 high
+end
+if m_x01_x01_r1 > -0.9
+  let fail = 1
+  echo FAIL X01 read 1 left X01 high
+end
+if m_x10_x01_r1 > -0.9
+  let fail = 1
+  echo FAIL X01 read 1 left X10 high
+end
+if m_x11_x01_r1 > -0.9
+  let fail = 1
+  echo FAIL X01 read 1 left X11 high
+end
+let pk = smax_x01_r1
+if abs(smin_x01_r1) > pk
+  let pk = abs(smin_x01_r1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X01 read 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X01 read 1 sense above 80 mV
+end
+if ix_x01_r1 > -0.34
+  let fail = 1
+  echo FAIL X01 read 1 X current weak
+end
+if ix_x01_r1 < -0.46
+  let fail = 1
+  echo FAIL X01 read 1 X current strong
+end
+if iy_x01_r1 > -0.34
+  let fail = 1
+  echo FAIL X01 read 1 Y current weak
+end
+if iy_x01_r1 < -0.46
+  let fail = 1
+  echo FAIL X01 read 1 Y current strong
+end
+if m_x00_x01_b1 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 1 left X00 high
+end
+if m_x01_x01_b1 < 0.9
+  let fail = 1
+  echo FAIL X01 write-back 1 did not set X01
+end
+if m_x10_x01_b1 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 1 left X10 high
+end
+if m_x11_x01_b1 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 1 left X11 high
+end
+let pk = smax_x01_b1
+if abs(smin_x01_b1) > pk
+  let pk = abs(smin_x01_b1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X01 write-back 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X01 write-back 1 sense above 80 mV
+end
+if ix_x01_b1 < 0.34
+  let fail = 1
+  echo FAIL X01 write-back 1 X current low
+end
+if ix_x01_b1 > 0.46
+  let fail = 1
+  echo FAIL X01 write-back 1 X current high
+end
+if iy_x01_b1 < 0.34
+  let fail = 1
+  echo FAIL X01 write-back 1 Y current low
+end
+if iy_x01_b1 > 0.46
+  let fail = 1
+  echo FAIL X01 write-back 1 Y current high
+end
+if m_x00_x01_clr > -0.9
+  let fail = 1
+  echo FAIL X01 clear left X00 high
+end
+if m_x01_x01_clr > -0.9
+  let fail = 1
+  echo FAIL X01 clear left X01 high
+end
+if m_x10_x01_clr > -0.9
+  let fail = 1
+  echo FAIL X01 clear left X10 high
+end
+if m_x11_x01_clr > -0.9
+  let fail = 1
+  echo FAIL X01 clear left X11 high
+end
+let pk = smax_x01_clr
+if abs(smin_x01_clr) > pk
+  let pk = abs(smin_x01_clr)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X01 clear sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X01 clear sense above 80 mV
+end
+if ix_x01_clr > -0.34
+  let fail = 1
+  echo FAIL X01 clear X current weak
+end
+if ix_x01_clr < -0.46
+  let fail = 1
+  echo FAIL X01 clear X current strong
+end
+if iy_x01_clr > -0.34
+  let fail = 1
+  echo FAIL X01 clear Y current weak
+end
+if iy_x01_clr < -0.46
+  let fail = 1
+  echo FAIL X01 clear Y current strong
+end
+if m_x00_x01_w0 > -0.9
+  let fail = 1
+  echo FAIL X01 write 0 left X00 high
+end
+if m_x01_x01_w0 > -0.9
+  let fail = 1
+  echo FAIL X01 write 0 left X01 high
+end
+if m_x10_x01_w0 > -0.9
+  let fail = 1
+  echo FAIL X01 write 0 left X10 high
+end
+if m_x11_x01_w0 > -0.9
+  let fail = 1
+  echo FAIL X01 write 0 left X11 high
+end
+let pk = smax_x01_w0
+if abs(smin_x01_w0) > pk
+  let pk = abs(smin_x01_w0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X01 write 0 produced a flip plateau
+end
+if ix_x01_w0 < 0.34
+  let fail = 1
+  echo FAIL X01 write 0 X current low
+end
+if ix_x01_w0 > 0.46
+  let fail = 1
+  echo FAIL X01 write 0 X current high
+end
+if iy_x01_w0 < 0.34
+  let fail = 1
+  echo FAIL X01 write 0 Y current low
+end
+if iy_x01_w0 > 0.46
+  let fail = 1
+  echo FAIL X01 write 0 Y current high
+end
+if ii_x01_w0 < 0.34
+  let fail = 1
+  echo FAIL X01 write 0 inhibit current low
+end
+if ii_x01_w0 > 0.46
+  let fail = 1
+  echo FAIL X01 write 0 inhibit current high
+end
+if m_x00_x01_r0 > -0.9
+  let fail = 1
+  echo FAIL X01 read 0 left X00 high
+end
+if m_x01_x01_r0 > -0.9
+  let fail = 1
+  echo FAIL X01 read 0 left X01 high
+end
+if m_x10_x01_r0 > -0.9
+  let fail = 1
+  echo FAIL X01 read 0 left X10 high
+end
+if m_x11_x01_r0 > -0.9
+  let fail = 1
+  echo FAIL X01 read 0 left X11 high
+end
+let pk = smax_x01_r0
+if abs(smin_x01_r0) > pk
+  let pk = abs(smin_x01_r0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X01 read 0 produced a flip plateau
+end
+if ix_x01_r0 > -0.34
+  let fail = 1
+  echo FAIL X01 read 0 X current weak
+end
+if ix_x01_r0 < -0.46
+  let fail = 1
+  echo FAIL X01 read 0 X current strong
+end
+if iy_x01_r0 > -0.34
+  let fail = 1
+  echo FAIL X01 read 0 Y current weak
+end
+if iy_x01_r0 < -0.46
+  let fail = 1
+  echo FAIL X01 read 0 Y current strong
+end
+if m_x00_x01_b0 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 0 left X00 high
+end
+if m_x01_x01_b0 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 0 left X01 high
+end
+if m_x10_x01_b0 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 0 left X10 high
+end
+if m_x11_x01_b0 > -0.9
+  let fail = 1
+  echo FAIL X01 write-back 0 left X11 high
+end
+let pk = smax_x01_b0
+if abs(smin_x01_b0) > pk
+  let pk = abs(smin_x01_b0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X01 write-back 0 produced a flip plateau
+end
+if ix_x01_b0 < 0.34
+  let fail = 1
+  echo FAIL X01 write-back 0 X current low
+end
+if ix_x01_b0 > 0.46
+  let fail = 1
+  echo FAIL X01 write-back 0 X current high
+end
+if iy_x01_b0 < 0.34
+  let fail = 1
+  echo FAIL X01 write-back 0 Y current low
+end
+if iy_x01_b0 > 0.46
+  let fail = 1
+  echo FAIL X01 write-back 0 Y current high
+end
+if ii_x01_b0 < 0.34
+  let fail = 1
+  echo FAIL X01 write-back 0 inhibit current low
+end
+if ii_x01_b0 > 0.46
+  let fail = 1
+  echo FAIL X01 write-back 0 inhibit current high
+end
+if m_x00_x10_w1 > -0.9
+  let fail = 1
+  echo FAIL X10 write 1 left X00 high
+end
+if m_x01_x10_w1 > -0.9
+  let fail = 1
+  echo FAIL X10 write 1 left X01 high
+end
+if m_x10_x10_w1 < 0.9
+  let fail = 1
+  echo FAIL X10 write 1 did not set X10
+end
+if m_x11_x10_w1 > -0.9
+  let fail = 1
+  echo FAIL X10 write 1 left X11 high
+end
+let pk = smax_x10_w1
+if abs(smin_x10_w1) > pk
+  let pk = abs(smin_x10_w1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X10 write 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X10 write 1 sense above 80 mV
+end
+if ix_x10_w1 < 0.34
+  let fail = 1
+  echo FAIL X10 write 1 X current low
+end
+if ix_x10_w1 > 0.46
+  let fail = 1
+  echo FAIL X10 write 1 X current high
+end
+if iy_x10_w1 < 0.34
+  let fail = 1
+  echo FAIL X10 write 1 Y current low
+end
+if iy_x10_w1 > 0.46
+  let fail = 1
+  echo FAIL X10 write 1 Y current high
+end
+if m_x00_x10_r1 > -0.9
+  let fail = 1
+  echo FAIL X10 read 1 left X00 high
+end
+if m_x01_x10_r1 > -0.9
+  let fail = 1
+  echo FAIL X10 read 1 left X01 high
+end
+if m_x10_x10_r1 > -0.9
+  let fail = 1
+  echo FAIL X10 read 1 left X10 high
+end
+if m_x11_x10_r1 > -0.9
+  let fail = 1
+  echo FAIL X10 read 1 left X11 high
+end
+let pk = smax_x10_r1
+if abs(smin_x10_r1) > pk
+  let pk = abs(smin_x10_r1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X10 read 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X10 read 1 sense above 80 mV
+end
+if ix_x10_r1 > -0.34
+  let fail = 1
+  echo FAIL X10 read 1 X current weak
+end
+if ix_x10_r1 < -0.46
+  let fail = 1
+  echo FAIL X10 read 1 X current strong
+end
+if iy_x10_r1 > -0.34
+  let fail = 1
+  echo FAIL X10 read 1 Y current weak
+end
+if iy_x10_r1 < -0.46
+  let fail = 1
+  echo FAIL X10 read 1 Y current strong
+end
+if m_x00_x10_b1 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 1 left X00 high
+end
+if m_x01_x10_b1 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 1 left X01 high
+end
+if m_x10_x10_b1 < 0.9
+  let fail = 1
+  echo FAIL X10 write-back 1 did not set X10
+end
+if m_x11_x10_b1 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 1 left X11 high
+end
+let pk = smax_x10_b1
+if abs(smin_x10_b1) > pk
+  let pk = abs(smin_x10_b1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X10 write-back 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X10 write-back 1 sense above 80 mV
+end
+if ix_x10_b1 < 0.34
+  let fail = 1
+  echo FAIL X10 write-back 1 X current low
+end
+if ix_x10_b1 > 0.46
+  let fail = 1
+  echo FAIL X10 write-back 1 X current high
+end
+if iy_x10_b1 < 0.34
+  let fail = 1
+  echo FAIL X10 write-back 1 Y current low
+end
+if iy_x10_b1 > 0.46
+  let fail = 1
+  echo FAIL X10 write-back 1 Y current high
+end
+if m_x00_x10_clr > -0.9
+  let fail = 1
+  echo FAIL X10 clear left X00 high
+end
+if m_x01_x10_clr > -0.9
+  let fail = 1
+  echo FAIL X10 clear left X01 high
+end
+if m_x10_x10_clr > -0.9
+  let fail = 1
+  echo FAIL X10 clear left X10 high
+end
+if m_x11_x10_clr > -0.9
+  let fail = 1
+  echo FAIL X10 clear left X11 high
+end
+let pk = smax_x10_clr
+if abs(smin_x10_clr) > pk
+  let pk = abs(smin_x10_clr)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X10 clear sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X10 clear sense above 80 mV
+end
+if ix_x10_clr > -0.34
+  let fail = 1
+  echo FAIL X10 clear X current weak
+end
+if ix_x10_clr < -0.46
+  let fail = 1
+  echo FAIL X10 clear X current strong
+end
+if iy_x10_clr > -0.34
+  let fail = 1
+  echo FAIL X10 clear Y current weak
+end
+if iy_x10_clr < -0.46
+  let fail = 1
+  echo FAIL X10 clear Y current strong
+end
+if m_x00_x10_w0 > -0.9
+  let fail = 1
+  echo FAIL X10 write 0 left X00 high
+end
+if m_x01_x10_w0 > -0.9
+  let fail = 1
+  echo FAIL X10 write 0 left X01 high
+end
+if m_x10_x10_w0 > -0.9
+  let fail = 1
+  echo FAIL X10 write 0 left X10 high
+end
+if m_x11_x10_w0 > -0.9
+  let fail = 1
+  echo FAIL X10 write 0 left X11 high
+end
+let pk = smax_x10_w0
+if abs(smin_x10_w0) > pk
+  let pk = abs(smin_x10_w0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X10 write 0 produced a flip plateau
+end
+if ix_x10_w0 < 0.34
+  let fail = 1
+  echo FAIL X10 write 0 X current low
+end
+if ix_x10_w0 > 0.46
+  let fail = 1
+  echo FAIL X10 write 0 X current high
+end
+if iy_x10_w0 < 0.34
+  let fail = 1
+  echo FAIL X10 write 0 Y current low
+end
+if iy_x10_w0 > 0.46
+  let fail = 1
+  echo FAIL X10 write 0 Y current high
+end
+if ii_x10_w0 < 0.34
+  let fail = 1
+  echo FAIL X10 write 0 inhibit current low
+end
+if ii_x10_w0 > 0.46
+  let fail = 1
+  echo FAIL X10 write 0 inhibit current high
+end
+if m_x00_x10_r0 > -0.9
+  let fail = 1
+  echo FAIL X10 read 0 left X00 high
+end
+if m_x01_x10_r0 > -0.9
+  let fail = 1
+  echo FAIL X10 read 0 left X01 high
+end
+if m_x10_x10_r0 > -0.9
+  let fail = 1
+  echo FAIL X10 read 0 left X10 high
+end
+if m_x11_x10_r0 > -0.9
+  let fail = 1
+  echo FAIL X10 read 0 left X11 high
+end
+let pk = smax_x10_r0
+if abs(smin_x10_r0) > pk
+  let pk = abs(smin_x10_r0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X10 read 0 produced a flip plateau
+end
+if ix_x10_r0 > -0.34
+  let fail = 1
+  echo FAIL X10 read 0 X current weak
+end
+if ix_x10_r0 < -0.46
+  let fail = 1
+  echo FAIL X10 read 0 X current strong
+end
+if iy_x10_r0 > -0.34
+  let fail = 1
+  echo FAIL X10 read 0 Y current weak
+end
+if iy_x10_r0 < -0.46
+  let fail = 1
+  echo FAIL X10 read 0 Y current strong
+end
+if m_x00_x10_b0 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 0 left X00 high
+end
+if m_x01_x10_b0 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 0 left X01 high
+end
+if m_x10_x10_b0 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 0 left X10 high
+end
+if m_x11_x10_b0 > -0.9
+  let fail = 1
+  echo FAIL X10 write-back 0 left X11 high
+end
+let pk = smax_x10_b0
+if abs(smin_x10_b0) > pk
+  let pk = abs(smin_x10_b0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X10 write-back 0 produced a flip plateau
+end
+if ix_x10_b0 < 0.34
+  let fail = 1
+  echo FAIL X10 write-back 0 X current low
+end
+if ix_x10_b0 > 0.46
+  let fail = 1
+  echo FAIL X10 write-back 0 X current high
+end
+if iy_x10_b0 < 0.34
+  let fail = 1
+  echo FAIL X10 write-back 0 Y current low
+end
+if iy_x10_b0 > 0.46
+  let fail = 1
+  echo FAIL X10 write-back 0 Y current high
+end
+if ii_x10_b0 < 0.34
+  let fail = 1
+  echo FAIL X10 write-back 0 inhibit current low
+end
+if ii_x10_b0 > 0.46
+  let fail = 1
+  echo FAIL X10 write-back 0 inhibit current high
+end
+if m_x00_x11_w1 > -0.9
+  let fail = 1
+  echo FAIL X11 write 1 left X00 high
+end
+if m_x01_x11_w1 > -0.9
+  let fail = 1
+  echo FAIL X11 write 1 left X01 high
+end
+if m_x10_x11_w1 > -0.9
+  let fail = 1
+  echo FAIL X11 write 1 left X10 high
+end
+if m_x11_x11_w1 < 0.9
+  let fail = 1
+  echo FAIL X11 write 1 did not set X11
+end
+let pk = smax_x11_w1
+if abs(smin_x11_w1) > pk
+  let pk = abs(smin_x11_w1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X11 write 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X11 write 1 sense above 80 mV
+end
+if ix_x11_w1 < 0.34
+  let fail = 1
+  echo FAIL X11 write 1 X current low
+end
+if ix_x11_w1 > 0.46
+  let fail = 1
+  echo FAIL X11 write 1 X current high
+end
+if iy_x11_w1 < 0.34
+  let fail = 1
+  echo FAIL X11 write 1 Y current low
+end
+if iy_x11_w1 > 0.46
+  let fail = 1
+  echo FAIL X11 write 1 Y current high
+end
+if m_x00_x11_r1 > -0.9
+  let fail = 1
+  echo FAIL X11 read 1 left X00 high
+end
+if m_x01_x11_r1 > -0.9
+  let fail = 1
+  echo FAIL X11 read 1 left X01 high
+end
+if m_x10_x11_r1 > -0.9
+  let fail = 1
+  echo FAIL X11 read 1 left X10 high
+end
+if m_x11_x11_r1 > -0.9
+  let fail = 1
+  echo FAIL X11 read 1 left X11 high
+end
+let pk = smax_x11_r1
+if abs(smin_x11_r1) > pk
+  let pk = abs(smin_x11_r1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X11 read 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X11 read 1 sense above 80 mV
+end
+if ix_x11_r1 > -0.34
+  let fail = 1
+  echo FAIL X11 read 1 X current weak
+end
+if ix_x11_r1 < -0.46
+  let fail = 1
+  echo FAIL X11 read 1 X current strong
+end
+if iy_x11_r1 > -0.34
+  let fail = 1
+  echo FAIL X11 read 1 Y current weak
+end
+if iy_x11_r1 < -0.46
+  let fail = 1
+  echo FAIL X11 read 1 Y current strong
+end
+if m_x00_x11_b1 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 1 left X00 high
+end
+if m_x01_x11_b1 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 1 left X01 high
+end
+if m_x10_x11_b1 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 1 left X10 high
+end
+if m_x11_x11_b1 < 0.9
+  let fail = 1
+  echo FAIL X11 write-back 1 did not set X11
+end
+let pk = smax_x11_b1
+if abs(smin_x11_b1) > pk
+  let pk = abs(smin_x11_b1)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X11 write-back 1 sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X11 write-back 1 sense above 80 mV
+end
+if ix_x11_b1 < 0.34
+  let fail = 1
+  echo FAIL X11 write-back 1 X current low
+end
+if ix_x11_b1 > 0.46
+  let fail = 1
+  echo FAIL X11 write-back 1 X current high
+end
+if iy_x11_b1 < 0.34
+  let fail = 1
+  echo FAIL X11 write-back 1 Y current low
+end
+if iy_x11_b1 > 0.46
+  let fail = 1
+  echo FAIL X11 write-back 1 Y current high
+end
+if m_x00_x11_clr > -0.9
+  let fail = 1
+  echo FAIL X11 clear left X00 high
+end
+if m_x01_x11_clr > -0.9
+  let fail = 1
+  echo FAIL X11 clear left X01 high
+end
+if m_x10_x11_clr > -0.9
+  let fail = 1
+  echo FAIL X11 clear left X10 high
+end
+if m_x11_x11_clr > -0.9
+  let fail = 1
+  echo FAIL X11 clear left X11 high
+end
+let pk = smax_x11_clr
+if abs(smin_x11_clr) > pk
+  let pk = abs(smin_x11_clr)
+end
+if pk < 15m
+  let fail = 1
+  echo FAIL X11 clear sense below 15 mV
+end
+if pk > 80m
+  let fail = 1
+  echo FAIL X11 clear sense above 80 mV
+end
+if ix_x11_clr > -0.34
+  let fail = 1
+  echo FAIL X11 clear X current weak
+end
+if ix_x11_clr < -0.46
+  let fail = 1
+  echo FAIL X11 clear X current strong
+end
+if iy_x11_clr > -0.34
+  let fail = 1
+  echo FAIL X11 clear Y current weak
+end
+if iy_x11_clr < -0.46
+  let fail = 1
+  echo FAIL X11 clear Y current strong
+end
+if m_x00_x11_w0 > -0.9
+  let fail = 1
+  echo FAIL X11 write 0 left X00 high
+end
+if m_x01_x11_w0 > -0.9
+  let fail = 1
+  echo FAIL X11 write 0 left X01 high
+end
+if m_x10_x11_w0 > -0.9
+  let fail = 1
+  echo FAIL X11 write 0 left X10 high
+end
+if m_x11_x11_w0 > -0.9
+  let fail = 1
+  echo FAIL X11 write 0 left X11 high
+end
+let pk = smax_x11_w0
+if abs(smin_x11_w0) > pk
+  let pk = abs(smin_x11_w0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X11 write 0 produced a flip plateau
+end
+if ix_x11_w0 < 0.34
+  let fail = 1
+  echo FAIL X11 write 0 X current low
+end
+if ix_x11_w0 > 0.46
+  let fail = 1
+  echo FAIL X11 write 0 X current high
+end
+if iy_x11_w0 < 0.34
+  let fail = 1
+  echo FAIL X11 write 0 Y current low
+end
+if iy_x11_w0 > 0.46
+  let fail = 1
+  echo FAIL X11 write 0 Y current high
+end
+if ii_x11_w0 < 0.34
+  let fail = 1
+  echo FAIL X11 write 0 inhibit current low
+end
+if ii_x11_w0 > 0.46
+  let fail = 1
+  echo FAIL X11 write 0 inhibit current high
+end
+if m_x00_x11_r0 > -0.9
+  let fail = 1
+  echo FAIL X11 read 0 left X00 high
+end
+if m_x01_x11_r0 > -0.9
+  let fail = 1
+  echo FAIL X11 read 0 left X01 high
+end
+if m_x10_x11_r0 > -0.9
+  let fail = 1
+  echo FAIL X11 read 0 left X10 high
+end
+if m_x11_x11_r0 > -0.9
+  let fail = 1
+  echo FAIL X11 read 0 left X11 high
+end
+let pk = smax_x11_r0
+if abs(smin_x11_r0) > pk
+  let pk = abs(smin_x11_r0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X11 read 0 produced a flip plateau
+end
+if ix_x11_r0 > -0.34
+  let fail = 1
+  echo FAIL X11 read 0 X current weak
+end
+if ix_x11_r0 < -0.46
+  let fail = 1
+  echo FAIL X11 read 0 X current strong
+end
+if iy_x11_r0 > -0.34
+  let fail = 1
+  echo FAIL X11 read 0 Y current weak
+end
+if iy_x11_r0 < -0.46
+  let fail = 1
+  echo FAIL X11 read 0 Y current strong
+end
+if m_x00_x11_b0 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 0 left X00 high
+end
+if m_x01_x11_b0 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 0 left X01 high
+end
+if m_x10_x11_b0 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 0 left X10 high
+end
+if m_x11_x11_b0 > -0.9
+  let fail = 1
+  echo FAIL X11 write-back 0 left X11 high
+end
+let pk = smax_x11_b0
+if abs(smin_x11_b0) > pk
+  let pk = abs(smin_x11_b0)
+end
+if pk > 15m
+  let fail = 1
+  echo FAIL X11 write-back 0 produced a flip plateau
+end
+if ix_x11_b0 < 0.34
+  let fail = 1
+  echo FAIL X11 write-back 0 X current low
+end
+if ix_x11_b0 > 0.46
+  let fail = 1
+  echo FAIL X11 write-back 0 X current high
+end
+if iy_x11_b0 < 0.34
+  let fail = 1
+  echo FAIL X11 write-back 0 Y current low
+end
+if iy_x11_b0 > 0.46
+  let fail = 1
+  echo FAIL X11 write-back 0 Y current high
+end
+if ii_x11_b0 < 0.34
+  let fail = 1
+  echo FAIL X11 write-back 0 inhibit current low
+end
+if ii_x11_b0 > 0.46
+  let fail = 1
+  echo FAIL X11 write-back 0 inhibit current high
+end
+
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end
+

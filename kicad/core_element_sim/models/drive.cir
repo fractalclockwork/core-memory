@@ -1,0 +1,16 @@
+* One steered leg of a drive group: TC4427A channel, FDS8958A, SS14.
+*
+* The TC4427 is non-inverting, so ctl is the logic level after the buffer
+* (0 off, 1 on). On-resistance ramps from ~400 Ω to 1 Ω with ctl, the
+* same edge the CCS already converges on. 1 Ω at 400 mA is 0.4 V, which
+* is the SS14 drop; the FDS8958A's ~80 mΩ is inside that and is not a
+* second breakpoint (a hard diode or an 80 mΩ channel stalls the CCS).
+*
+*   HS leg: a = VDRIVE, b = plane end being sourced
+*   LS leg: a = plane end being sunk, b = CCS return
+* ctl is active-high (after the TC4427). The sheet HS pin is active-low;
+* the parent inverts that pin before ctl.
+
+.subckt drvleg a b ctl
+Bsw a b I=(v(ctl)>0.02 ? v(a,b)/(1+400*(1-min(v(ctl),1))) : 0)
+.ends
