@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Place MCE cores on ferrite_beads.kicad_sch; build a 2×2 grid.
+"""Place MCE cores on magnetic_core_2x2.kicad_sch; build a 2×2 grid.
 
 Phase 1: strip FB1/FB2 + soft mid from sense; recreate bowtie topology on
-         ferrite_beads; rewire root Sense pins; add Magnetic Cores sheet.
+         magnetic_core_2x2; rewire root Sense pins; add Magnetic Cores sheet.
 Phase 2: replace bowtie with physically oriented 2×2 (XA→XB top→bottom,
          YA→YB right→left). Sense: YA loop is the TL–BR diagonal (MCE00 and
          MCE11 mirrored), YB loop is the BL–TR diagonal; both loop ends leave
@@ -25,7 +25,7 @@ CORE = ROOT / "core"
 SCH = CORE / "core.kicad_sch"
 PRO = CORE / "core.kicad_pro"
 SENSE = CORE / "sense.kicad_sch"
-BEADS = CORE / "ferrite_beads.kicad_sch"
+BEADS = CORE / "magnetic_core_2x2.kicad_sch"
 SYM_LIB = ROOT / "libs" / "core_memory.kicad_sym"
 PROJECT = "core"
 
@@ -891,7 +891,7 @@ def update_root(phase: int) -> None:
     for it in items:
         head = it.lstrip()
         if head.startswith("(sheet"):
-            if 'Sheetfile" "sense.kicad_sch"' in it or 'Sheetfile" "ferrite_beads.kicad_sch"' in it:
+            if 'Sheetfile" "sense.kicad_sch"' in it or 'Sheetfile" "magnetic_core_2x2.kicad_sch"' in it:
                 continue
             keep.append(it)
             continue
@@ -963,7 +963,7 @@ def update_root(phase: int) -> None:
         *stub_pins(sx_sense, sy_sense, ["YA65", "YB66"], [], w=45),
         sheet_box(
             "Magnetic Cores",
-            "ferrite_beads.kicad_sch",
+            "magnetic_core_2x2.kicad_sch",
             BEADS_UUID,
             "10",
             sx_beads,

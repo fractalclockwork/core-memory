@@ -1,6 +1,6 @@
 # Core-Element Simulation
 
-SPICE model of one three-wire memory core. The driver schematic uses it as the MCE (magnetic core element) symbol on [ferrite_beads.kicad_sch](../kicad/core/ferrite_beads.kicad_sch): the same six pins as the old ferrite-bead stand-in, with the flux probe kept inside the `mce` wrapper. This project remains the isolated testbench.
+SPICE model of one three-wire memory core. The driver schematic uses it as the MCE (magnetic core element) symbol on [magnetic_core_2x2.kicad_sch](../kicad/core/magnetic_core_2x2.kicad_sch): the same six pins as the old ferrite-bead stand-in, with the flux probe kept inside the `mce` wrapper. This project remains the isolated testbench.
 
 KiCad project: [kicad/core_element_sim/](../kicad/core_element_sim/). Subcircuit: [models/coremem.cir](../kicad/core_element_sim/models/coremem.cir). Batch deck: [models/coremem_tb.cir](../kicad/core_element_sim/models/coremem_tb.cir).
 

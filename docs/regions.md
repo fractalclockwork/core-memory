@@ -32,7 +32,7 @@ flowchart TB
 | Block | On sheet | Primary parts | Role |
 |-------|----------|---------------|------|
 | **Sense** | [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) | TLV3501, BAT54S, 74AHC74, 1k iso | Differential sense across YA65/YB66; clamp; strobe latch to DOUT |
-| **Magnetic Cores** | [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; YA loop TL–BR, YB loop BL–TR; 65/66 at the XB end |
+| **Magnetic Cores** | [`magnetic_core_2x2.kicad_sch`](../kicad/core/magnetic_core_2x2.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; YA loop TL–BR, YB loop BL–TR; 65/66 at the XB end |
 | **CCS** | [`ccs.kicad_sch`](../kicad/core/ccs.kicad_sch) | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
 | **Inhibit** | [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) | FDS8958A, TC4427A×2, 2N7002 invert | Series \(-I_c/2\) on folded sense (YA65→fold→YB66→CCS); no 4th inhibit wire |
 | **Drive** | Mid (sheet ×32) | `drive_block` | TC4427A + FDS8958A + local VDRIVE C30/C31; pins `N_*` / `N_HS_OUT`/`N_LS_OUT`; groups 0–7, both axes, FWD and REV |
@@ -56,7 +56,7 @@ The plane model (MCE) and soft mid-bias live on **Magnetic Cores**. See [theory_
 
 ## Magnetic Cores
 
-Hierarchical page [`ferrite_beads.kicad_sch`](../kicad/core/ferrite_beads.kicad_sch) (root sheet **Magnetic Cores**). Each core is an MCE: the six-pin layout of the old ferrite-bead stand-in, drawn as a diagonal toroid, with the [core-element](core_element_sim.md) SPICE model attached.
+Hierarchical page [`magnetic_core_2x2.kicad_sch`](../kicad/core/magnetic_core_2x2.kicad_sch) (root sheet **Magnetic Cores**). Each core is an MCE: the six-pin layout of the old ferrite-bead stand-in, drawn as a diagonal toroid, with the [core-element](core_element_sim.md) SPICE model attached.
 
 **Drive hierarchy pins (0-based matrix only):** `XA0`/`XA1`/`XB0`/`XB1`, `YA0`/`YA1`/`YB0`/`YB1` — same semantic class as physical contacts 1–64, indexed 0–63 in the schematic. These participate in the Drive/Decode pin story.
 

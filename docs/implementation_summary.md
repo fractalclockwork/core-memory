@@ -32,7 +32,7 @@ DEC_EN / FWD_EN_n ┼── Decode Block (N=axis, n=bank)
 | Block | What it does |
 |-------|--------------|
 | Sense | Sheet `sense`: 1k iso, BAT54S, TLV3501 → 74AHC74 |
-| Magnetic Cores | Sheet `ferrite_beads`: MCE00–MCE11 2×2; center tap `SENSE_FOLD` (`YA66`═`YB65`) |
+| Magnetic Cores | Sheet `magnetic_core_2x2`: MCE00–MCE11 2×2; center tap `SENSE_FOLD` (`YA66`═`YB65`) |
 | CCS | Sheet `ccs` ×3 (X, Y, inhibit): TL431 + 3296W → OPA192 → IRLZ44N + 1Ω; pin `CCS_RET` |
 | Drive | Sheet `drive_block`: TC4427A + FDS8958A + C30/C31; pins `N_HSn`/`N_LSn`/`N_HS_OUT`/`N_LS_OUT`; eight root calls; SS14s on `steer_2x2` |
 | Inhibit | Sheet `inhibit`: FDS8958A on YA65/YB66; TC4427A×2 + 2N7002 (`INH_LS_en`) |
