@@ -1501,7 +1501,7 @@
 		(effects (font (size 1.524 1.524)) (justify left))
 		(uuid "8eb7d1c0-4175-471e-89ff-08422b04136c")
 	)
-	(text "N_HSn active-low (138); N_LSn active-high (238). SS14s are on steer_2x2."
+	(text "N_HSn active-low (138); N_LSn active-high (238). SS14s are on steer_64."
 		(exclude_from_sim no)
 		(at 20 18 0)
 		(effects (font (size 1.27 1.27)) (justify left))

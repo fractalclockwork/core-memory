@@ -32,7 +32,7 @@ flowchart TB
 | Block | On sheet | Primary parts | Role |
 |-------|----------|---------------|------|
 | **Sense** | [`sense.kicad_sch`](../kicad/core/sense.kicad_sch) | TLV3501, BAT54S, 74AHC74, 1k iso | Differential sense across YA65/YB66; clamp; strobe latch to DOUT |
-| **Magnetic Cores** | [`magnetic_core_2x2.kicad_sch`](../kicad/core/magnetic_core_2x2.kicad_sch) | MCE×4, soft mid R1 | 2×2 plane model; XA→XB / YA→YB; YA loop TL–BR, YB loop BL–TR; 65/66 at the XB end |
+| **Magnetic Cores** | [`magnetic_core_64x64.kicad_sch`](../kicad/core/magnetic_core_64x64.kicad_sch) | MCE×4096, soft mid R1 | 64×64 plane model; checkerboard is the 2×2 rule scaled, not a traced weave |
 | **CCS** | [`ccs.kicad_sch`](../kicad/core/ccs.kicad_sch) | TL431, Bourns 3296W, OPA192, IRLZ44N, 1 Ω sense | Regulated half-select return for low-side drivers |
 | **Inhibit** | [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) | FDS8958A, TC4427A×2, 2N7002 invert | Series \(-I_c/2\) on folded sense (YA65→fold→YB66→CCS); no 4th inhibit wire |
 | **Drive** | Mid (sheet ×32) | `drive_block` | TC4427A + FDS8958A + local VDRIVE C30/C31; pins `N_*` / `N_HS_OUT`/`N_LS_OUT`; groups 0–7, both axes, FWD and REV |
@@ -56,13 +56,15 @@ The plane model (MCE) and soft mid-bias live on **Magnetic Cores**. See [theory_
 
 ## Magnetic Cores
 
-Hierarchical page [`magnetic_core_2x2.kicad_sch`](../kicad/core/magnetic_core_2x2.kicad_sch) (root sheet **Magnetic Cores**). Each core is an MCE: the six-pin layout of the old ferrite-bead stand-in, drawn as a diagonal toroid, with the [core-element](core_element_sim.md) SPICE model attached.
+Hierarchical page [`magnetic_core_64x64.kicad_sch`](../kicad/core/magnetic_core_64x64.kicad_sch) (root sheet **Magnetic Cores**). Each core is an MCE: the six-pin layout of the old ferrite-bead stand-in, drawn as a diagonal toroid, with the [core-element](core_element_sim.md) SPICE model attached. The archived 2×2 is [`reference/magnetic_core_2x2.kicad_sch`](../kicad/core/reference/magnetic_core_2x2.kicad_sch).
 
-**Drive hierarchy pins (0-based matrix only):** `XA0`/`XA1`/`XB0`/`XB1`, `YA0`/`YA1`/`YB0`/`YB1` — same semantic class as physical contacts 1–64, indexed 0–63 in the schematic. These participate in the Drive/Decode pin story.
+**Drive hierarchy pins (0-based matrix only):** `XA0`…`XA63`, `XB0`…`XB63`, `YA0`…`YA63`, `YB0`…`YB63` — same semantic class as physical contacts 1–64. Lines 0–7 join the steer nets already on the root. Lines 8–63 are labeled and undriven until the 64-line banks exist.
 
 **Sense / fold nets (not Drive/Decode hierarchy):** `YA65`, `YB65`, `YA66`, `YB66`, `SENSE_FOLD` — physical Y pins 65/66 plus the driver center tap; different function (fold + sense/inhibit). On the stand-in sheet they are local labels (and optionally exported for Sense/Inhibit), **not** an extension of the drive switch-node chain. Soft mid R1 10k→AGND at `SENSE_FOLD` (`YA66` tied to `YB65`). The plane does not shunt the loops.
 
-2×2 MCE array matching plane markings ([img/top.jpeg](img/top.jpeg)):
+64×64 MCE array. Columns `x` run `XAx`→`XBx` top to bottom. Rows `y` run `YAy`→`YBy` right to left. Sense is the 2×2 checkerboard scaled, not a traced plane weave: `(x+y)` even is the YA loop (mirrored, series along diagonals `x−y`), `(x+y)` odd is the YB loop (unmirrored, series along diagonals `x+y`). Each loop is 2,048 cores. The fold is `YA66`═`YB65`.
+
+The archived 2×2, which this rule generalizes ([img/top.jpeg](img/top.jpeg)):
 
 ```text
         XA0              XA1
@@ -83,7 +85,7 @@ Hierarchical page [`magnetic_core_2x2.kicad_sch`](../kicad/core/magnetic_core_2x
   - Full series path: `YA65` → Loop A → fold → Loop B → `YB66`
 - **Symbol:** diagonal ellipse (toroid). X1/X2 top/bot, Y1/Y2 left/right, S1/S2 on the LL→UR diagonal. **MCE00** and **MCE11** are mirrored about Y so that diagonal becomes UL→LR, matching the plane’s top-left to bottom-right sense pass. MCE01 and MCE10 stay unmirrored.
 
-Each X/Y line pierces only the cores on its column/row. Regen: [`gen_ferrite_beads_page.py`](../kicad/scripts/gen_ferrite_beads_page.py) `--phase 2`.
+Each X/Y line pierces only the cores on its column/row. Regen: [`gen_ferrite_beads_page.py`](../kicad/scripts/gen_ferrite_beads_page.py) `--array 64`. `--phase 2` rewrites only the archived 2×2.
 
 ## CCS
 
@@ -97,15 +99,15 @@ Hierarchical page [`inhibit.kicad_sch`](../kicad/core/inhibit.kicad_sch) (root s
 
 Reuses the series sense path (`YA65` → Loop A → `YA66`═`YB65` → Loop B → `YB66`). P-FET sources `VDRIVE` into `YA65`; N-FET sinks `YB66` to `CCS_INH`. Soft mid (Magnetic Cores) + 1 kΩ iso (Sense) keep inhibit off AGND and off `SENSE_*`. Both gate drivers are TC4427A: HS←`INH_EN_n`, LS←`INH_LS_en` (2N7002 invert). Whether this direction matches READ polarity on the real cores remains open ([design_choices.md](design_choices.md)).
 
-## Drive Block (2×2)
+## Drive Block
 
-The sheet is a **function**; root wires are the **call arguments**. Define once with `N`/`n` pins. Root calls it 32 times: groups 0–7, X and Y, FWD and REV. The SS14s for lines 0–63 are on [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch). See [naming.md](naming.md).
+The sheet is a **function**; root wires are the **call arguments**. Define once with `N`/`n` pins. Root calls it 32 times: groups 0–7, X and Y, FWD and REV. The SS14s for lines 0–63 are on [`steer_64.kicad_sch`](../kicad/core/steer_64.kicad_sch). Target fabric: [hierarchy_abi.md](hierarchy_abi.md). See [naming.md](naming.md).
 
 | Sheet | File | Contents |
 |-------|------|----------|
 | **Drive Block** | [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch) | One half-bridge: TC4427A (HS+LS) + FDS8958A. Pins are the switch nodes |
-| **Steer 2x2** | [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch) | SS14s. Group-0 HS diode-ORs both lines. LS selects the line |
-| Root | [`core.kicad_sch`](../kicad/core/core.kicad_sch) | 8× `drive_block` + one steer sheet |
+| **Steer 64** | [`steer_64.kicad_sch`](../kicad/core/steer_64.kicad_sch) | SS14s for lines 0–63. Group HS diode-ORs its eight lines; LS selects the line |
+| Root | [`core.kicad_sch`](../kicad/core/core.kicad_sch) | 32× `drive_block` + one steer sheet |
 
 Pin tokens: **`N`** = axis (`X`/`Y`), **`n`** = line (`0`…`63`). Hierarchical pins:
 
@@ -158,7 +160,7 @@ Pin tokens: **`N`** = axis (`X`/`Y`), **`n`** = HS/LS bank index (`0`…`7`). Hi
 
 Y / REV instances (`BANK_EN`←`REV_EN_n`, outs → `*r_*`) come later. Refs today: U11/U12.
 
-**Bench plane map:** Drive Block still `XA0`/`XB0` only; Magnetic Cores exposes XA0/1 XB0/1 YA0/1 YB0/1; sense/inhibit outer ends are `YA65`/`YB66`, center tap `YA66`═`YB65`.
+**Bench plane map:** Drive Block still `XA0`/`XB0` only; Magnetic Cores exposes `XA0`…`XA63` and the matching XB/YA/YB lines. Sense/inhibit outer ends are `YA65`/`YB66`, center tap `YA66`═`YB65`.
 
 ## Decoupling (Logic / VDRIVE)
 

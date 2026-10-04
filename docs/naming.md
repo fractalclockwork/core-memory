@@ -64,7 +64,7 @@ Parent nets use §2–§4. **Inside** reusable sheets, pins stay parameterized w
 
 ### Drive Block — [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch)
 
-One TC4427A + FDS8958A + local VDRIVE bypass. The SS14s sit on [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch), not inside the block. Hierarchical pins:
+One TC4427A + FDS8958A + local VDRIVE bypass. The SS14s sit on [`steer_64.kicad_sch`](../kicad/core/steer_64.kicad_sch), not inside the block. Hierarchical pins:
 
 | Pin | Role | Example parent (X0 FWD) |
 |-----|------|-------------------------|
@@ -116,17 +116,19 @@ flowchart LR
 ```
 
 1. **Define once** — atomic `drive_block` / `decode_block` / `decode_ctrl` with `N`/`n` hierarchical pins.
-2. **Instantiate on root** — four `decode_block` calls (X/Y, FWD/REV; REV binds `BANK_EN`←`REV_EN_n` and `*r_*` outs) and 32 `drive_block` calls (groups 0–7, X and Y, FWD and REV). FWD sources B and sinks A. REV swaps those ends. `steer_2x2` holds the SS14s for lines 0–63 (`line = 8·HS + LS`). Decode CTRL is the X sheet (address + enables) plus a Y address sheet.
+2. **Instantiate on root** — four `decode_block` calls (X/Y, FWD/REV; REV binds `BANK_EN`←`REV_EN_n` and `*r_*` outs) and 32 `drive_block` calls (groups 0–7, X and Y, FWD and REV). FWD sources B and sinks A. REV swaps those ends. `steer_64` holds the SS14s for lines 0–63 (`line = 8·HS + LS`). Decode CTRL is the X sheet (address + enables) plus a Y address sheet.
 3. **Scale with buses** — when past 1×1, root may use KiCad buses such as `X_HS[0..7]_n` and `X_LS[0..7]_en` so the top sheet stays a few thick vectors instead of dozens of wires.
 4. **PCB multiplier** — route and pour **one** Drive Block instance cleanly, then use the **Replicate Layout** plugin to copy placement and copper to further instances (7 more for an 8-line bank, or more toward 64). Hierarchy makes instance membership unambiguous for the plugin.
 
-## 7. Scale roadmap (not implemented yet)
+## 7. Scale roadmap
 
-| Step | Schematic | PCB |
-|------|-----------|-----|
-| Now | 4× decode_block, 8× drive_block, steer_2x2 for lines 0 and 1 | Single block layout TBD |
-| Next | HS groups 1–7 and LS groups 2–7; steer grows to 64 lines | Replicate Drive Block |
-| Later | Buses on root; full 8×8 banks | Replicate across banks |
+| Step | Schematic | SPICE / SIL | PCB |
+|------|-----------|-------------|-----|
+| Done | 4× decode_block, 32× drive_block, monolithic `steer_64` (lines 0–63) | L0–L2 on 2×2; L3 ideal n×n | Single block layout TBD |
+| Next | Octal steer tiles ([hierarchy_abi.md](hierarchy_abi.md)); buses on root | PIO SIL on ideal plant | Replicate Drive Block |
+| Later | Drop monolithic steer | Bench-calibrated L0/L3 | Full layout |
+
+ICD freeze and layer contracts: [icd.md](icd.md), [reimplementation.md](reimplementation.md). Coverage: [coverage_matrix.md](coverage_matrix.md).
 
 ## 8. What never enters the Drive/Decode chain
 

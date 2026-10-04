@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Place MCE cores on magnetic_core_2x2.kicad_sch; build a 2×2 grid.
+"""Place MCE cores. The live sheet is the 64×64 array.
 
-Phase 1: strip FB1/FB2 + soft mid from sense; recreate bowtie topology on
-         magnetic_core_2x2; rewire root Sense pins; add Magnetic Cores sheet.
-Phase 2: replace bowtie with physically oriented 2×2 (XA→XB top→bottom,
-         YA→YB right→left). Sense: YA loop is the TL–BR diagonal (MCE00 and
-         MCE11 mirrored), YB loop is the BL–TR diagonal; both loop ends leave
-         at the XB end of that Y edge. Center tap YA66=YB65 after two cores.
+Phase 1 / phase 2 rewrite only the archived 2×2 under core/reference/.
+They do not point the root Sheetfile back at that file.
+--array 64 writes magnetic_core_64x64.kicad_sch, moves the Magnetic Cores
+box on the root, and writes the diagonal cycle deck.
 
 Usage:
-  uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 1
   uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 2
+  uv run python kicad/scripts/gen_ferrite_beads_page.py --array 64
 """
 from __future__ import annotations
 
@@ -20,12 +18,17 @@ import re
 import uuid
 from pathlib import Path
 
+from mce_array import write_diagonal_deck, ya_order, yb_order
+
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "core"
 SCH = CORE / "core.kicad_sch"
 PRO = CORE / "core.kicad_pro"
 SENSE = CORE / "sense.kicad_sch"
-BEADS = CORE / "magnetic_core_2x2.kicad_sch"
+REF_2X2 = CORE / "reference" / "magnetic_core_2x2.kicad_sch"
+LIVE64 = CORE / "magnetic_core_64x64.kicad_sch"
+CYCLE64 = ROOT / "core_element_sim" / "models" / "array64x64_cycle_tb.cir"
+BEADS = REF_2X2
 SYM_LIB = ROOT / "libs" / "core_memory.kicad_sym"
 PROJECT = "core"
 
@@ -318,13 +321,17 @@ def power(lib_id, ref, value, x, y, sheet_uuid=BEADS_UUID):
 \t)'''
 
 
-def page_header(title: str, comment: str, page_uuid: str, libs: str) -> str:
+def page_header(title: str, comment: str, page_uuid: str, libs: str, paper: str = "A3") -> str:
+    if paper == "A3":
+        paper_s = '\t(paper "A3")'
+    else:
+        paper_s = f"\t{paper}"
     return f'''(kicad_sch
 \t(version 20260306)
 \t(generator "eeschema")
 \t(generator_version "10.0")
 \t(uuid "{page_uuid}")
-\t(paper "A3")
+{paper_s}
 \t(title_block
 \t\t(title "{title}")
 \t\t(comment 1 "{comment}")
@@ -891,7 +898,7 @@ def update_root(phase: int) -> None:
     for it in items:
         head = it.lstrip()
         if head.startswith("(sheet"):
-            if 'Sheetfile" "sense.kicad_sch"' in it or 'Sheetfile" "magnetic_core_2x2.kicad_sch"' in it:
+            if 'Sheetfile" "sense.kicad_sch"' in it or 'Sheetfile" "magnetic_core_2x2.kicad_sch"' in it or 'Sheetfile" "magnetic_core_64x64.kicad_sch"' in it:
                 continue
             keep.append(it)
             continue
@@ -963,7 +970,7 @@ def update_root(phase: int) -> None:
         *stub_pins(sx_sense, sy_sense, ["YA65", "YB66"], [], w=45),
         sheet_box(
             "Magnetic Cores",
-            "magnetic_core_2x2.kicad_sch",
+            "magnetic_core_64x64.kicad_sch",
             BEADS_UUID,
             "10",
             sx_beads,
@@ -985,25 +992,272 @@ def update_root(phase: int) -> None:
     print("Updated core.kicad_pro sheets")
 
 
+def _edge_stub(x: int, y: int, n: int, pin: tuple[float, float], name: str, *, hier_label: bool) -> list[str]:
+    """Short stub off the array edge. Jumpers meet by shared local label."""
+    if y == 0:
+        step, rot = (0.0, -8.0), 90
+    elif y == n - 1:
+        step, rot = (0.0, 8.0), 270
+    elif x == 0:
+        step, rot = (-8.0, 0.0), 180
+    else:
+        step, rot = (8.0, 0.0), 0
+    end = (round(pin[0] + step[0], 2), round(pin[1] + step[1], 2))
+    mark = hier(name, "passive", end, rot) if hier_label else label(name, end, rot)
+    return [wire(pin, end), mark]
+
+
+def _spread(count: int, start: float, length: float) -> list[float]:
+    span = (count - 1) * 2.54
+    origin = start + (length - span) / 2
+    return [round(origin + i * 2.54, 2) for i in range(count)]
+
+
+def build_array_page(sch_src: str, n: int = 64) -> str:
+    libs = libs_block(sch_src, [
+        "core_memory:MCE",
+        "Device:R",
+        "power:GND",
+        "power:PWR_FLAG",
+    ])
+    gap = 25.4
+    ox, oy = 150.0, 60.0
+    centers = {(x, y): (round(ox + x * gap, 2), round(oy + y * gap, 2)) for y in range(n) for x in range(n)}
+    mirrored = {(x, y): (x + y) % 2 == 0 for y in range(n) for x in range(n)}
+    pins: dict[tuple[int, int], dict[str, tuple[float, float]]] = {}
+    o: list[str] = [
+        text(
+            "MAGNETIC CORES — 64×64 MCE\\n"
+            "Checkerboard is the 2×2 rule scaled, not a traced plane weave.\\n"
+            "(x+y) even: YA loop, mirrored, diagonals x-y, S1 toward the top-left.\\n"
+            "(x+y) odd: YB loop, unmirrored, diagonals x+y, S1 toward the top-right.\\n"
+            "XA→XB top→bottom; YA→YB right→left. Fold YA66=YB65.",
+            20, 18, 2.0,
+        ),
+    ]
+    for y in range(n):
+        for x in range(n):
+            sx, sy = centers[(x, y)]
+            ref = f"MCE_r{y:02d}_c{x:02d}"
+            my = mirrored[(x, y)]
+            o.append(symbol_inst(
+                "core_memory:MCE", ref, "MCE", sx, sy, list("123456"),
+                footprint="", mirror_y=my, bom=False, on_board=False,
+                extra=mce_spice(y_swap=not my),
+            ))
+            pins[(x, y)] = bead_pins(sx, sy, mirror_y=my)
+
+    for x in range(n):
+        o.extend(stub_hier_v(f"XA{x}", pins[(x, 0)]["x1"], dy=-10.16))
+        for y in range(n - 1):
+            o.append(wire(pins[(x, y)]["x2"], pins[(x, y + 1)]["x1"]))
+        o.extend(stub_hier_v(f"XB{x}", pins[(x, n - 1)]["x2"], dy=10.16))
+    for y in range(n):
+        o.extend(stub_hier(f"YA{y}", y_edge(pins[(n - 1, y)], mirrored[(n - 1, y)], "right"), rot=0, dx=10.16))
+        for x in range(n - 1):
+            o.append(wire(
+                y_edge(pins[(x, y)], mirrored[(x, y)], "right"),
+                y_edge(pins[(x + 1, y)], mirrored[(x + 1, y)], "left"),
+            ))
+        o.extend(stub_hier(f"YB{y}", y_edge(pins[(0, y)], mirrored[(0, y)], "left"), rot=180, dx=-10.16))
+
+    def connect(order: list[tuple[int, int]], entry: str, exit_name: str, entry_hier: bool, exit_hier: bool, tag: str) -> None:
+        ex, ey = order[0]
+        o.extend(_edge_stub(ex, ey, n, pins[order[0]]["s1"], entry, hier_label=entry_hier))
+        for i, (a, b) in enumerate(zip(order, order[1:])):
+            if abs(a[0] - b[0]) == 1 and abs(a[1] - b[1]) == 1:
+                o.append(wire(pins[a]["s2"], pins[b]["s1"]))
+            else:
+                name = f"{tag}{i}"
+                o.extend(_edge_stub(a[0], a[1], n, pins[a]["s2"], name, hier_label=False))
+                o.extend(_edge_stub(b[0], b[1], n, pins[b]["s1"], name, hier_label=False))
+        lx, ly = order[-1]
+        o.extend(_edge_stub(lx, ly, n, pins[order[-1]]["s2"], exit_name, hier_label=exit_hier))
+
+    connect(ya_order(n), "YA65", "YA66", True, False, "YAJ")
+    connect(yb_order(n), "YB65", "YB66", False, True, "YBJ")
+
+    fold = (round(ox + (n - 1) * gap / 2, 2), round(oy + (n - 1) * gap + 36, 2))
+    o += [
+        label("YA66", (fold[0] - 2.54, fold[1]), 180),
+        label("YB65", (fold[0] + 2.54, fold[1]), 0),
+        label("SENSE_FOLD", (fold[0], fold[1] - 2.54), 90),
+        junction(fold),
+    ]
+    r1 = (fold[0], round(fold[1] + 15.24, 2))
+    o.append(symbol_inst("Device:R", "R1", "10k", r1[0], r1[1], ["1", "2"], footprint=FP_R))
+    r1t, r1b = pin_xy(r1[0], r1[1], 0, 3.81), pin_xy(r1[0], r1[1], 0, -3.81)
+    o += [wire(fold, r1t)]
+    ag = (r1b[0], round(r1b[1] + 5.08, 2))
+    o += [wire(r1b, ag), power("power:GND", "#PWR_AGND", "AGND", ag[0], ag[1])]
+    flg = (ag[0], round(ag[1] + 10.16, 2))
+    o += [wire(ag, flg), power("power:PWR_FLAG", "#FLG_AGND", "PWR_FLAG", flg[0], flg[1])]
+
+    r2 = (round(fold[0] + 30.48, 2), fold[1])
+    o.append(symbol_inst("Device:R", "R2", "DNP", r2[0], r2[1], ["1", "2"], rot=90, dnp=True, footprint=FP_R))
+    r2l, r2r = pin_xy(r2[0], r2[1], 0, 3.81, 90), pin_xy(r2[0], r2[1], 0, -3.81, 90)
+    o += [
+        wire(r2l, (round(r2l[0] - 5.08, 2), r2l[1])),
+        label("YA65", (round(r2l[0] - 5.08, 2), r2l[1]), 180),
+        wire(r2r, (round(r2r[0] + 5.08, 2), r2r[1])),
+        label("YB66", (round(r2r[0] + 5.08, 2), r2r[1]), 0),
+    ]
+
+    right = ox + (n - 1) * gap + 30
+    bottom = flg[1] + 20
+    paper = f'(paper "User" {round(right + 40, 2)} {round(bottom + 20, 2)})'
+    return page_header(
+        "Magnetic Cores",
+        "64x64 MCE; checkerboard is the 2x2 rule scaled, not a traced weave",
+        BEADS_UUID,
+        libs,
+        paper=paper,
+    ) + "\n".join(o) + "\n" + page_footer(BEADS_UUID)
+
+
+_OLD_STUBS = {
+    frozenset([(170.0, 40.24), (180.16, 40.24)]),
+    frozenset([(170.0, 55.48), (180.16, 55.48)]),
+    frozenset([(89.84, 45.32), (100.0, 45.32)]),
+    frozenset([(89.84, 30.08), (100.0, 30.08)]),
+    frozenset([(170.0, 30.08), (180.16, 30.08)]),
+    frozenset([(170.0, 45.32), (180.16, 45.32)]),
+    frozenset([(170.0, 50.4), (180.16, 50.4)]),
+    frozenset([(89.84, 35.16), (100.0, 35.16)]),
+    frozenset([(170.0, 35.16), (180.16, 35.16)]),
+    frozenset([(89.84, 40.24), (100.0, 40.24)]),
+}
+_OLD_LABELS = {(180.16, 30.08), (180.16, 35.16), (180.16, 40.24), (180.16, 45.32), (180.16, 50.4), (180.16, 55.48),
+               (89.84, 30.08), (89.84, 35.16), (89.84, 40.24), (89.84, 45.32)}
+
+
+def _quad_sheet(sx: float, sy: float, w: float, h: float) -> tuple[str, list[str]]:
+    """Magnetic Cores box with XA on top, XB on the bottom, YB+sense on the left, YA on the right."""
+    left = ["YA65", "YB66"] + [f"YB{i}" for i in range(64)]
+    right = [f"YA{i}" for i in range(64)]
+    top = [f"XA{i}" for i in range(64)]
+    bottom = [f"XB{i}" for i in range(64)]
+    pins_s = ""
+    stubs: list[str] = []
+
+    def one(name: str, px: float, py: float, rot: int, just: str, outer: tuple[float, float], lrot: int) -> None:
+        nonlocal pins_s
+        pins_s += f'''\t\t(pin "{name}" passive
+\t\t\t(at {px} {py} {rot})
+\t\t\t(uuid "{uid()}")
+\t\t\t(effects (font (size 1.27 1.27)) (justify {just}))
+\t\t)
+'''
+        stubs.append(wire((px, py), outer))
+        stubs.append(label(name, outer, lrot))
+
+    for name, py in zip(left, _spread(len(left), sy, h)):
+        one(name, sx, py, 180, "left", (round(sx - 12.7, 2), py), 180)
+    for name, py in zip(right, _spread(len(right), sy, h)):
+        one(name, round(sx + w, 2), py, 0, "right", (round(sx + w + 12.7, 2), py), 0)
+    for name, px in zip(top, _spread(len(top), sx, w)):
+        one(name, px, sy, 90, "left", (px, round(sy - 12.7, 2)), 90)
+    for name, px in zip(bottom, _spread(len(bottom), sx, w)):
+        one(name, px, round(sy + h, 2), 270, "right", (px, round(sy + h + 12.7, 2)), 270)
+
+    box = f'''\t(sheet
+\t\t(at {sx} {sy})
+\t\t(size {w} {h})
+\t\t(exclude_from_sim no)
+\t\t(in_bom yes)
+\t\t(on_board yes)
+\t\t(dnp no)
+\t\t(stroke (width 0.1524) (type solid))
+\t\t(fill (color 0 0 0 0))
+\t\t(uuid "{BEADS_UUID}")
+\t\t(property "Sheetname" "Magnetic Cores"
+\t\t\t(at {sx} {round(sy - 1.27, 2)} 0)
+\t\t\t(show_name no)
+\t\t\t(do_not_autoplace no)
+\t\t\t(effects (font (size 1.27 1.27) (thickness 0.254) (bold yes)) (justify left bottom))
+\t\t)
+\t\t(property "Sheetfile" "magnetic_core_64x64.kicad_sch"
+\t\t\t(at {sx} {round(sy + h + 1.27, 2)} 0)
+\t\t\t(show_name no)
+\t\t\t(do_not_autoplace no)
+\t\t\t(effects (font (size 1.27 1.27)) (justify left top))
+\t\t)
+{pins_s}\t\t(instances
+\t\t\t(project "{PROJECT}"
+\t\t\t\t(path "/{ROOT_UUID}"
+\t\t\t\t\t(page "10")
+\t\t\t\t)
+\t\t\t)
+\t\t)
+\t)'''
+    return box, stubs
+
+
+def place_live_array() -> None:
+    """Replace the Magnetic Cores box. Leave every other sheet where it is."""
+    sch = SCH.read_text()
+    sch = sch.replace(
+        '(paper "A1")',
+        '(paper "User" 1100 640)',
+        1,
+    )
+    sch = sch.replace(
+        "2x2 MCE; YA66=YB65 center tap; YA65/YB66 sense and inhibit; TLV3501; 74AHC74",
+        "64x64 MCE; YA66=YB65 center tap; YA65/YB66 sense and inhibit; TLV3501; 74AHC74",
+        1,
+    )
+    body_start, si = find_body_range(sch)
+    kept: list[str] = []
+    for it in extract_items(sch, body_start, si):
+        if BEADS_UUID in it and it.lstrip().startswith("(sheet"):
+            continue
+        coords = [(round(x, 2), round(y, 2)) for x, y in item_coords(it)]
+        head = it.lstrip()
+        if head.startswith("(wire") and frozenset(coords) in _OLD_STUBS:
+            continue
+        if head.startswith("(label") and coords and coords[0] in _OLD_LABELS:
+            continue
+        # Drop a previous copy of this box's stubs so --array 64 can be re-run.
+        if head.startswith(("(wire", "(label")) and coords and all(
+            845.0 <= x <= 1055.0 and 5.0 <= y <= 240.0 for x, y in coords
+        ):
+            continue
+        kept.append(it)
+    box, stubs = _quad_sheet(860.0, 20.0, 180.0, 200.0)
+    new_sch = sch[:body_start] + "\n".join([*kept, box, *stubs]) + "\n" + sch[si:]
+    SCH.write_text(new_sch)
+    print(f"Moved Magnetic Cores box on {SCH.name}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--phase", type=int, choices=(1, 2), required=True)
+    group = ap.add_mutually_exclusive_group(required=True)
+    group.add_argument("--phase", type=int, choices=(1, 2))
+    group.add_argument("--array", type=int, choices=(64,))
     args = ap.parse_args()
 
     sch_src = SCH.read_text()
+    if args.array == 64:
+        LIVE64.write_text(build_array_page(sch_src, 64))
+        print(f"Wrote {LIVE64.name}")
+        place_live_array()
+        write_diagonal_deck(CYCLE64, 64, 0, 32)
+        hi = CYCLE64.with_name("array64x64_cycle_hi.cir")
+        write_diagonal_deck(hi, 64, 32, 64)
+        print(f"Wrote {CYCLE64.name} and {hi.name}")
+        return
     if args.phase == 1:
         if "FB1" in SENSE.read_text():
             strip_beads_from_sense()
-        BEADS.write_text(build_bowtie_page(sch_src))
-        print(f"Wrote {BEADS.name} (bowtie)")
-        update_root(phase=1)
+        REF_2X2.parent.mkdir(parents=True, exist_ok=True)
+        REF_2X2.write_text(build_bowtie_page(sch_src))
+        print(f"Wrote {REF_2X2} (bowtie, reference only)")
     else:
-        # Ensure beads already off sense (idempotent)
         if "FB1" in SENSE.read_text() or "FB2" in SENSE.read_text():
             strip_beads_from_sense()
-        BEADS.write_text(build_grid_page(sch_src))
-        print(f"Wrote {BEADS.name} (2x2 grid)")
-        update_root(phase=2)
+        REF_2X2.parent.mkdir(parents=True, exist_ok=True)
+        REF_2X2.write_text(build_grid_page(sch_src))
+        print(f"Wrote {REF_2X2} (2x2 reference only)")
 
 
 if __name__ == "__main__":

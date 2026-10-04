@@ -1,0 +1,571 @@
+* L3 idealized diagonal addressing smoke (ideal_mce).
+* One continuous transient: write-1 on X0/Y0 .. X7/Y7.
+* Three CCS copies at 400 mA. Ideal drvsw. Inhibit off.
+* Sparse plant: diagonal + one X half-select neighbor per address.
+* Prints RESULT PASS or RESULT FAIL.
+
+.include ideal_core.cir
+.include ccs.cir
+
+.param vdrive=12
+
+Vdrive vdrv 0 DC {vdrive}
+Viccsx ccs_x ccs_xin 0
+Viccsy ccs_y ccs_yin 0
+Viccsi ccs_i ccs_iin 0
+Xccs_x ccs_xin ccs ic_half=0.4
+Xccs_y ccs_yin ccs ic_half=0.4
+Xccs_i ccs_iin ccs ic_half=0.4
+Rx ccs_x 0 10Meg
+Ry ccs_y 0 10Meg
+Ri ccs_i 0 10Meg
+Rfold FOLD 0 10k
+
+Rxa0 xa0d 0 10Meg
+Rya0 ya0d 0 10Meg
+Rxa1 xa1d 0 10Meg
+Rya1 ya1d 0 10Meg
+Rxa2 xa2d 0 10Meg
+Rya2 ya2d 0 10Meg
+Rxa3 xa3d 0 10Meg
+Rya3 ya3d 0 10Meg
+Rxa4 xa4d 0 10Meg
+Rya4 ya4d 0 10Meg
+Rxa5 xa5d 0 10Meg
+Rya5 ya5d 0 10Meg
+Rxa6 xa6d 0 10Meg
+Rya6 ya6d 0 10Meg
+Rxa7 xa7d 0 10Meg
+Rya7 ya7d 0 10Meg
+
+Xr00c00 XA0 nx0_0 YA0 YB0 FOLD nya6 ideal_mce m0=-1
+Xr01c00 nx0_0 XB0 ny0_1 YB1 nyb0 FOLD ideal_mce m0=-1
+Xr01c01 XA1 nx1_1 YA1 ny0_1 nya6 nya5 ideal_mce m0=-1
+Xr02c01 nx1_1 XB1 ny1_2 YB2 nyb1 nyb0 ideal_mce m0=-1
+Xr02c02 XA2 nx2_2 YA2 ny1_2 nya5 nya4 ideal_mce m0=-1
+Xr03c02 nx2_2 XB2 ny2_3 YB3 nyb2 nyb1 ideal_mce m0=-1
+Xr03c03 XA3 nx3_3 YA3 ny2_3 nya4 nya3 ideal_mce m0=-1
+Xr04c03 nx3_3 XB3 ny3_4 YB4 nyb3 nyb2 ideal_mce m0=-1
+Xr04c04 XA4 nx4_4 YA4 ny3_4 nya3 nya2 ideal_mce m0=-1
+Xr05c04 nx4_4 XB4 ny4_5 YB5 nyb4 nyb3 ideal_mce m0=-1
+Xr05c05 XA5 nx5_5 YA5 ny4_5 nya2 nya1 ideal_mce m0=-1
+Xr06c05 nx5_5 XB5 ny5_6 YB6 nyb5 nyb4 ideal_mce m0=-1
+Xr06c06 XA6 nx6_6 ny6_6 ny5_6 nya1 nya0 ideal_mce m0=-1
+Xr06c07 XA7 nx7_6 YA6 ny6_6 YB66 nyb6 ideal_mce m0=-1
+Xr07c06 nx6_6 XB6 ny6_7 YB7 nyb6 nyb5 ideal_mce m0=-1
+Xr07c07 nx7_6 XB7 YA7 ny6_7 nya0 YA65 ideal_mce m0=-1
+
+Bdiff DIFF 0 V = V(YA65)-V(YB66)
+Vinh inhd YA65 0
+Vixa0 xa0d XA0 0
+Viya0 ya0d YA0 0
+Vixa1 xa1d XA1 0
+Viya1 ya1d YA1 0
+Vixa2 xa2d XA2 0
+Viya2 ya2d YA2 0
+Vixa3 xa3d XA3 0
+Viya3 ya3d YA3 0
+Vixa4 xa4d XA4 0
+Viya4 ya4d YA4 0
+Vixa5 xa5d XA5 0
+Viya5 ya5d YA5 0
+Vixa6 xa6d XA6 0
+Viya6 ya6d YA6 0
+Vixa7 xa7d XA7 0
+Viya7 ya7d YA7 0
+
+.subckt drvsw a b ctl
+Bsw a b I=(v(ctl)>0.02 ? v(a,b)/(1+400*(1-min(v(ctl),1))) : 0)
+.ends
+
+Xx0_ra xa0d ccs_x g_x0r drvsw
+Xx0_rb vdrv XB0 g_x0r drvsw
+Xx0_wa vdrv xa0d g_x0w drvsw
+Xx0_wb XB0 ccs_x g_x0w drvsw
+Xy0_ra ya0d ccs_y g_y0r drvsw
+Xy0_rb vdrv YB0 g_y0r drvsw
+Xy0_wa vdrv ya0d g_y0w drvsw
+Xy0_wb YB0 ccs_y g_y0w drvsw
+Vg_x0r g_x0r 0 DC 0
+Vg_y0r g_y0r 0 DC 0
+Xx1_ra xa1d ccs_x g_x1r drvsw
+Xx1_rb vdrv XB1 g_x1r drvsw
+Xx1_wa vdrv xa1d g_x1w drvsw
+Xx1_wb XB1 ccs_x g_x1w drvsw
+Xy1_ra ya1d ccs_y g_y1r drvsw
+Xy1_rb vdrv YB1 g_y1r drvsw
+Xy1_wa vdrv ya1d g_y1w drvsw
+Xy1_wb YB1 ccs_y g_y1w drvsw
+Vg_x1r g_x1r 0 DC 0
+Vg_y1r g_y1r 0 DC 0
+Xx2_ra xa2d ccs_x g_x2r drvsw
+Xx2_rb vdrv XB2 g_x2r drvsw
+Xx2_wa vdrv xa2d g_x2w drvsw
+Xx2_wb XB2 ccs_x g_x2w drvsw
+Xy2_ra ya2d ccs_y g_y2r drvsw
+Xy2_rb vdrv YB2 g_y2r drvsw
+Xy2_wa vdrv ya2d g_y2w drvsw
+Xy2_wb YB2 ccs_y g_y2w drvsw
+Vg_x2r g_x2r 0 DC 0
+Vg_y2r g_y2r 0 DC 0
+Xx3_ra xa3d ccs_x g_x3r drvsw
+Xx3_rb vdrv XB3 g_x3r drvsw
+Xx3_wa vdrv xa3d g_x3w drvsw
+Xx3_wb XB3 ccs_x g_x3w drvsw
+Xy3_ra ya3d ccs_y g_y3r drvsw
+Xy3_rb vdrv YB3 g_y3r drvsw
+Xy3_wa vdrv ya3d g_y3w drvsw
+Xy3_wb YB3 ccs_y g_y3w drvsw
+Vg_x3r g_x3r 0 DC 0
+Vg_y3r g_y3r 0 DC 0
+Xx4_ra xa4d ccs_x g_x4r drvsw
+Xx4_rb vdrv XB4 g_x4r drvsw
+Xx4_wa vdrv xa4d g_x4w drvsw
+Xx4_wb XB4 ccs_x g_x4w drvsw
+Xy4_ra ya4d ccs_y g_y4r drvsw
+Xy4_rb vdrv YB4 g_y4r drvsw
+Xy4_wa vdrv ya4d g_y4w drvsw
+Xy4_wb YB4 ccs_y g_y4w drvsw
+Vg_x4r g_x4r 0 DC 0
+Vg_y4r g_y4r 0 DC 0
+Xx5_ra xa5d ccs_x g_x5r drvsw
+Xx5_rb vdrv XB5 g_x5r drvsw
+Xx5_wa vdrv xa5d g_x5w drvsw
+Xx5_wb XB5 ccs_x g_x5w drvsw
+Xy5_ra ya5d ccs_y g_y5r drvsw
+Xy5_rb vdrv YB5 g_y5r drvsw
+Xy5_wa vdrv ya5d g_y5w drvsw
+Xy5_wb YB5 ccs_y g_y5w drvsw
+Vg_x5r g_x5r 0 DC 0
+Vg_y5r g_y5r 0 DC 0
+Xx6_ra xa6d ccs_x g_x6r drvsw
+Xx6_rb vdrv XB6 g_x6r drvsw
+Xx6_wa vdrv xa6d g_x6w drvsw
+Xx6_wb XB6 ccs_x g_x6w drvsw
+Xy6_ra ya6d ccs_y g_y6r drvsw
+Xy6_rb vdrv YB6 g_y6r drvsw
+Xy6_wa vdrv ya6d g_y6w drvsw
+Xy6_wb YB6 ccs_y g_y6w drvsw
+Vg_x6r g_x6r 0 DC 0
+Vg_y6r g_y6r 0 DC 0
+Xx7_ra xa7d ccs_x g_x7r drvsw
+Xx7_rb vdrv XB7 g_x7r drvsw
+Xx7_wa vdrv xa7d g_x7w drvsw
+Xx7_wb XB7 ccs_x g_x7w drvsw
+Xy7_ra ya7d ccs_y g_y7r drvsw
+Xy7_rb vdrv YB7 g_y7r drvsw
+Xy7_wa vdrv ya7d g_y7w drvsw
+Xy7_wb YB7 ccs_y g_y7w drvsw
+Vg_x7r g_x7r 0 DC 0
+Vg_y7r g_y7r 0 DC 0
+Xinh_a vdrv inhd g_inh drvsw
+Xinh_b YB66 ccs_i g_inh drvsw
+Vg_inh g_inh 0 DC 0
+
+Vg_x0w g_x0w 0 PWL(0 0 2u 0 3u 1 5u 1 6u 0)
+Vg_y0w g_y0w 0 PWL(0 0 2u 0 3u 1 5u 1 6u 0)
+Vg_x1w g_x1w 0 PWL(0 0 8u 0 9u 1 11u 1 12u 0)
+Vg_y1w g_y1w 0 PWL(0 0 8u 0 9u 1 11u 1 12u 0)
+Vg_x2w g_x2w 0 PWL(0 0 14u 0 15u 1 17u 1 18u 0)
+Vg_y2w g_y2w 0 PWL(0 0 14u 0 15u 1 17u 1 18u 0)
+Vg_x3w g_x3w 0 PWL(0 0 20u 0 21u 1 23u 1 24u 0)
+Vg_y3w g_y3w 0 PWL(0 0 20u 0 21u 1 23u 1 24u 0)
+Vg_x4w g_x4w 0 PWL(0 0 26u 0 27u 1 29u 1 30u 0)
+Vg_y4w g_y4w 0 PWL(0 0 26u 0 27u 1 29u 1 30u 0)
+Vg_x5w g_x5w 0 PWL(0 0 32u 0 33u 1 35u 1 36u 0)
+Vg_y5w g_y5w 0 PWL(0 0 32u 0 33u 1 35u 1 36u 0)
+Vg_x6w g_x6w 0 PWL(0 0 38u 0 39u 1 41u 1 42u 0)
+Vg_y6w g_y6w 0 PWL(0 0 38u 0 39u 1 41u 1 42u 0)
+Vg_x7w g_x7w 0 PWL(0 0 44u 0 45u 1 47u 1 48u 0)
+Vg_y7w g_y7w 0 PWL(0 0 44u 0 45u 1 47u 1 48u 0)
+
+.options reltol=1e-3 method=trap
+.save v(diff) v(xr00c00.xcore.m) v(xr01c00.xcore.m) v(xr01c01.xcore.m) i(Vixa0) i(Viya0)
+.save v(xr02c01.xcore.m) v(xr02c02.xcore.m) i(Vixa1) i(Viya1) v(xr03c02.xcore.m) v(xr03c03.xcore.m)
+.save i(Vixa2) i(Viya2) v(xr04c03.xcore.m) v(xr04c04.xcore.m) i(Vixa3) i(Viya3)
+.save v(xr05c04.xcore.m) v(xr05c05.xcore.m) i(Vixa4) i(Viya4) v(xr06c05.xcore.m) v(xr06c06.xcore.m)
+.save i(Vixa5) i(Viya5) v(xr07c06.xcore.m) v(xr07c07.xcore.m) i(Vixa6) i(Viya6)
+.save v(xr06c07.xcore.m) i(Vixa7) i(Viya7)
+.tran 200n 54u uic
+
+.control
+set nobreak
+set noaskquit
+run
+
+meas tran m_d0 FIND v(xr00c00.xcore.m) AT=6.5u
+meas tran m_n0 FIND v(xr01c00.xcore.m) AT=6.5u
+meas tran m_x0 FIND v(xr01c01.xcore.m) AT=6.5u
+meas tran smin_d0 MIN v(diff) FROM=3.2u TO=4.2u
+meas tran ix_d0 AVG i(Vixa0) FROM=4.2u TO=4.8u
+meas tran iy_d0 AVG i(Viya0) FROM=4.2u TO=4.8u
+meas tran m_d1 FIND v(xr01c01.xcore.m) AT=12.5u
+meas tran m_n1 FIND v(xr02c01.xcore.m) AT=12.5u
+meas tran m_x1 FIND v(xr02c02.xcore.m) AT=12.5u
+meas tran m_p1 FIND v(xr00c00.xcore.m) AT=12.5u
+meas tran smin_d1 MIN v(diff) FROM=9.2u TO=10.2u
+meas tran ix_d1 AVG i(Vixa1) FROM=10.2u TO=10.8u
+meas tran iy_d1 AVG i(Viya1) FROM=10.2u TO=10.8u
+meas tran m_d2 FIND v(xr02c02.xcore.m) AT=18.5u
+meas tran m_n2 FIND v(xr03c02.xcore.m) AT=18.5u
+meas tran m_x2 FIND v(xr03c03.xcore.m) AT=18.5u
+meas tran m_p2 FIND v(xr01c01.xcore.m) AT=18.5u
+meas tran smin_d2 MIN v(diff) FROM=15.2u TO=16.2u
+meas tran ix_d2 AVG i(Vixa2) FROM=16.2u TO=16.8u
+meas tran iy_d2 AVG i(Viya2) FROM=16.2u TO=16.8u
+meas tran m_d3 FIND v(xr03c03.xcore.m) AT=24.5u
+meas tran m_n3 FIND v(xr04c03.xcore.m) AT=24.5u
+meas tran m_x3 FIND v(xr04c04.xcore.m) AT=24.5u
+meas tran m_p3 FIND v(xr02c02.xcore.m) AT=24.5u
+meas tran smin_d3 MIN v(diff) FROM=21.2u TO=22.2u
+meas tran ix_d3 AVG i(Vixa3) FROM=22.2u TO=22.8u
+meas tran iy_d3 AVG i(Viya3) FROM=22.2u TO=22.8u
+meas tran m_d4 FIND v(xr04c04.xcore.m) AT=30.5u
+meas tran m_n4 FIND v(xr05c04.xcore.m) AT=30.5u
+meas tran m_x4 FIND v(xr05c05.xcore.m) AT=30.5u
+meas tran m_p4 FIND v(xr03c03.xcore.m) AT=30.5u
+meas tran smin_d4 MIN v(diff) FROM=27.2u TO=28.2u
+meas tran ix_d4 AVG i(Vixa4) FROM=28.2u TO=28.8u
+meas tran iy_d4 AVG i(Viya4) FROM=28.2u TO=28.8u
+meas tran m_d5 FIND v(xr05c05.xcore.m) AT=36.5u
+meas tran m_n5 FIND v(xr06c05.xcore.m) AT=36.5u
+meas tran m_x5 FIND v(xr06c06.xcore.m) AT=36.5u
+meas tran m_p5 FIND v(xr04c04.xcore.m) AT=36.5u
+meas tran smin_d5 MIN v(diff) FROM=33.2u TO=34.2u
+meas tran ix_d5 AVG i(Vixa5) FROM=34.2u TO=34.8u
+meas tran iy_d5 AVG i(Viya5) FROM=34.2u TO=34.8u
+meas tran m_d6 FIND v(xr06c06.xcore.m) AT=42.5u
+meas tran m_n6 FIND v(xr07c06.xcore.m) AT=42.5u
+meas tran m_x6 FIND v(xr07c07.xcore.m) AT=42.5u
+meas tran m_p6 FIND v(xr05c05.xcore.m) AT=42.5u
+meas tran smin_d6 MIN v(diff) FROM=39.2u TO=40.2u
+meas tran ix_d6 AVG i(Vixa6) FROM=40.2u TO=40.8u
+meas tran iy_d6 AVG i(Viya6) FROM=40.2u TO=40.8u
+meas tran m_d7 FIND v(xr07c07.xcore.m) AT=48.5u
+meas tran m_n7 FIND v(xr06c07.xcore.m) AT=48.5u
+meas tran m_p7 FIND v(xr06c06.xcore.m) AT=48.5u
+meas tran smin_d7 MIN v(diff) FROM=45.2u TO=46.2u
+meas tran ix_d7 AVG i(Vixa7) FROM=46.2u TO=46.8u
+meas tran iy_d7 AVG i(Viya7) FROM=46.2u TO=46.8u
+
+let fail = 0
+if m_d0 < 0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 did not set the addressed core
+end
+if m_n0 > -0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 flipped half-select X0/Y1
+end
+if m_x0 > -0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 flipped X1/Y1
+end
+if smin_d0 > -15m
+  let fail = 1
+  echo FAIL X0/Y0 sense plateau above -15 mV
+end
+if smin_d0 < -80m
+  let fail = 1
+  echo FAIL X0/Y0 sense plateau below -80 mV
+end
+if ix_d0 < 0.34
+  let fail = 1
+  echo FAIL X0/Y0 X current low
+end
+if ix_d0 > 0.46
+  let fail = 1
+  echo FAIL X0/Y0 X current high
+end
+if iy_d0 < 0.34
+  let fail = 1
+  echo FAIL X0/Y0 Y current low
+end
+if iy_d0 > 0.46
+  let fail = 1
+  echo FAIL X0/Y0 Y current high
+end
+if m_d1 < 0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 did not set the addressed core
+end
+if m_n1 > -0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 flipped half-select X1/Y2
+end
+if m_x1 > -0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 flipped X2/Y2
+end
+if m_p1 < 0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 disturbed X0/Y0
+end
+if smin_d1 > -15m
+  let fail = 1
+  echo FAIL X1/Y1 sense plateau above -15 mV
+end
+if smin_d1 < -80m
+  let fail = 1
+  echo FAIL X1/Y1 sense plateau below -80 mV
+end
+if ix_d1 < 0.34
+  let fail = 1
+  echo FAIL X1/Y1 X current low
+end
+if ix_d1 > 0.46
+  let fail = 1
+  echo FAIL X1/Y1 X current high
+end
+if iy_d1 < 0.34
+  let fail = 1
+  echo FAIL X1/Y1 Y current low
+end
+if iy_d1 > 0.46
+  let fail = 1
+  echo FAIL X1/Y1 Y current high
+end
+if m_d2 < 0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 did not set the addressed core
+end
+if m_n2 > -0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 flipped half-select X2/Y3
+end
+if m_x2 > -0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 flipped X3/Y3
+end
+if m_p2 < 0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 disturbed X1/Y1
+end
+if smin_d2 > -15m
+  let fail = 1
+  echo FAIL X2/Y2 sense plateau above -15 mV
+end
+if smin_d2 < -80m
+  let fail = 1
+  echo FAIL X2/Y2 sense plateau below -80 mV
+end
+if ix_d2 < 0.34
+  let fail = 1
+  echo FAIL X2/Y2 X current low
+end
+if ix_d2 > 0.46
+  let fail = 1
+  echo FAIL X2/Y2 X current high
+end
+if iy_d2 < 0.34
+  let fail = 1
+  echo FAIL X2/Y2 Y current low
+end
+if iy_d2 > 0.46
+  let fail = 1
+  echo FAIL X2/Y2 Y current high
+end
+if m_d3 < 0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 did not set the addressed core
+end
+if m_n3 > -0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 flipped half-select X3/Y4
+end
+if m_x3 > -0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 flipped X4/Y4
+end
+if m_p3 < 0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 disturbed X2/Y2
+end
+if smin_d3 > -15m
+  let fail = 1
+  echo FAIL X3/Y3 sense plateau above -15 mV
+end
+if smin_d3 < -80m
+  let fail = 1
+  echo FAIL X3/Y3 sense plateau below -80 mV
+end
+if ix_d3 < 0.34
+  let fail = 1
+  echo FAIL X3/Y3 X current low
+end
+if ix_d3 > 0.46
+  let fail = 1
+  echo FAIL X3/Y3 X current high
+end
+if iy_d3 < 0.34
+  let fail = 1
+  echo FAIL X3/Y3 Y current low
+end
+if iy_d3 > 0.46
+  let fail = 1
+  echo FAIL X3/Y3 Y current high
+end
+if m_d4 < 0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 did not set the addressed core
+end
+if m_n4 > -0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 flipped half-select X4/Y5
+end
+if m_x4 > -0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 flipped X5/Y5
+end
+if m_p4 < 0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 disturbed X3/Y3
+end
+if smin_d4 > -15m
+  let fail = 1
+  echo FAIL X4/Y4 sense plateau above -15 mV
+end
+if smin_d4 < -80m
+  let fail = 1
+  echo FAIL X4/Y4 sense plateau below -80 mV
+end
+if ix_d4 < 0.34
+  let fail = 1
+  echo FAIL X4/Y4 X current low
+end
+if ix_d4 > 0.46
+  let fail = 1
+  echo FAIL X4/Y4 X current high
+end
+if iy_d4 < 0.34
+  let fail = 1
+  echo FAIL X4/Y4 Y current low
+end
+if iy_d4 > 0.46
+  let fail = 1
+  echo FAIL X4/Y4 Y current high
+end
+if m_d5 < 0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 did not set the addressed core
+end
+if m_n5 > -0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 flipped half-select X5/Y6
+end
+if m_x5 > -0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 flipped X6/Y6
+end
+if m_p5 < 0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 disturbed X4/Y4
+end
+if smin_d5 > -15m
+  let fail = 1
+  echo FAIL X5/Y5 sense plateau above -15 mV
+end
+if smin_d5 < -80m
+  let fail = 1
+  echo FAIL X5/Y5 sense plateau below -80 mV
+end
+if ix_d5 < 0.34
+  let fail = 1
+  echo FAIL X5/Y5 X current low
+end
+if ix_d5 > 0.46
+  let fail = 1
+  echo FAIL X5/Y5 X current high
+end
+if iy_d5 < 0.34
+  let fail = 1
+  echo FAIL X5/Y5 Y current low
+end
+if iy_d5 > 0.46
+  let fail = 1
+  echo FAIL X5/Y5 Y current high
+end
+if m_d6 < 0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 did not set the addressed core
+end
+if m_n6 > -0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 flipped half-select X6/Y7
+end
+if m_x6 > -0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 flipped X7/Y7
+end
+if m_p6 < 0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 disturbed X5/Y5
+end
+if smin_d6 > -15m
+  let fail = 1
+  echo FAIL X6/Y6 sense plateau above -15 mV
+end
+if smin_d6 < -80m
+  let fail = 1
+  echo FAIL X6/Y6 sense plateau below -80 mV
+end
+if ix_d6 < 0.34
+  let fail = 1
+  echo FAIL X6/Y6 X current low
+end
+if ix_d6 > 0.46
+  let fail = 1
+  echo FAIL X6/Y6 X current high
+end
+if iy_d6 < 0.34
+  let fail = 1
+  echo FAIL X6/Y6 Y current low
+end
+if iy_d6 > 0.46
+  let fail = 1
+  echo FAIL X6/Y6 Y current high
+end
+if m_d7 < 0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 did not set the addressed core
+end
+if m_n7 > -0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 flipped half-select X7/Y6
+end
+if m_p7 < 0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 disturbed X6/Y6
+end
+if smin_d7 > -15m
+  let fail = 1
+  echo FAIL X7/Y7 sense plateau above -15 mV
+end
+if smin_d7 < -80m
+  let fail = 1
+  echo FAIL X7/Y7 sense plateau below -80 mV
+end
+if ix_d7 < 0.34
+  let fail = 1
+  echo FAIL X7/Y7 X current low
+end
+if ix_d7 > 0.46
+  let fail = 1
+  echo FAIL X7/Y7 X current high
+end
+if iy_d7 < 0.34
+  let fail = 1
+  echo FAIL X7/Y7 Y current low
+end
+if iy_d7 > 0.46
+  let fail = 1
+  echo FAIL X7/Y7 Y current high
+end
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end
+

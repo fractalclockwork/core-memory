@@ -24,7 +24,7 @@ Driving 64 X and 64 Y lines with one switch each would explode MOSFET and connec
 
 ## Prototype 1×1 before scaling lines
 
-Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on the 2×2 before the 64-line banks. Drive is one hierarchical page [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch): a TC4427A (HS+LS) plus one FDS8958A, with switch-node pins `N_HS_OUT` / `N_LS_OUT`. The SS14s are on [`steer_2x2.kicad_sch`](../kicad/core/steer_2x2.kicad_sch). Decode is one hierarchical page [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch): one axis = 74AHC138 HS + 74AHC238 LS (`ADDR_NH/NL`, `N_HS{0..7}_n`, `N_LS{0..7}_en`; line# = 8·HS + LS). Root places four decode calls and eight drive calls. REV binds `BANK_EN`←`REV_EN_n` and remaps outs to `*r_*`. HS groups 1–7 and LS groups 2–7 are the later fan-out.
+Bring-up proves a full READ → STROBE → INHIBIT → WRITE cycle on the 2×2 before trusting n×n SIL. Drive is one hierarchical page [`drive_block.kicad_sch`](../kicad/core/drive_block.kicad_sch): a TC4427A (HS+LS) plus one FDS8958A, with switch-node pins `N_HS_OUT` / `N_LS_OUT`. The SS14s are on [`steer_64.kicad_sch`](../kicad/core/steer_64.kicad_sch) (octal tiles next — [hierarchy_abi.md](hierarchy_abi.md)). Decode is one hierarchical page [`decode_block.kicad_sch`](../kicad/core/decode_block.kicad_sch): one axis = 74AHC138 HS + 74AHC238 LS (`ADDR_NH/NL`, `N_HS{0..7}_n`, `N_LS{0..7}_en`; line# = 8·HS + LS). Root places four decode calls and **32** drive calls (groups 0–7, X/Y, FWD/REV). REV binds `BANK_EN`←`REV_EN_n` and remaps outs to `*r_*`. Scale gates: [reimplementation.md](reimplementation.md).
 
 ## Soft mid-bias and input clamps on sense
 

@@ -1,0 +1,4248 @@
+* L3 idealized diagonal addressing smoke (ideal_mce).
+* One continuous transient: write-1 on X0/Y0 .. X63/Y63.
+* Three CCS copies at 400 mA. Ideal drvsw. Inhibit off.
+* Sparse plant: diagonal + one X half-select neighbor per address.
+* Prints RESULT PASS or RESULT FAIL.
+
+.include ideal_core.cir
+.include ccs.cir
+
+.param vdrive=12
+
+Vdrive vdrv 0 DC {vdrive}
+Viccsx ccs_x ccs_xin 0
+Viccsy ccs_y ccs_yin 0
+Viccsi ccs_i ccs_iin 0
+Xccs_x ccs_xin ccs ic_half=0.4
+Xccs_y ccs_yin ccs ic_half=0.4
+Xccs_i ccs_iin ccs ic_half=0.4
+Rx ccs_x 0 10Meg
+Ry ccs_y 0 10Meg
+Ri ccs_i 0 10Meg
+Rfold FOLD 0 10k
+
+Rxa0 xa0d 0 10Meg
+Rya0 ya0d 0 10Meg
+Rxa1 xa1d 0 10Meg
+Rya1 ya1d 0 10Meg
+Rxa2 xa2d 0 10Meg
+Rya2 ya2d 0 10Meg
+Rxa3 xa3d 0 10Meg
+Rya3 ya3d 0 10Meg
+Rxa4 xa4d 0 10Meg
+Rya4 ya4d 0 10Meg
+Rxa5 xa5d 0 10Meg
+Rya5 ya5d 0 10Meg
+Rxa6 xa6d 0 10Meg
+Rya6 ya6d 0 10Meg
+Rxa7 xa7d 0 10Meg
+Rya7 ya7d 0 10Meg
+Rxa8 xa8d 0 10Meg
+Rya8 ya8d 0 10Meg
+Rxa9 xa9d 0 10Meg
+Rya9 ya9d 0 10Meg
+Rxa10 xa10d 0 10Meg
+Rya10 ya10d 0 10Meg
+Rxa11 xa11d 0 10Meg
+Rya11 ya11d 0 10Meg
+Rxa12 xa12d 0 10Meg
+Rya12 ya12d 0 10Meg
+Rxa13 xa13d 0 10Meg
+Rya13 ya13d 0 10Meg
+Rxa14 xa14d 0 10Meg
+Rya14 ya14d 0 10Meg
+Rxa15 xa15d 0 10Meg
+Rya15 ya15d 0 10Meg
+Rxa16 xa16d 0 10Meg
+Rya16 ya16d 0 10Meg
+Rxa17 xa17d 0 10Meg
+Rya17 ya17d 0 10Meg
+Rxa18 xa18d 0 10Meg
+Rya18 ya18d 0 10Meg
+Rxa19 xa19d 0 10Meg
+Rya19 ya19d 0 10Meg
+Rxa20 xa20d 0 10Meg
+Rya20 ya20d 0 10Meg
+Rxa21 xa21d 0 10Meg
+Rya21 ya21d 0 10Meg
+Rxa22 xa22d 0 10Meg
+Rya22 ya22d 0 10Meg
+Rxa23 xa23d 0 10Meg
+Rya23 ya23d 0 10Meg
+Rxa24 xa24d 0 10Meg
+Rya24 ya24d 0 10Meg
+Rxa25 xa25d 0 10Meg
+Rya25 ya25d 0 10Meg
+Rxa26 xa26d 0 10Meg
+Rya26 ya26d 0 10Meg
+Rxa27 xa27d 0 10Meg
+Rya27 ya27d 0 10Meg
+Rxa28 xa28d 0 10Meg
+Rya28 ya28d 0 10Meg
+Rxa29 xa29d 0 10Meg
+Rya29 ya29d 0 10Meg
+Rxa30 xa30d 0 10Meg
+Rya30 ya30d 0 10Meg
+Rxa31 xa31d 0 10Meg
+Rya31 ya31d 0 10Meg
+Rxa32 xa32d 0 10Meg
+Rya32 ya32d 0 10Meg
+Rxa33 xa33d 0 10Meg
+Rya33 ya33d 0 10Meg
+Rxa34 xa34d 0 10Meg
+Rya34 ya34d 0 10Meg
+Rxa35 xa35d 0 10Meg
+Rya35 ya35d 0 10Meg
+Rxa36 xa36d 0 10Meg
+Rya36 ya36d 0 10Meg
+Rxa37 xa37d 0 10Meg
+Rya37 ya37d 0 10Meg
+Rxa38 xa38d 0 10Meg
+Rya38 ya38d 0 10Meg
+Rxa39 xa39d 0 10Meg
+Rya39 ya39d 0 10Meg
+Rxa40 xa40d 0 10Meg
+Rya40 ya40d 0 10Meg
+Rxa41 xa41d 0 10Meg
+Rya41 ya41d 0 10Meg
+Rxa42 xa42d 0 10Meg
+Rya42 ya42d 0 10Meg
+Rxa43 xa43d 0 10Meg
+Rya43 ya43d 0 10Meg
+Rxa44 xa44d 0 10Meg
+Rya44 ya44d 0 10Meg
+Rxa45 xa45d 0 10Meg
+Rya45 ya45d 0 10Meg
+Rxa46 xa46d 0 10Meg
+Rya46 ya46d 0 10Meg
+Rxa47 xa47d 0 10Meg
+Rya47 ya47d 0 10Meg
+Rxa48 xa48d 0 10Meg
+Rya48 ya48d 0 10Meg
+Rxa49 xa49d 0 10Meg
+Rya49 ya49d 0 10Meg
+Rxa50 xa50d 0 10Meg
+Rya50 ya50d 0 10Meg
+Rxa51 xa51d 0 10Meg
+Rya51 ya51d 0 10Meg
+Rxa52 xa52d 0 10Meg
+Rya52 ya52d 0 10Meg
+Rxa53 xa53d 0 10Meg
+Rya53 ya53d 0 10Meg
+Rxa54 xa54d 0 10Meg
+Rya54 ya54d 0 10Meg
+Rxa55 xa55d 0 10Meg
+Rya55 ya55d 0 10Meg
+Rxa56 xa56d 0 10Meg
+Rya56 ya56d 0 10Meg
+Rxa57 xa57d 0 10Meg
+Rya57 ya57d 0 10Meg
+Rxa58 xa58d 0 10Meg
+Rya58 ya58d 0 10Meg
+Rxa59 xa59d 0 10Meg
+Rya59 ya59d 0 10Meg
+Rxa60 xa60d 0 10Meg
+Rya60 ya60d 0 10Meg
+Rxa61 xa61d 0 10Meg
+Rya61 ya61d 0 10Meg
+Rxa62 xa62d 0 10Meg
+Rya62 ya62d 0 10Meg
+Rxa63 xa63d 0 10Meg
+Rya63 ya63d 0 10Meg
+
+Xr00c00 XA0 nx0_0 YA0 YB0 FOLD nya62 ideal_mce m0=-1
+Xr01c00 nx0_0 XB0 ny0_1 YB1 nyb0 FOLD ideal_mce m0=-1
+Xr01c01 XA1 nx1_1 YA1 ny0_1 nya62 nya61 ideal_mce m0=-1
+Xr02c01 nx1_1 XB1 ny1_2 YB2 nyb1 nyb0 ideal_mce m0=-1
+Xr02c02 XA2 nx2_2 YA2 ny1_2 nya61 nya60 ideal_mce m0=-1
+Xr03c02 nx2_2 XB2 ny2_3 YB3 nyb2 nyb1 ideal_mce m0=-1
+Xr03c03 XA3 nx3_3 YA3 ny2_3 nya60 nya59 ideal_mce m0=-1
+Xr04c03 nx3_3 XB3 ny3_4 YB4 nyb3 nyb2 ideal_mce m0=-1
+Xr04c04 XA4 nx4_4 YA4 ny3_4 nya59 nya58 ideal_mce m0=-1
+Xr05c04 nx4_4 XB4 ny4_5 YB5 nyb4 nyb3 ideal_mce m0=-1
+Xr05c05 XA5 nx5_5 YA5 ny4_5 nya58 nya57 ideal_mce m0=-1
+Xr06c05 nx5_5 XB5 ny5_6 YB6 nyb5 nyb4 ideal_mce m0=-1
+Xr06c06 XA6 nx6_6 YA6 ny5_6 nya57 nya56 ideal_mce m0=-1
+Xr07c06 nx6_6 XB6 ny6_7 YB7 nyb6 nyb5 ideal_mce m0=-1
+Xr07c07 XA7 nx7_7 YA7 ny6_7 nya56 nya55 ideal_mce m0=-1
+Xr08c07 nx7_7 XB7 ny7_8 YB8 nyb7 nyb6 ideal_mce m0=-1
+Xr08c08 XA8 nx8_8 YA8 ny7_8 nya55 nya54 ideal_mce m0=-1
+Xr09c08 nx8_8 XB8 ny8_9 YB9 nyb8 nyb7 ideal_mce m0=-1
+Xr09c09 XA9 nx9_9 YA9 ny8_9 nya54 nya53 ideal_mce m0=-1
+Xr10c09 nx9_9 XB9 ny9_10 YB10 nyb9 nyb8 ideal_mce m0=-1
+Xr10c10 XA10 nx10_10 YA10 ny9_10 nya53 nya52 ideal_mce m0=-1
+Xr11c10 nx10_10 XB10 ny10_11 YB11 nyb10 nyb9 ideal_mce m0=-1
+Xr11c11 XA11 nx11_11 YA11 ny10_11 nya52 nya51 ideal_mce m0=-1
+Xr12c11 nx11_11 XB11 ny11_12 YB12 nyb11 nyb10 ideal_mce m0=-1
+Xr12c12 XA12 nx12_12 YA12 ny11_12 nya51 nya50 ideal_mce m0=-1
+Xr13c12 nx12_12 XB12 ny12_13 YB13 nyb12 nyb11 ideal_mce m0=-1
+Xr13c13 XA13 nx13_13 YA13 ny12_13 nya50 nya49 ideal_mce m0=-1
+Xr14c13 nx13_13 XB13 ny13_14 YB14 nyb13 nyb12 ideal_mce m0=-1
+Xr14c14 XA14 nx14_14 YA14 ny13_14 nya49 nya48 ideal_mce m0=-1
+Xr15c14 nx14_14 XB14 ny14_15 YB15 nyb14 nyb13 ideal_mce m0=-1
+Xr15c15 XA15 nx15_15 YA15 ny14_15 nya48 nya47 ideal_mce m0=-1
+Xr16c15 nx15_15 XB15 ny15_16 YB16 nyb15 nyb14 ideal_mce m0=-1
+Xr16c16 XA16 nx16_16 YA16 ny15_16 nya47 nya46 ideal_mce m0=-1
+Xr17c16 nx16_16 XB16 ny16_17 YB17 nyb16 nyb15 ideal_mce m0=-1
+Xr17c17 XA17 nx17_17 YA17 ny16_17 nya46 nya45 ideal_mce m0=-1
+Xr18c17 nx17_17 XB17 ny17_18 YB18 nyb17 nyb16 ideal_mce m0=-1
+Xr18c18 XA18 nx18_18 YA18 ny17_18 nya45 nya44 ideal_mce m0=-1
+Xr19c18 nx18_18 XB18 ny18_19 YB19 nyb18 nyb17 ideal_mce m0=-1
+Xr19c19 XA19 nx19_19 YA19 ny18_19 nya44 nya43 ideal_mce m0=-1
+Xr20c19 nx19_19 XB19 ny19_20 YB20 nyb19 nyb18 ideal_mce m0=-1
+Xr20c20 XA20 nx20_20 YA20 ny19_20 nya43 nya42 ideal_mce m0=-1
+Xr21c20 nx20_20 XB20 ny20_21 YB21 nyb20 nyb19 ideal_mce m0=-1
+Xr21c21 XA21 nx21_21 YA21 ny20_21 nya42 nya41 ideal_mce m0=-1
+Xr22c21 nx21_21 XB21 ny21_22 YB22 nyb21 nyb20 ideal_mce m0=-1
+Xr22c22 XA22 nx22_22 YA22 ny21_22 nya41 nya40 ideal_mce m0=-1
+Xr23c22 nx22_22 XB22 ny22_23 YB23 nyb22 nyb21 ideal_mce m0=-1
+Xr23c23 XA23 nx23_23 YA23 ny22_23 nya40 nya39 ideal_mce m0=-1
+Xr24c23 nx23_23 XB23 ny23_24 YB24 nyb23 nyb22 ideal_mce m0=-1
+Xr24c24 XA24 nx24_24 YA24 ny23_24 nya39 nya38 ideal_mce m0=-1
+Xr25c24 nx24_24 XB24 ny24_25 YB25 nyb24 nyb23 ideal_mce m0=-1
+Xr25c25 XA25 nx25_25 YA25 ny24_25 nya38 nya37 ideal_mce m0=-1
+Xr26c25 nx25_25 XB25 ny25_26 YB26 nyb25 nyb24 ideal_mce m0=-1
+Xr26c26 XA26 nx26_26 YA26 ny25_26 nya37 nya36 ideal_mce m0=-1
+Xr27c26 nx26_26 XB26 ny26_27 YB27 nyb26 nyb25 ideal_mce m0=-1
+Xr27c27 XA27 nx27_27 YA27 ny26_27 nya36 nya35 ideal_mce m0=-1
+Xr28c27 nx27_27 XB27 ny27_28 YB28 nyb27 nyb26 ideal_mce m0=-1
+Xr28c28 XA28 nx28_28 YA28 ny27_28 nya35 nya34 ideal_mce m0=-1
+Xr29c28 nx28_28 XB28 ny28_29 YB29 nyb28 nyb27 ideal_mce m0=-1
+Xr29c29 XA29 nx29_29 YA29 ny28_29 nya34 nya33 ideal_mce m0=-1
+Xr30c29 nx29_29 XB29 ny29_30 YB30 nyb29 nyb28 ideal_mce m0=-1
+Xr30c30 XA30 nx30_30 YA30 ny29_30 nya33 nya32 ideal_mce m0=-1
+Xr31c30 nx30_30 XB30 ny30_31 YB31 nyb30 nyb29 ideal_mce m0=-1
+Xr31c31 XA31 nx31_31 YA31 ny30_31 nya32 nya31 ideal_mce m0=-1
+Xr32c31 nx31_31 XB31 ny31_32 YB32 nyb31 nyb30 ideal_mce m0=-1
+Xr32c32 XA32 nx32_32 YA32 ny31_32 nya31 nya30 ideal_mce m0=-1
+Xr33c32 nx32_32 XB32 ny32_33 YB33 nyb32 nyb31 ideal_mce m0=-1
+Xr33c33 XA33 nx33_33 YA33 ny32_33 nya30 nya29 ideal_mce m0=-1
+Xr34c33 nx33_33 XB33 ny33_34 YB34 nyb33 nyb32 ideal_mce m0=-1
+Xr34c34 XA34 nx34_34 YA34 ny33_34 nya29 nya28 ideal_mce m0=-1
+Xr35c34 nx34_34 XB34 ny34_35 YB35 nyb34 nyb33 ideal_mce m0=-1
+Xr35c35 XA35 nx35_35 YA35 ny34_35 nya28 nya27 ideal_mce m0=-1
+Xr36c35 nx35_35 XB35 ny35_36 YB36 nyb35 nyb34 ideal_mce m0=-1
+Xr36c36 XA36 nx36_36 YA36 ny35_36 nya27 nya26 ideal_mce m0=-1
+Xr37c36 nx36_36 XB36 ny36_37 YB37 nyb36 nyb35 ideal_mce m0=-1
+Xr37c37 XA37 nx37_37 YA37 ny36_37 nya26 nya25 ideal_mce m0=-1
+Xr38c37 nx37_37 XB37 ny37_38 YB38 nyb37 nyb36 ideal_mce m0=-1
+Xr38c38 XA38 nx38_38 YA38 ny37_38 nya25 nya24 ideal_mce m0=-1
+Xr39c38 nx38_38 XB38 ny38_39 YB39 nyb38 nyb37 ideal_mce m0=-1
+Xr39c39 XA39 nx39_39 YA39 ny38_39 nya24 nya23 ideal_mce m0=-1
+Xr40c39 nx39_39 XB39 ny39_40 YB40 nyb39 nyb38 ideal_mce m0=-1
+Xr40c40 XA40 nx40_40 YA40 ny39_40 nya23 nya22 ideal_mce m0=-1
+Xr41c40 nx40_40 XB40 ny40_41 YB41 nyb40 nyb39 ideal_mce m0=-1
+Xr41c41 XA41 nx41_41 YA41 ny40_41 nya22 nya21 ideal_mce m0=-1
+Xr42c41 nx41_41 XB41 ny41_42 YB42 nyb41 nyb40 ideal_mce m0=-1
+Xr42c42 XA42 nx42_42 YA42 ny41_42 nya21 nya20 ideal_mce m0=-1
+Xr43c42 nx42_42 XB42 ny42_43 YB43 nyb42 nyb41 ideal_mce m0=-1
+Xr43c43 XA43 nx43_43 YA43 ny42_43 nya20 nya19 ideal_mce m0=-1
+Xr44c43 nx43_43 XB43 ny43_44 YB44 nyb43 nyb42 ideal_mce m0=-1
+Xr44c44 XA44 nx44_44 YA44 ny43_44 nya19 nya18 ideal_mce m0=-1
+Xr45c44 nx44_44 XB44 ny44_45 YB45 nyb44 nyb43 ideal_mce m0=-1
+Xr45c45 XA45 nx45_45 YA45 ny44_45 nya18 nya17 ideal_mce m0=-1
+Xr46c45 nx45_45 XB45 ny45_46 YB46 nyb45 nyb44 ideal_mce m0=-1
+Xr46c46 XA46 nx46_46 YA46 ny45_46 nya17 nya16 ideal_mce m0=-1
+Xr47c46 nx46_46 XB46 ny46_47 YB47 nyb46 nyb45 ideal_mce m0=-1
+Xr47c47 XA47 nx47_47 YA47 ny46_47 nya16 nya15 ideal_mce m0=-1
+Xr48c47 nx47_47 XB47 ny47_48 YB48 nyb47 nyb46 ideal_mce m0=-1
+Xr48c48 XA48 nx48_48 YA48 ny47_48 nya15 nya14 ideal_mce m0=-1
+Xr49c48 nx48_48 XB48 ny48_49 YB49 nyb48 nyb47 ideal_mce m0=-1
+Xr49c49 XA49 nx49_49 YA49 ny48_49 nya14 nya13 ideal_mce m0=-1
+Xr50c49 nx49_49 XB49 ny49_50 YB50 nyb49 nyb48 ideal_mce m0=-1
+Xr50c50 XA50 nx50_50 YA50 ny49_50 nya13 nya12 ideal_mce m0=-1
+Xr51c50 nx50_50 XB50 ny50_51 YB51 nyb50 nyb49 ideal_mce m0=-1
+Xr51c51 XA51 nx51_51 YA51 ny50_51 nya12 nya11 ideal_mce m0=-1
+Xr52c51 nx51_51 XB51 ny51_52 YB52 nyb51 nyb50 ideal_mce m0=-1
+Xr52c52 XA52 nx52_52 YA52 ny51_52 nya11 nya10 ideal_mce m0=-1
+Xr53c52 nx52_52 XB52 ny52_53 YB53 nyb52 nyb51 ideal_mce m0=-1
+Xr53c53 XA53 nx53_53 YA53 ny52_53 nya10 nya9 ideal_mce m0=-1
+Xr54c53 nx53_53 XB53 ny53_54 YB54 nyb53 nyb52 ideal_mce m0=-1
+Xr54c54 XA54 nx54_54 YA54 ny53_54 nya9 nya8 ideal_mce m0=-1
+Xr55c54 nx54_54 XB54 ny54_55 YB55 nyb54 nyb53 ideal_mce m0=-1
+Xr55c55 XA55 nx55_55 YA55 ny54_55 nya8 nya7 ideal_mce m0=-1
+Xr56c55 nx55_55 XB55 ny55_56 YB56 nyb55 nyb54 ideal_mce m0=-1
+Xr56c56 XA56 nx56_56 YA56 ny55_56 nya7 nya6 ideal_mce m0=-1
+Xr57c56 nx56_56 XB56 ny56_57 YB57 nyb56 nyb55 ideal_mce m0=-1
+Xr57c57 XA57 nx57_57 YA57 ny56_57 nya6 nya5 ideal_mce m0=-1
+Xr58c57 nx57_57 XB57 ny57_58 YB58 nyb57 nyb56 ideal_mce m0=-1
+Xr58c58 XA58 nx58_58 YA58 ny57_58 nya5 nya4 ideal_mce m0=-1
+Xr59c58 nx58_58 XB58 ny58_59 YB59 nyb58 nyb57 ideal_mce m0=-1
+Xr59c59 XA59 nx59_59 YA59 ny58_59 nya4 nya3 ideal_mce m0=-1
+Xr60c59 nx59_59 XB59 ny59_60 YB60 nyb59 nyb58 ideal_mce m0=-1
+Xr60c60 XA60 nx60_60 YA60 ny59_60 nya3 nya2 ideal_mce m0=-1
+Xr61c60 nx60_60 XB60 ny60_61 YB61 nyb60 nyb59 ideal_mce m0=-1
+Xr61c61 XA61 nx61_61 YA61 ny60_61 nya2 nya1 ideal_mce m0=-1
+Xr62c61 nx61_61 XB61 ny61_62 YB62 nyb61 nyb60 ideal_mce m0=-1
+Xr62c62 XA62 nx62_62 ny62_62 ny61_62 nya1 nya0 ideal_mce m0=-1
+Xr62c63 XA63 nx63_62 YA62 ny62_62 YB66 nyb62 ideal_mce m0=-1
+Xr63c62 nx62_62 XB62 ny62_63 YB63 nyb62 nyb61 ideal_mce m0=-1
+Xr63c63 nx63_62 XB63 YA63 ny62_63 nya0 YA65 ideal_mce m0=-1
+
+Bdiff DIFF 0 V = V(YA65)-V(YB66)
+Vinh inhd YA65 0
+Vixa0 xa0d XA0 0
+Viya0 ya0d YA0 0
+Vixa1 xa1d XA1 0
+Viya1 ya1d YA1 0
+Vixa2 xa2d XA2 0
+Viya2 ya2d YA2 0
+Vixa3 xa3d XA3 0
+Viya3 ya3d YA3 0
+Vixa4 xa4d XA4 0
+Viya4 ya4d YA4 0
+Vixa5 xa5d XA5 0
+Viya5 ya5d YA5 0
+Vixa6 xa6d XA6 0
+Viya6 ya6d YA6 0
+Vixa7 xa7d XA7 0
+Viya7 ya7d YA7 0
+Vixa8 xa8d XA8 0
+Viya8 ya8d YA8 0
+Vixa9 xa9d XA9 0
+Viya9 ya9d YA9 0
+Vixa10 xa10d XA10 0
+Viya10 ya10d YA10 0
+Vixa11 xa11d XA11 0
+Viya11 ya11d YA11 0
+Vixa12 xa12d XA12 0
+Viya12 ya12d YA12 0
+Vixa13 xa13d XA13 0
+Viya13 ya13d YA13 0
+Vixa14 xa14d XA14 0
+Viya14 ya14d YA14 0
+Vixa15 xa15d XA15 0
+Viya15 ya15d YA15 0
+Vixa16 xa16d XA16 0
+Viya16 ya16d YA16 0
+Vixa17 xa17d XA17 0
+Viya17 ya17d YA17 0
+Vixa18 xa18d XA18 0
+Viya18 ya18d YA18 0
+Vixa19 xa19d XA19 0
+Viya19 ya19d YA19 0
+Vixa20 xa20d XA20 0
+Viya20 ya20d YA20 0
+Vixa21 xa21d XA21 0
+Viya21 ya21d YA21 0
+Vixa22 xa22d XA22 0
+Viya22 ya22d YA22 0
+Vixa23 xa23d XA23 0
+Viya23 ya23d YA23 0
+Vixa24 xa24d XA24 0
+Viya24 ya24d YA24 0
+Vixa25 xa25d XA25 0
+Viya25 ya25d YA25 0
+Vixa26 xa26d XA26 0
+Viya26 ya26d YA26 0
+Vixa27 xa27d XA27 0
+Viya27 ya27d YA27 0
+Vixa28 xa28d XA28 0
+Viya28 ya28d YA28 0
+Vixa29 xa29d XA29 0
+Viya29 ya29d YA29 0
+Vixa30 xa30d XA30 0
+Viya30 ya30d YA30 0
+Vixa31 xa31d XA31 0
+Viya31 ya31d YA31 0
+Vixa32 xa32d XA32 0
+Viya32 ya32d YA32 0
+Vixa33 xa33d XA33 0
+Viya33 ya33d YA33 0
+Vixa34 xa34d XA34 0
+Viya34 ya34d YA34 0
+Vixa35 xa35d XA35 0
+Viya35 ya35d YA35 0
+Vixa36 xa36d XA36 0
+Viya36 ya36d YA36 0
+Vixa37 xa37d XA37 0
+Viya37 ya37d YA37 0
+Vixa38 xa38d XA38 0
+Viya38 ya38d YA38 0
+Vixa39 xa39d XA39 0
+Viya39 ya39d YA39 0
+Vixa40 xa40d XA40 0
+Viya40 ya40d YA40 0
+Vixa41 xa41d XA41 0
+Viya41 ya41d YA41 0
+Vixa42 xa42d XA42 0
+Viya42 ya42d YA42 0
+Vixa43 xa43d XA43 0
+Viya43 ya43d YA43 0
+Vixa44 xa44d XA44 0
+Viya44 ya44d YA44 0
+Vixa45 xa45d XA45 0
+Viya45 ya45d YA45 0
+Vixa46 xa46d XA46 0
+Viya46 ya46d YA46 0
+Vixa47 xa47d XA47 0
+Viya47 ya47d YA47 0
+Vixa48 xa48d XA48 0
+Viya48 ya48d YA48 0
+Vixa49 xa49d XA49 0
+Viya49 ya49d YA49 0
+Vixa50 xa50d XA50 0
+Viya50 ya50d YA50 0
+Vixa51 xa51d XA51 0
+Viya51 ya51d YA51 0
+Vixa52 xa52d XA52 0
+Viya52 ya52d YA52 0
+Vixa53 xa53d XA53 0
+Viya53 ya53d YA53 0
+Vixa54 xa54d XA54 0
+Viya54 ya54d YA54 0
+Vixa55 xa55d XA55 0
+Viya55 ya55d YA55 0
+Vixa56 xa56d XA56 0
+Viya56 ya56d YA56 0
+Vixa57 xa57d XA57 0
+Viya57 ya57d YA57 0
+Vixa58 xa58d XA58 0
+Viya58 ya58d YA58 0
+Vixa59 xa59d XA59 0
+Viya59 ya59d YA59 0
+Vixa60 xa60d XA60 0
+Viya60 ya60d YA60 0
+Vixa61 xa61d XA61 0
+Viya61 ya61d YA61 0
+Vixa62 xa62d XA62 0
+Viya62 ya62d YA62 0
+Vixa63 xa63d XA63 0
+Viya63 ya63d YA63 0
+
+.subckt drvsw a b ctl
+Bsw a b I=(v(ctl)>0.02 ? v(a,b)/(1+400*(1-min(v(ctl),1))) : 0)
+.ends
+
+Xx0_ra xa0d ccs_x g_x0r drvsw
+Xx0_rb vdrv XB0 g_x0r drvsw
+Xx0_wa vdrv xa0d g_x0w drvsw
+Xx0_wb XB0 ccs_x g_x0w drvsw
+Xy0_ra ya0d ccs_y g_y0r drvsw
+Xy0_rb vdrv YB0 g_y0r drvsw
+Xy0_wa vdrv ya0d g_y0w drvsw
+Xy0_wb YB0 ccs_y g_y0w drvsw
+Vg_x0r g_x0r 0 DC 0
+Vg_y0r g_y0r 0 DC 0
+Xx1_ra xa1d ccs_x g_x1r drvsw
+Xx1_rb vdrv XB1 g_x1r drvsw
+Xx1_wa vdrv xa1d g_x1w drvsw
+Xx1_wb XB1 ccs_x g_x1w drvsw
+Xy1_ra ya1d ccs_y g_y1r drvsw
+Xy1_rb vdrv YB1 g_y1r drvsw
+Xy1_wa vdrv ya1d g_y1w drvsw
+Xy1_wb YB1 ccs_y g_y1w drvsw
+Vg_x1r g_x1r 0 DC 0
+Vg_y1r g_y1r 0 DC 0
+Xx2_ra xa2d ccs_x g_x2r drvsw
+Xx2_rb vdrv XB2 g_x2r drvsw
+Xx2_wa vdrv xa2d g_x2w drvsw
+Xx2_wb XB2 ccs_x g_x2w drvsw
+Xy2_ra ya2d ccs_y g_y2r drvsw
+Xy2_rb vdrv YB2 g_y2r drvsw
+Xy2_wa vdrv ya2d g_y2w drvsw
+Xy2_wb YB2 ccs_y g_y2w drvsw
+Vg_x2r g_x2r 0 DC 0
+Vg_y2r g_y2r 0 DC 0
+Xx3_ra xa3d ccs_x g_x3r drvsw
+Xx3_rb vdrv XB3 g_x3r drvsw
+Xx3_wa vdrv xa3d g_x3w drvsw
+Xx3_wb XB3 ccs_x g_x3w drvsw
+Xy3_ra ya3d ccs_y g_y3r drvsw
+Xy3_rb vdrv YB3 g_y3r drvsw
+Xy3_wa vdrv ya3d g_y3w drvsw
+Xy3_wb YB3 ccs_y g_y3w drvsw
+Vg_x3r g_x3r 0 DC 0
+Vg_y3r g_y3r 0 DC 0
+Xx4_ra xa4d ccs_x g_x4r drvsw
+Xx4_rb vdrv XB4 g_x4r drvsw
+Xx4_wa vdrv xa4d g_x4w drvsw
+Xx4_wb XB4 ccs_x g_x4w drvsw
+Xy4_ra ya4d ccs_y g_y4r drvsw
+Xy4_rb vdrv YB4 g_y4r drvsw
+Xy4_wa vdrv ya4d g_y4w drvsw
+Xy4_wb YB4 ccs_y g_y4w drvsw
+Vg_x4r g_x4r 0 DC 0
+Vg_y4r g_y4r 0 DC 0
+Xx5_ra xa5d ccs_x g_x5r drvsw
+Xx5_rb vdrv XB5 g_x5r drvsw
+Xx5_wa vdrv xa5d g_x5w drvsw
+Xx5_wb XB5 ccs_x g_x5w drvsw
+Xy5_ra ya5d ccs_y g_y5r drvsw
+Xy5_rb vdrv YB5 g_y5r drvsw
+Xy5_wa vdrv ya5d g_y5w drvsw
+Xy5_wb YB5 ccs_y g_y5w drvsw
+Vg_x5r g_x5r 0 DC 0
+Vg_y5r g_y5r 0 DC 0
+Xx6_ra xa6d ccs_x g_x6r drvsw
+Xx6_rb vdrv XB6 g_x6r drvsw
+Xx6_wa vdrv xa6d g_x6w drvsw
+Xx6_wb XB6 ccs_x g_x6w drvsw
+Xy6_ra ya6d ccs_y g_y6r drvsw
+Xy6_rb vdrv YB6 g_y6r drvsw
+Xy6_wa vdrv ya6d g_y6w drvsw
+Xy6_wb YB6 ccs_y g_y6w drvsw
+Vg_x6r g_x6r 0 DC 0
+Vg_y6r g_y6r 0 DC 0
+Xx7_ra xa7d ccs_x g_x7r drvsw
+Xx7_rb vdrv XB7 g_x7r drvsw
+Xx7_wa vdrv xa7d g_x7w drvsw
+Xx7_wb XB7 ccs_x g_x7w drvsw
+Xy7_ra ya7d ccs_y g_y7r drvsw
+Xy7_rb vdrv YB7 g_y7r drvsw
+Xy7_wa vdrv ya7d g_y7w drvsw
+Xy7_wb YB7 ccs_y g_y7w drvsw
+Vg_x7r g_x7r 0 DC 0
+Vg_y7r g_y7r 0 DC 0
+Xx8_ra xa8d ccs_x g_x8r drvsw
+Xx8_rb vdrv XB8 g_x8r drvsw
+Xx8_wa vdrv xa8d g_x8w drvsw
+Xx8_wb XB8 ccs_x g_x8w drvsw
+Xy8_ra ya8d ccs_y g_y8r drvsw
+Xy8_rb vdrv YB8 g_y8r drvsw
+Xy8_wa vdrv ya8d g_y8w drvsw
+Xy8_wb YB8 ccs_y g_y8w drvsw
+Vg_x8r g_x8r 0 DC 0
+Vg_y8r g_y8r 0 DC 0
+Xx9_ra xa9d ccs_x g_x9r drvsw
+Xx9_rb vdrv XB9 g_x9r drvsw
+Xx9_wa vdrv xa9d g_x9w drvsw
+Xx9_wb XB9 ccs_x g_x9w drvsw
+Xy9_ra ya9d ccs_y g_y9r drvsw
+Xy9_rb vdrv YB9 g_y9r drvsw
+Xy9_wa vdrv ya9d g_y9w drvsw
+Xy9_wb YB9 ccs_y g_y9w drvsw
+Vg_x9r g_x9r 0 DC 0
+Vg_y9r g_y9r 0 DC 0
+Xx10_ra xa10d ccs_x g_x10r drvsw
+Xx10_rb vdrv XB10 g_x10r drvsw
+Xx10_wa vdrv xa10d g_x10w drvsw
+Xx10_wb XB10 ccs_x g_x10w drvsw
+Xy10_ra ya10d ccs_y g_y10r drvsw
+Xy10_rb vdrv YB10 g_y10r drvsw
+Xy10_wa vdrv ya10d g_y10w drvsw
+Xy10_wb YB10 ccs_y g_y10w drvsw
+Vg_x10r g_x10r 0 DC 0
+Vg_y10r g_y10r 0 DC 0
+Xx11_ra xa11d ccs_x g_x11r drvsw
+Xx11_rb vdrv XB11 g_x11r drvsw
+Xx11_wa vdrv xa11d g_x11w drvsw
+Xx11_wb XB11 ccs_x g_x11w drvsw
+Xy11_ra ya11d ccs_y g_y11r drvsw
+Xy11_rb vdrv YB11 g_y11r drvsw
+Xy11_wa vdrv ya11d g_y11w drvsw
+Xy11_wb YB11 ccs_y g_y11w drvsw
+Vg_x11r g_x11r 0 DC 0
+Vg_y11r g_y11r 0 DC 0
+Xx12_ra xa12d ccs_x g_x12r drvsw
+Xx12_rb vdrv XB12 g_x12r drvsw
+Xx12_wa vdrv xa12d g_x12w drvsw
+Xx12_wb XB12 ccs_x g_x12w drvsw
+Xy12_ra ya12d ccs_y g_y12r drvsw
+Xy12_rb vdrv YB12 g_y12r drvsw
+Xy12_wa vdrv ya12d g_y12w drvsw
+Xy12_wb YB12 ccs_y g_y12w drvsw
+Vg_x12r g_x12r 0 DC 0
+Vg_y12r g_y12r 0 DC 0
+Xx13_ra xa13d ccs_x g_x13r drvsw
+Xx13_rb vdrv XB13 g_x13r drvsw
+Xx13_wa vdrv xa13d g_x13w drvsw
+Xx13_wb XB13 ccs_x g_x13w drvsw
+Xy13_ra ya13d ccs_y g_y13r drvsw
+Xy13_rb vdrv YB13 g_y13r drvsw
+Xy13_wa vdrv ya13d g_y13w drvsw
+Xy13_wb YB13 ccs_y g_y13w drvsw
+Vg_x13r g_x13r 0 DC 0
+Vg_y13r g_y13r 0 DC 0
+Xx14_ra xa14d ccs_x g_x14r drvsw
+Xx14_rb vdrv XB14 g_x14r drvsw
+Xx14_wa vdrv xa14d g_x14w drvsw
+Xx14_wb XB14 ccs_x g_x14w drvsw
+Xy14_ra ya14d ccs_y g_y14r drvsw
+Xy14_rb vdrv YB14 g_y14r drvsw
+Xy14_wa vdrv ya14d g_y14w drvsw
+Xy14_wb YB14 ccs_y g_y14w drvsw
+Vg_x14r g_x14r 0 DC 0
+Vg_y14r g_y14r 0 DC 0
+Xx15_ra xa15d ccs_x g_x15r drvsw
+Xx15_rb vdrv XB15 g_x15r drvsw
+Xx15_wa vdrv xa15d g_x15w drvsw
+Xx15_wb XB15 ccs_x g_x15w drvsw
+Xy15_ra ya15d ccs_y g_y15r drvsw
+Xy15_rb vdrv YB15 g_y15r drvsw
+Xy15_wa vdrv ya15d g_y15w drvsw
+Xy15_wb YB15 ccs_y g_y15w drvsw
+Vg_x15r g_x15r 0 DC 0
+Vg_y15r g_y15r 0 DC 0
+Xx16_ra xa16d ccs_x g_x16r drvsw
+Xx16_rb vdrv XB16 g_x16r drvsw
+Xx16_wa vdrv xa16d g_x16w drvsw
+Xx16_wb XB16 ccs_x g_x16w drvsw
+Xy16_ra ya16d ccs_y g_y16r drvsw
+Xy16_rb vdrv YB16 g_y16r drvsw
+Xy16_wa vdrv ya16d g_y16w drvsw
+Xy16_wb YB16 ccs_y g_y16w drvsw
+Vg_x16r g_x16r 0 DC 0
+Vg_y16r g_y16r 0 DC 0
+Xx17_ra xa17d ccs_x g_x17r drvsw
+Xx17_rb vdrv XB17 g_x17r drvsw
+Xx17_wa vdrv xa17d g_x17w drvsw
+Xx17_wb XB17 ccs_x g_x17w drvsw
+Xy17_ra ya17d ccs_y g_y17r drvsw
+Xy17_rb vdrv YB17 g_y17r drvsw
+Xy17_wa vdrv ya17d g_y17w drvsw
+Xy17_wb YB17 ccs_y g_y17w drvsw
+Vg_x17r g_x17r 0 DC 0
+Vg_y17r g_y17r 0 DC 0
+Xx18_ra xa18d ccs_x g_x18r drvsw
+Xx18_rb vdrv XB18 g_x18r drvsw
+Xx18_wa vdrv xa18d g_x18w drvsw
+Xx18_wb XB18 ccs_x g_x18w drvsw
+Xy18_ra ya18d ccs_y g_y18r drvsw
+Xy18_rb vdrv YB18 g_y18r drvsw
+Xy18_wa vdrv ya18d g_y18w drvsw
+Xy18_wb YB18 ccs_y g_y18w drvsw
+Vg_x18r g_x18r 0 DC 0
+Vg_y18r g_y18r 0 DC 0
+Xx19_ra xa19d ccs_x g_x19r drvsw
+Xx19_rb vdrv XB19 g_x19r drvsw
+Xx19_wa vdrv xa19d g_x19w drvsw
+Xx19_wb XB19 ccs_x g_x19w drvsw
+Xy19_ra ya19d ccs_y g_y19r drvsw
+Xy19_rb vdrv YB19 g_y19r drvsw
+Xy19_wa vdrv ya19d g_y19w drvsw
+Xy19_wb YB19 ccs_y g_y19w drvsw
+Vg_x19r g_x19r 0 DC 0
+Vg_y19r g_y19r 0 DC 0
+Xx20_ra xa20d ccs_x g_x20r drvsw
+Xx20_rb vdrv XB20 g_x20r drvsw
+Xx20_wa vdrv xa20d g_x20w drvsw
+Xx20_wb XB20 ccs_x g_x20w drvsw
+Xy20_ra ya20d ccs_y g_y20r drvsw
+Xy20_rb vdrv YB20 g_y20r drvsw
+Xy20_wa vdrv ya20d g_y20w drvsw
+Xy20_wb YB20 ccs_y g_y20w drvsw
+Vg_x20r g_x20r 0 DC 0
+Vg_y20r g_y20r 0 DC 0
+Xx21_ra xa21d ccs_x g_x21r drvsw
+Xx21_rb vdrv XB21 g_x21r drvsw
+Xx21_wa vdrv xa21d g_x21w drvsw
+Xx21_wb XB21 ccs_x g_x21w drvsw
+Xy21_ra ya21d ccs_y g_y21r drvsw
+Xy21_rb vdrv YB21 g_y21r drvsw
+Xy21_wa vdrv ya21d g_y21w drvsw
+Xy21_wb YB21 ccs_y g_y21w drvsw
+Vg_x21r g_x21r 0 DC 0
+Vg_y21r g_y21r 0 DC 0
+Xx22_ra xa22d ccs_x g_x22r drvsw
+Xx22_rb vdrv XB22 g_x22r drvsw
+Xx22_wa vdrv xa22d g_x22w drvsw
+Xx22_wb XB22 ccs_x g_x22w drvsw
+Xy22_ra ya22d ccs_y g_y22r drvsw
+Xy22_rb vdrv YB22 g_y22r drvsw
+Xy22_wa vdrv ya22d g_y22w drvsw
+Xy22_wb YB22 ccs_y g_y22w drvsw
+Vg_x22r g_x22r 0 DC 0
+Vg_y22r g_y22r 0 DC 0
+Xx23_ra xa23d ccs_x g_x23r drvsw
+Xx23_rb vdrv XB23 g_x23r drvsw
+Xx23_wa vdrv xa23d g_x23w drvsw
+Xx23_wb XB23 ccs_x g_x23w drvsw
+Xy23_ra ya23d ccs_y g_y23r drvsw
+Xy23_rb vdrv YB23 g_y23r drvsw
+Xy23_wa vdrv ya23d g_y23w drvsw
+Xy23_wb YB23 ccs_y g_y23w drvsw
+Vg_x23r g_x23r 0 DC 0
+Vg_y23r g_y23r 0 DC 0
+Xx24_ra xa24d ccs_x g_x24r drvsw
+Xx24_rb vdrv XB24 g_x24r drvsw
+Xx24_wa vdrv xa24d g_x24w drvsw
+Xx24_wb XB24 ccs_x g_x24w drvsw
+Xy24_ra ya24d ccs_y g_y24r drvsw
+Xy24_rb vdrv YB24 g_y24r drvsw
+Xy24_wa vdrv ya24d g_y24w drvsw
+Xy24_wb YB24 ccs_y g_y24w drvsw
+Vg_x24r g_x24r 0 DC 0
+Vg_y24r g_y24r 0 DC 0
+Xx25_ra xa25d ccs_x g_x25r drvsw
+Xx25_rb vdrv XB25 g_x25r drvsw
+Xx25_wa vdrv xa25d g_x25w drvsw
+Xx25_wb XB25 ccs_x g_x25w drvsw
+Xy25_ra ya25d ccs_y g_y25r drvsw
+Xy25_rb vdrv YB25 g_y25r drvsw
+Xy25_wa vdrv ya25d g_y25w drvsw
+Xy25_wb YB25 ccs_y g_y25w drvsw
+Vg_x25r g_x25r 0 DC 0
+Vg_y25r g_y25r 0 DC 0
+Xx26_ra xa26d ccs_x g_x26r drvsw
+Xx26_rb vdrv XB26 g_x26r drvsw
+Xx26_wa vdrv xa26d g_x26w drvsw
+Xx26_wb XB26 ccs_x g_x26w drvsw
+Xy26_ra ya26d ccs_y g_y26r drvsw
+Xy26_rb vdrv YB26 g_y26r drvsw
+Xy26_wa vdrv ya26d g_y26w drvsw
+Xy26_wb YB26 ccs_y g_y26w drvsw
+Vg_x26r g_x26r 0 DC 0
+Vg_y26r g_y26r 0 DC 0
+Xx27_ra xa27d ccs_x g_x27r drvsw
+Xx27_rb vdrv XB27 g_x27r drvsw
+Xx27_wa vdrv xa27d g_x27w drvsw
+Xx27_wb XB27 ccs_x g_x27w drvsw
+Xy27_ra ya27d ccs_y g_y27r drvsw
+Xy27_rb vdrv YB27 g_y27r drvsw
+Xy27_wa vdrv ya27d g_y27w drvsw
+Xy27_wb YB27 ccs_y g_y27w drvsw
+Vg_x27r g_x27r 0 DC 0
+Vg_y27r g_y27r 0 DC 0
+Xx28_ra xa28d ccs_x g_x28r drvsw
+Xx28_rb vdrv XB28 g_x28r drvsw
+Xx28_wa vdrv xa28d g_x28w drvsw
+Xx28_wb XB28 ccs_x g_x28w drvsw
+Xy28_ra ya28d ccs_y g_y28r drvsw
+Xy28_rb vdrv YB28 g_y28r drvsw
+Xy28_wa vdrv ya28d g_y28w drvsw
+Xy28_wb YB28 ccs_y g_y28w drvsw
+Vg_x28r g_x28r 0 DC 0
+Vg_y28r g_y28r 0 DC 0
+Xx29_ra xa29d ccs_x g_x29r drvsw
+Xx29_rb vdrv XB29 g_x29r drvsw
+Xx29_wa vdrv xa29d g_x29w drvsw
+Xx29_wb XB29 ccs_x g_x29w drvsw
+Xy29_ra ya29d ccs_y g_y29r drvsw
+Xy29_rb vdrv YB29 g_y29r drvsw
+Xy29_wa vdrv ya29d g_y29w drvsw
+Xy29_wb YB29 ccs_y g_y29w drvsw
+Vg_x29r g_x29r 0 DC 0
+Vg_y29r g_y29r 0 DC 0
+Xx30_ra xa30d ccs_x g_x30r drvsw
+Xx30_rb vdrv XB30 g_x30r drvsw
+Xx30_wa vdrv xa30d g_x30w drvsw
+Xx30_wb XB30 ccs_x g_x30w drvsw
+Xy30_ra ya30d ccs_y g_y30r drvsw
+Xy30_rb vdrv YB30 g_y30r drvsw
+Xy30_wa vdrv ya30d g_y30w drvsw
+Xy30_wb YB30 ccs_y g_y30w drvsw
+Vg_x30r g_x30r 0 DC 0
+Vg_y30r g_y30r 0 DC 0
+Xx31_ra xa31d ccs_x g_x31r drvsw
+Xx31_rb vdrv XB31 g_x31r drvsw
+Xx31_wa vdrv xa31d g_x31w drvsw
+Xx31_wb XB31 ccs_x g_x31w drvsw
+Xy31_ra ya31d ccs_y g_y31r drvsw
+Xy31_rb vdrv YB31 g_y31r drvsw
+Xy31_wa vdrv ya31d g_y31w drvsw
+Xy31_wb YB31 ccs_y g_y31w drvsw
+Vg_x31r g_x31r 0 DC 0
+Vg_y31r g_y31r 0 DC 0
+Xx32_ra xa32d ccs_x g_x32r drvsw
+Xx32_rb vdrv XB32 g_x32r drvsw
+Xx32_wa vdrv xa32d g_x32w drvsw
+Xx32_wb XB32 ccs_x g_x32w drvsw
+Xy32_ra ya32d ccs_y g_y32r drvsw
+Xy32_rb vdrv YB32 g_y32r drvsw
+Xy32_wa vdrv ya32d g_y32w drvsw
+Xy32_wb YB32 ccs_y g_y32w drvsw
+Vg_x32r g_x32r 0 DC 0
+Vg_y32r g_y32r 0 DC 0
+Xx33_ra xa33d ccs_x g_x33r drvsw
+Xx33_rb vdrv XB33 g_x33r drvsw
+Xx33_wa vdrv xa33d g_x33w drvsw
+Xx33_wb XB33 ccs_x g_x33w drvsw
+Xy33_ra ya33d ccs_y g_y33r drvsw
+Xy33_rb vdrv YB33 g_y33r drvsw
+Xy33_wa vdrv ya33d g_y33w drvsw
+Xy33_wb YB33 ccs_y g_y33w drvsw
+Vg_x33r g_x33r 0 DC 0
+Vg_y33r g_y33r 0 DC 0
+Xx34_ra xa34d ccs_x g_x34r drvsw
+Xx34_rb vdrv XB34 g_x34r drvsw
+Xx34_wa vdrv xa34d g_x34w drvsw
+Xx34_wb XB34 ccs_x g_x34w drvsw
+Xy34_ra ya34d ccs_y g_y34r drvsw
+Xy34_rb vdrv YB34 g_y34r drvsw
+Xy34_wa vdrv ya34d g_y34w drvsw
+Xy34_wb YB34 ccs_y g_y34w drvsw
+Vg_x34r g_x34r 0 DC 0
+Vg_y34r g_y34r 0 DC 0
+Xx35_ra xa35d ccs_x g_x35r drvsw
+Xx35_rb vdrv XB35 g_x35r drvsw
+Xx35_wa vdrv xa35d g_x35w drvsw
+Xx35_wb XB35 ccs_x g_x35w drvsw
+Xy35_ra ya35d ccs_y g_y35r drvsw
+Xy35_rb vdrv YB35 g_y35r drvsw
+Xy35_wa vdrv ya35d g_y35w drvsw
+Xy35_wb YB35 ccs_y g_y35w drvsw
+Vg_x35r g_x35r 0 DC 0
+Vg_y35r g_y35r 0 DC 0
+Xx36_ra xa36d ccs_x g_x36r drvsw
+Xx36_rb vdrv XB36 g_x36r drvsw
+Xx36_wa vdrv xa36d g_x36w drvsw
+Xx36_wb XB36 ccs_x g_x36w drvsw
+Xy36_ra ya36d ccs_y g_y36r drvsw
+Xy36_rb vdrv YB36 g_y36r drvsw
+Xy36_wa vdrv ya36d g_y36w drvsw
+Xy36_wb YB36 ccs_y g_y36w drvsw
+Vg_x36r g_x36r 0 DC 0
+Vg_y36r g_y36r 0 DC 0
+Xx37_ra xa37d ccs_x g_x37r drvsw
+Xx37_rb vdrv XB37 g_x37r drvsw
+Xx37_wa vdrv xa37d g_x37w drvsw
+Xx37_wb XB37 ccs_x g_x37w drvsw
+Xy37_ra ya37d ccs_y g_y37r drvsw
+Xy37_rb vdrv YB37 g_y37r drvsw
+Xy37_wa vdrv ya37d g_y37w drvsw
+Xy37_wb YB37 ccs_y g_y37w drvsw
+Vg_x37r g_x37r 0 DC 0
+Vg_y37r g_y37r 0 DC 0
+Xx38_ra xa38d ccs_x g_x38r drvsw
+Xx38_rb vdrv XB38 g_x38r drvsw
+Xx38_wa vdrv xa38d g_x38w drvsw
+Xx38_wb XB38 ccs_x g_x38w drvsw
+Xy38_ra ya38d ccs_y g_y38r drvsw
+Xy38_rb vdrv YB38 g_y38r drvsw
+Xy38_wa vdrv ya38d g_y38w drvsw
+Xy38_wb YB38 ccs_y g_y38w drvsw
+Vg_x38r g_x38r 0 DC 0
+Vg_y38r g_y38r 0 DC 0
+Xx39_ra xa39d ccs_x g_x39r drvsw
+Xx39_rb vdrv XB39 g_x39r drvsw
+Xx39_wa vdrv xa39d g_x39w drvsw
+Xx39_wb XB39 ccs_x g_x39w drvsw
+Xy39_ra ya39d ccs_y g_y39r drvsw
+Xy39_rb vdrv YB39 g_y39r drvsw
+Xy39_wa vdrv ya39d g_y39w drvsw
+Xy39_wb YB39 ccs_y g_y39w drvsw
+Vg_x39r g_x39r 0 DC 0
+Vg_y39r g_y39r 0 DC 0
+Xx40_ra xa40d ccs_x g_x40r drvsw
+Xx40_rb vdrv XB40 g_x40r drvsw
+Xx40_wa vdrv xa40d g_x40w drvsw
+Xx40_wb XB40 ccs_x g_x40w drvsw
+Xy40_ra ya40d ccs_y g_y40r drvsw
+Xy40_rb vdrv YB40 g_y40r drvsw
+Xy40_wa vdrv ya40d g_y40w drvsw
+Xy40_wb YB40 ccs_y g_y40w drvsw
+Vg_x40r g_x40r 0 DC 0
+Vg_y40r g_y40r 0 DC 0
+Xx41_ra xa41d ccs_x g_x41r drvsw
+Xx41_rb vdrv XB41 g_x41r drvsw
+Xx41_wa vdrv xa41d g_x41w drvsw
+Xx41_wb XB41 ccs_x g_x41w drvsw
+Xy41_ra ya41d ccs_y g_y41r drvsw
+Xy41_rb vdrv YB41 g_y41r drvsw
+Xy41_wa vdrv ya41d g_y41w drvsw
+Xy41_wb YB41 ccs_y g_y41w drvsw
+Vg_x41r g_x41r 0 DC 0
+Vg_y41r g_y41r 0 DC 0
+Xx42_ra xa42d ccs_x g_x42r drvsw
+Xx42_rb vdrv XB42 g_x42r drvsw
+Xx42_wa vdrv xa42d g_x42w drvsw
+Xx42_wb XB42 ccs_x g_x42w drvsw
+Xy42_ra ya42d ccs_y g_y42r drvsw
+Xy42_rb vdrv YB42 g_y42r drvsw
+Xy42_wa vdrv ya42d g_y42w drvsw
+Xy42_wb YB42 ccs_y g_y42w drvsw
+Vg_x42r g_x42r 0 DC 0
+Vg_y42r g_y42r 0 DC 0
+Xx43_ra xa43d ccs_x g_x43r drvsw
+Xx43_rb vdrv XB43 g_x43r drvsw
+Xx43_wa vdrv xa43d g_x43w drvsw
+Xx43_wb XB43 ccs_x g_x43w drvsw
+Xy43_ra ya43d ccs_y g_y43r drvsw
+Xy43_rb vdrv YB43 g_y43r drvsw
+Xy43_wa vdrv ya43d g_y43w drvsw
+Xy43_wb YB43 ccs_y g_y43w drvsw
+Vg_x43r g_x43r 0 DC 0
+Vg_y43r g_y43r 0 DC 0
+Xx44_ra xa44d ccs_x g_x44r drvsw
+Xx44_rb vdrv XB44 g_x44r drvsw
+Xx44_wa vdrv xa44d g_x44w drvsw
+Xx44_wb XB44 ccs_x g_x44w drvsw
+Xy44_ra ya44d ccs_y g_y44r drvsw
+Xy44_rb vdrv YB44 g_y44r drvsw
+Xy44_wa vdrv ya44d g_y44w drvsw
+Xy44_wb YB44 ccs_y g_y44w drvsw
+Vg_x44r g_x44r 0 DC 0
+Vg_y44r g_y44r 0 DC 0
+Xx45_ra xa45d ccs_x g_x45r drvsw
+Xx45_rb vdrv XB45 g_x45r drvsw
+Xx45_wa vdrv xa45d g_x45w drvsw
+Xx45_wb XB45 ccs_x g_x45w drvsw
+Xy45_ra ya45d ccs_y g_y45r drvsw
+Xy45_rb vdrv YB45 g_y45r drvsw
+Xy45_wa vdrv ya45d g_y45w drvsw
+Xy45_wb YB45 ccs_y g_y45w drvsw
+Vg_x45r g_x45r 0 DC 0
+Vg_y45r g_y45r 0 DC 0
+Xx46_ra xa46d ccs_x g_x46r drvsw
+Xx46_rb vdrv XB46 g_x46r drvsw
+Xx46_wa vdrv xa46d g_x46w drvsw
+Xx46_wb XB46 ccs_x g_x46w drvsw
+Xy46_ra ya46d ccs_y g_y46r drvsw
+Xy46_rb vdrv YB46 g_y46r drvsw
+Xy46_wa vdrv ya46d g_y46w drvsw
+Xy46_wb YB46 ccs_y g_y46w drvsw
+Vg_x46r g_x46r 0 DC 0
+Vg_y46r g_y46r 0 DC 0
+Xx47_ra xa47d ccs_x g_x47r drvsw
+Xx47_rb vdrv XB47 g_x47r drvsw
+Xx47_wa vdrv xa47d g_x47w drvsw
+Xx47_wb XB47 ccs_x g_x47w drvsw
+Xy47_ra ya47d ccs_y g_y47r drvsw
+Xy47_rb vdrv YB47 g_y47r drvsw
+Xy47_wa vdrv ya47d g_y47w drvsw
+Xy47_wb YB47 ccs_y g_y47w drvsw
+Vg_x47r g_x47r 0 DC 0
+Vg_y47r g_y47r 0 DC 0
+Xx48_ra xa48d ccs_x g_x48r drvsw
+Xx48_rb vdrv XB48 g_x48r drvsw
+Xx48_wa vdrv xa48d g_x48w drvsw
+Xx48_wb XB48 ccs_x g_x48w drvsw
+Xy48_ra ya48d ccs_y g_y48r drvsw
+Xy48_rb vdrv YB48 g_y48r drvsw
+Xy48_wa vdrv ya48d g_y48w drvsw
+Xy48_wb YB48 ccs_y g_y48w drvsw
+Vg_x48r g_x48r 0 DC 0
+Vg_y48r g_y48r 0 DC 0
+Xx49_ra xa49d ccs_x g_x49r drvsw
+Xx49_rb vdrv XB49 g_x49r drvsw
+Xx49_wa vdrv xa49d g_x49w drvsw
+Xx49_wb XB49 ccs_x g_x49w drvsw
+Xy49_ra ya49d ccs_y g_y49r drvsw
+Xy49_rb vdrv YB49 g_y49r drvsw
+Xy49_wa vdrv ya49d g_y49w drvsw
+Xy49_wb YB49 ccs_y g_y49w drvsw
+Vg_x49r g_x49r 0 DC 0
+Vg_y49r g_y49r 0 DC 0
+Xx50_ra xa50d ccs_x g_x50r drvsw
+Xx50_rb vdrv XB50 g_x50r drvsw
+Xx50_wa vdrv xa50d g_x50w drvsw
+Xx50_wb XB50 ccs_x g_x50w drvsw
+Xy50_ra ya50d ccs_y g_y50r drvsw
+Xy50_rb vdrv YB50 g_y50r drvsw
+Xy50_wa vdrv ya50d g_y50w drvsw
+Xy50_wb YB50 ccs_y g_y50w drvsw
+Vg_x50r g_x50r 0 DC 0
+Vg_y50r g_y50r 0 DC 0
+Xx51_ra xa51d ccs_x g_x51r drvsw
+Xx51_rb vdrv XB51 g_x51r drvsw
+Xx51_wa vdrv xa51d g_x51w drvsw
+Xx51_wb XB51 ccs_x g_x51w drvsw
+Xy51_ra ya51d ccs_y g_y51r drvsw
+Xy51_rb vdrv YB51 g_y51r drvsw
+Xy51_wa vdrv ya51d g_y51w drvsw
+Xy51_wb YB51 ccs_y g_y51w drvsw
+Vg_x51r g_x51r 0 DC 0
+Vg_y51r g_y51r 0 DC 0
+Xx52_ra xa52d ccs_x g_x52r drvsw
+Xx52_rb vdrv XB52 g_x52r drvsw
+Xx52_wa vdrv xa52d g_x52w drvsw
+Xx52_wb XB52 ccs_x g_x52w drvsw
+Xy52_ra ya52d ccs_y g_y52r drvsw
+Xy52_rb vdrv YB52 g_y52r drvsw
+Xy52_wa vdrv ya52d g_y52w drvsw
+Xy52_wb YB52 ccs_y g_y52w drvsw
+Vg_x52r g_x52r 0 DC 0
+Vg_y52r g_y52r 0 DC 0
+Xx53_ra xa53d ccs_x g_x53r drvsw
+Xx53_rb vdrv XB53 g_x53r drvsw
+Xx53_wa vdrv xa53d g_x53w drvsw
+Xx53_wb XB53 ccs_x g_x53w drvsw
+Xy53_ra ya53d ccs_y g_y53r drvsw
+Xy53_rb vdrv YB53 g_y53r drvsw
+Xy53_wa vdrv ya53d g_y53w drvsw
+Xy53_wb YB53 ccs_y g_y53w drvsw
+Vg_x53r g_x53r 0 DC 0
+Vg_y53r g_y53r 0 DC 0
+Xx54_ra xa54d ccs_x g_x54r drvsw
+Xx54_rb vdrv XB54 g_x54r drvsw
+Xx54_wa vdrv xa54d g_x54w drvsw
+Xx54_wb XB54 ccs_x g_x54w drvsw
+Xy54_ra ya54d ccs_y g_y54r drvsw
+Xy54_rb vdrv YB54 g_y54r drvsw
+Xy54_wa vdrv ya54d g_y54w drvsw
+Xy54_wb YB54 ccs_y g_y54w drvsw
+Vg_x54r g_x54r 0 DC 0
+Vg_y54r g_y54r 0 DC 0
+Xx55_ra xa55d ccs_x g_x55r drvsw
+Xx55_rb vdrv XB55 g_x55r drvsw
+Xx55_wa vdrv xa55d g_x55w drvsw
+Xx55_wb XB55 ccs_x g_x55w drvsw
+Xy55_ra ya55d ccs_y g_y55r drvsw
+Xy55_rb vdrv YB55 g_y55r drvsw
+Xy55_wa vdrv ya55d g_y55w drvsw
+Xy55_wb YB55 ccs_y g_y55w drvsw
+Vg_x55r g_x55r 0 DC 0
+Vg_y55r g_y55r 0 DC 0
+Xx56_ra xa56d ccs_x g_x56r drvsw
+Xx56_rb vdrv XB56 g_x56r drvsw
+Xx56_wa vdrv xa56d g_x56w drvsw
+Xx56_wb XB56 ccs_x g_x56w drvsw
+Xy56_ra ya56d ccs_y g_y56r drvsw
+Xy56_rb vdrv YB56 g_y56r drvsw
+Xy56_wa vdrv ya56d g_y56w drvsw
+Xy56_wb YB56 ccs_y g_y56w drvsw
+Vg_x56r g_x56r 0 DC 0
+Vg_y56r g_y56r 0 DC 0
+Xx57_ra xa57d ccs_x g_x57r drvsw
+Xx57_rb vdrv XB57 g_x57r drvsw
+Xx57_wa vdrv xa57d g_x57w drvsw
+Xx57_wb XB57 ccs_x g_x57w drvsw
+Xy57_ra ya57d ccs_y g_y57r drvsw
+Xy57_rb vdrv YB57 g_y57r drvsw
+Xy57_wa vdrv ya57d g_y57w drvsw
+Xy57_wb YB57 ccs_y g_y57w drvsw
+Vg_x57r g_x57r 0 DC 0
+Vg_y57r g_y57r 0 DC 0
+Xx58_ra xa58d ccs_x g_x58r drvsw
+Xx58_rb vdrv XB58 g_x58r drvsw
+Xx58_wa vdrv xa58d g_x58w drvsw
+Xx58_wb XB58 ccs_x g_x58w drvsw
+Xy58_ra ya58d ccs_y g_y58r drvsw
+Xy58_rb vdrv YB58 g_y58r drvsw
+Xy58_wa vdrv ya58d g_y58w drvsw
+Xy58_wb YB58 ccs_y g_y58w drvsw
+Vg_x58r g_x58r 0 DC 0
+Vg_y58r g_y58r 0 DC 0
+Xx59_ra xa59d ccs_x g_x59r drvsw
+Xx59_rb vdrv XB59 g_x59r drvsw
+Xx59_wa vdrv xa59d g_x59w drvsw
+Xx59_wb XB59 ccs_x g_x59w drvsw
+Xy59_ra ya59d ccs_y g_y59r drvsw
+Xy59_rb vdrv YB59 g_y59r drvsw
+Xy59_wa vdrv ya59d g_y59w drvsw
+Xy59_wb YB59 ccs_y g_y59w drvsw
+Vg_x59r g_x59r 0 DC 0
+Vg_y59r g_y59r 0 DC 0
+Xx60_ra xa60d ccs_x g_x60r drvsw
+Xx60_rb vdrv XB60 g_x60r drvsw
+Xx60_wa vdrv xa60d g_x60w drvsw
+Xx60_wb XB60 ccs_x g_x60w drvsw
+Xy60_ra ya60d ccs_y g_y60r drvsw
+Xy60_rb vdrv YB60 g_y60r drvsw
+Xy60_wa vdrv ya60d g_y60w drvsw
+Xy60_wb YB60 ccs_y g_y60w drvsw
+Vg_x60r g_x60r 0 DC 0
+Vg_y60r g_y60r 0 DC 0
+Xx61_ra xa61d ccs_x g_x61r drvsw
+Xx61_rb vdrv XB61 g_x61r drvsw
+Xx61_wa vdrv xa61d g_x61w drvsw
+Xx61_wb XB61 ccs_x g_x61w drvsw
+Xy61_ra ya61d ccs_y g_y61r drvsw
+Xy61_rb vdrv YB61 g_y61r drvsw
+Xy61_wa vdrv ya61d g_y61w drvsw
+Xy61_wb YB61 ccs_y g_y61w drvsw
+Vg_x61r g_x61r 0 DC 0
+Vg_y61r g_y61r 0 DC 0
+Xx62_ra xa62d ccs_x g_x62r drvsw
+Xx62_rb vdrv XB62 g_x62r drvsw
+Xx62_wa vdrv xa62d g_x62w drvsw
+Xx62_wb XB62 ccs_x g_x62w drvsw
+Xy62_ra ya62d ccs_y g_y62r drvsw
+Xy62_rb vdrv YB62 g_y62r drvsw
+Xy62_wa vdrv ya62d g_y62w drvsw
+Xy62_wb YB62 ccs_y g_y62w drvsw
+Vg_x62r g_x62r 0 DC 0
+Vg_y62r g_y62r 0 DC 0
+Xx63_ra xa63d ccs_x g_x63r drvsw
+Xx63_rb vdrv XB63 g_x63r drvsw
+Xx63_wa vdrv xa63d g_x63w drvsw
+Xx63_wb XB63 ccs_x g_x63w drvsw
+Xy63_ra ya63d ccs_y g_y63r drvsw
+Xy63_rb vdrv YB63 g_y63r drvsw
+Xy63_wa vdrv ya63d g_y63w drvsw
+Xy63_wb YB63 ccs_y g_y63w drvsw
+Vg_x63r g_x63r 0 DC 0
+Vg_y63r g_y63r 0 DC 0
+Xinh_a vdrv inhd g_inh drvsw
+Xinh_b YB66 ccs_i g_inh drvsw
+Vg_inh g_inh 0 DC 0
+
+Vg_x0w g_x0w 0 PWL(0 0 2u 0 3u 1 5u 1 6u 0)
+Vg_y0w g_y0w 0 PWL(0 0 2u 0 3u 1 5u 1 6u 0)
+Vg_x1w g_x1w 0 PWL(0 0 8u 0 9u 1 11u 1 12u 0)
+Vg_y1w g_y1w 0 PWL(0 0 8u 0 9u 1 11u 1 12u 0)
+Vg_x2w g_x2w 0 PWL(0 0 14u 0 15u 1 17u 1 18u 0)
+Vg_y2w g_y2w 0 PWL(0 0 14u 0 15u 1 17u 1 18u 0)
+Vg_x3w g_x3w 0 PWL(0 0 20u 0 21u 1 23u 1 24u 0)
+Vg_y3w g_y3w 0 PWL(0 0 20u 0 21u 1 23u 1 24u 0)
+Vg_x4w g_x4w 0 PWL(0 0 26u 0 27u 1 29u 1 30u 0)
+Vg_y4w g_y4w 0 PWL(0 0 26u 0 27u 1 29u 1 30u 0)
+Vg_x5w g_x5w 0 PWL(0 0 32u 0 33u 1 35u 1 36u 0)
+Vg_y5w g_y5w 0 PWL(0 0 32u 0 33u 1 35u 1 36u 0)
+Vg_x6w g_x6w 0 PWL(0 0 38u 0 39u 1 41u 1 42u 0)
+Vg_y6w g_y6w 0 PWL(0 0 38u 0 39u 1 41u 1 42u 0)
+Vg_x7w g_x7w 0 PWL(0 0 44u 0 45u 1 47u 1 48u 0)
+Vg_y7w g_y7w 0 PWL(0 0 44u 0 45u 1 47u 1 48u 0)
+Vg_x8w g_x8w 0 PWL(0 0 50u 0 51u 1 53u 1 54u 0)
+Vg_y8w g_y8w 0 PWL(0 0 50u 0 51u 1 53u 1 54u 0)
+Vg_x9w g_x9w 0 PWL(0 0 56u 0 57u 1 59u 1 60u 0)
+Vg_y9w g_y9w 0 PWL(0 0 56u 0 57u 1 59u 1 60u 0)
+Vg_x10w g_x10w 0 PWL(0 0 62u 0 63u 1 65u 1 66u 0)
+Vg_y10w g_y10w 0 PWL(0 0 62u 0 63u 1 65u 1 66u 0)
+Vg_x11w g_x11w 0 PWL(0 0 68u 0 69u 1 71u 1 72u 0)
+Vg_y11w g_y11w 0 PWL(0 0 68u 0 69u 1 71u 1 72u 0)
+Vg_x12w g_x12w 0 PWL(0 0 74u 0 75u 1 77u 1 78u 0)
+Vg_y12w g_y12w 0 PWL(0 0 74u 0 75u 1 77u 1 78u 0)
+Vg_x13w g_x13w 0 PWL(0 0 80u 0 81u 1 83u 1 84u 0)
+Vg_y13w g_y13w 0 PWL(0 0 80u 0 81u 1 83u 1 84u 0)
+Vg_x14w g_x14w 0 PWL(0 0 86u 0 87u 1 89u 1 90u 0)
+Vg_y14w g_y14w 0 PWL(0 0 86u 0 87u 1 89u 1 90u 0)
+Vg_x15w g_x15w 0 PWL(0 0 92u 0 93u 1 95u 1 96u 0)
+Vg_y15w g_y15w 0 PWL(0 0 92u 0 93u 1 95u 1 96u 0)
+Vg_x16w g_x16w 0 PWL(0 0 98u 0 99u 1 101u 1 102u 0)
+Vg_y16w g_y16w 0 PWL(0 0 98u 0 99u 1 101u 1 102u 0)
+Vg_x17w g_x17w 0 PWL(0 0 104u 0 105u 1 107u 1 108u 0)
+Vg_y17w g_y17w 0 PWL(0 0 104u 0 105u 1 107u 1 108u 0)
+Vg_x18w g_x18w 0 PWL(0 0 110u 0 111u 1 113u 1 114u 0)
+Vg_y18w g_y18w 0 PWL(0 0 110u 0 111u 1 113u 1 114u 0)
+Vg_x19w g_x19w 0 PWL(0 0 116u 0 117u 1 119u 1 120u 0)
+Vg_y19w g_y19w 0 PWL(0 0 116u 0 117u 1 119u 1 120u 0)
+Vg_x20w g_x20w 0 PWL(0 0 122u 0 123u 1 125u 1 126u 0)
+Vg_y20w g_y20w 0 PWL(0 0 122u 0 123u 1 125u 1 126u 0)
+Vg_x21w g_x21w 0 PWL(0 0 128u 0 129u 1 131u 1 132u 0)
+Vg_y21w g_y21w 0 PWL(0 0 128u 0 129u 1 131u 1 132u 0)
+Vg_x22w g_x22w 0 PWL(0 0 134u 0 135u 1 137u 1 138u 0)
+Vg_y22w g_y22w 0 PWL(0 0 134u 0 135u 1 137u 1 138u 0)
+Vg_x23w g_x23w 0 PWL(0 0 140u 0 141u 1 143u 1 144u 0)
+Vg_y23w g_y23w 0 PWL(0 0 140u 0 141u 1 143u 1 144u 0)
+Vg_x24w g_x24w 0 PWL(0 0 146u 0 147u 1 149u 1 150u 0)
+Vg_y24w g_y24w 0 PWL(0 0 146u 0 147u 1 149u 1 150u 0)
+Vg_x25w g_x25w 0 PWL(0 0 152u 0 153u 1 155u 1 156u 0)
+Vg_y25w g_y25w 0 PWL(0 0 152u 0 153u 1 155u 1 156u 0)
+Vg_x26w g_x26w 0 PWL(0 0 158u 0 159u 1 161u 1 162u 0)
+Vg_y26w g_y26w 0 PWL(0 0 158u 0 159u 1 161u 1 162u 0)
+Vg_x27w g_x27w 0 PWL(0 0 164u 0 165u 1 167u 1 168u 0)
+Vg_y27w g_y27w 0 PWL(0 0 164u 0 165u 1 167u 1 168u 0)
+Vg_x28w g_x28w 0 PWL(0 0 170u 0 171u 1 173u 1 174u 0)
+Vg_y28w g_y28w 0 PWL(0 0 170u 0 171u 1 173u 1 174u 0)
+Vg_x29w g_x29w 0 PWL(0 0 176u 0 177u 1 179u 1 180u 0)
+Vg_y29w g_y29w 0 PWL(0 0 176u 0 177u 1 179u 1 180u 0)
+Vg_x30w g_x30w 0 PWL(0 0 182u 0 183u 1 185u 1 186u 0)
+Vg_y30w g_y30w 0 PWL(0 0 182u 0 183u 1 185u 1 186u 0)
+Vg_x31w g_x31w 0 PWL(0 0 188u 0 189u 1 191u 1 192u 0)
+Vg_y31w g_y31w 0 PWL(0 0 188u 0 189u 1 191u 1 192u 0)
+Vg_x32w g_x32w 0 PWL(0 0 194u 0 195u 1 197u 1 198u 0)
+Vg_y32w g_y32w 0 PWL(0 0 194u 0 195u 1 197u 1 198u 0)
+Vg_x33w g_x33w 0 PWL(0 0 200u 0 201u 1 203u 1 204u 0)
+Vg_y33w g_y33w 0 PWL(0 0 200u 0 201u 1 203u 1 204u 0)
+Vg_x34w g_x34w 0 PWL(0 0 206u 0 207u 1 209u 1 210u 0)
+Vg_y34w g_y34w 0 PWL(0 0 206u 0 207u 1 209u 1 210u 0)
+Vg_x35w g_x35w 0 PWL(0 0 212u 0 213u 1 215u 1 216u 0)
+Vg_y35w g_y35w 0 PWL(0 0 212u 0 213u 1 215u 1 216u 0)
+Vg_x36w g_x36w 0 PWL(0 0 218u 0 219u 1 221u 1 222u 0)
+Vg_y36w g_y36w 0 PWL(0 0 218u 0 219u 1 221u 1 222u 0)
+Vg_x37w g_x37w 0 PWL(0 0 224u 0 225u 1 227u 1 228u 0)
+Vg_y37w g_y37w 0 PWL(0 0 224u 0 225u 1 227u 1 228u 0)
+Vg_x38w g_x38w 0 PWL(0 0 230u 0 231u 1 233u 1 234u 0)
+Vg_y38w g_y38w 0 PWL(0 0 230u 0 231u 1 233u 1 234u 0)
+Vg_x39w g_x39w 0 PWL(0 0 236u 0 237u 1 239u 1 240u 0)
+Vg_y39w g_y39w 0 PWL(0 0 236u 0 237u 1 239u 1 240u 0)
+Vg_x40w g_x40w 0 PWL(0 0 242u 0 243u 1 245u 1 246u 0)
+Vg_y40w g_y40w 0 PWL(0 0 242u 0 243u 1 245u 1 246u 0)
+Vg_x41w g_x41w 0 PWL(0 0 248u 0 249u 1 251u 1 252u 0)
+Vg_y41w g_y41w 0 PWL(0 0 248u 0 249u 1 251u 1 252u 0)
+Vg_x42w g_x42w 0 PWL(0 0 254u 0 255u 1 257u 1 258u 0)
+Vg_y42w g_y42w 0 PWL(0 0 254u 0 255u 1 257u 1 258u 0)
+Vg_x43w g_x43w 0 PWL(0 0 260u 0 261u 1 263u 1 264u 0)
+Vg_y43w g_y43w 0 PWL(0 0 260u 0 261u 1 263u 1 264u 0)
+Vg_x44w g_x44w 0 PWL(0 0 266u 0 267u 1 269u 1 270u 0)
+Vg_y44w g_y44w 0 PWL(0 0 266u 0 267u 1 269u 1 270u 0)
+Vg_x45w g_x45w 0 PWL(0 0 272u 0 273u 1 275u 1 276u 0)
+Vg_y45w g_y45w 0 PWL(0 0 272u 0 273u 1 275u 1 276u 0)
+Vg_x46w g_x46w 0 PWL(0 0 278u 0 279u 1 281u 1 282u 0)
+Vg_y46w g_y46w 0 PWL(0 0 278u 0 279u 1 281u 1 282u 0)
+Vg_x47w g_x47w 0 PWL(0 0 284u 0 285u 1 287u 1 288u 0)
+Vg_y47w g_y47w 0 PWL(0 0 284u 0 285u 1 287u 1 288u 0)
+Vg_x48w g_x48w 0 PWL(0 0 290u 0 291u 1 293u 1 294u 0)
+Vg_y48w g_y48w 0 PWL(0 0 290u 0 291u 1 293u 1 294u 0)
+Vg_x49w g_x49w 0 PWL(0 0 296u 0 297u 1 299u 1 300u 0)
+Vg_y49w g_y49w 0 PWL(0 0 296u 0 297u 1 299u 1 300u 0)
+Vg_x50w g_x50w 0 PWL(0 0 302u 0 303u 1 305u 1 306u 0)
+Vg_y50w g_y50w 0 PWL(0 0 302u 0 303u 1 305u 1 306u 0)
+Vg_x51w g_x51w 0 PWL(0 0 308u 0 309u 1 311u 1 312u 0)
+Vg_y51w g_y51w 0 PWL(0 0 308u 0 309u 1 311u 1 312u 0)
+Vg_x52w g_x52w 0 PWL(0 0 314u 0 315u 1 317u 1 318u 0)
+Vg_y52w g_y52w 0 PWL(0 0 314u 0 315u 1 317u 1 318u 0)
+Vg_x53w g_x53w 0 PWL(0 0 320u 0 321u 1 323u 1 324u 0)
+Vg_y53w g_y53w 0 PWL(0 0 320u 0 321u 1 323u 1 324u 0)
+Vg_x54w g_x54w 0 PWL(0 0 326u 0 327u 1 329u 1 330u 0)
+Vg_y54w g_y54w 0 PWL(0 0 326u 0 327u 1 329u 1 330u 0)
+Vg_x55w g_x55w 0 PWL(0 0 332u 0 333u 1 335u 1 336u 0)
+Vg_y55w g_y55w 0 PWL(0 0 332u 0 333u 1 335u 1 336u 0)
+Vg_x56w g_x56w 0 PWL(0 0 338u 0 339u 1 341u 1 342u 0)
+Vg_y56w g_y56w 0 PWL(0 0 338u 0 339u 1 341u 1 342u 0)
+Vg_x57w g_x57w 0 PWL(0 0 344u 0 345u 1 347u 1 348u 0)
+Vg_y57w g_y57w 0 PWL(0 0 344u 0 345u 1 347u 1 348u 0)
+Vg_x58w g_x58w 0 PWL(0 0 350u 0 351u 1 353u 1 354u 0)
+Vg_y58w g_y58w 0 PWL(0 0 350u 0 351u 1 353u 1 354u 0)
+Vg_x59w g_x59w 0 PWL(0 0 356u 0 357u 1 359u 1 360u 0)
+Vg_y59w g_y59w 0 PWL(0 0 356u 0 357u 1 359u 1 360u 0)
+Vg_x60w g_x60w 0 PWL(0 0 362u 0 363u 1 365u 1 366u 0)
+Vg_y60w g_y60w 0 PWL(0 0 362u 0 363u 1 365u 1 366u 0)
+Vg_x61w g_x61w 0 PWL(0 0 368u 0 369u 1 371u 1 372u 0)
+Vg_y61w g_y61w 0 PWL(0 0 368u 0 369u 1 371u 1 372u 0)
+Vg_x62w g_x62w 0 PWL(0 0 374u 0 375u 1 377u 1 378u 0)
+Vg_y62w g_y62w 0 PWL(0 0 374u 0 375u 1 377u 1 378u 0)
+Vg_x63w g_x63w 0 PWL(0 0 380u 0 381u 1 383u 1 384u 0)
+Vg_y63w g_y63w 0 PWL(0 0 380u 0 381u 1 383u 1 384u 0)
+
+.options reltol=1e-3 method=trap
+.save v(diff) v(xr00c00.xcore.m) v(xr01c00.xcore.m) v(xr01c01.xcore.m) i(Vixa0) i(Viya0)
+.save v(xr02c01.xcore.m) v(xr02c02.xcore.m) i(Vixa1) i(Viya1) v(xr03c02.xcore.m) v(xr03c03.xcore.m)
+.save i(Vixa2) i(Viya2) v(xr04c03.xcore.m) v(xr04c04.xcore.m) i(Vixa3) i(Viya3)
+.save v(xr05c04.xcore.m) v(xr05c05.xcore.m) i(Vixa4) i(Viya4) v(xr06c05.xcore.m) v(xr06c06.xcore.m)
+.save i(Vixa5) i(Viya5) v(xr07c06.xcore.m) v(xr07c07.xcore.m) i(Vixa6) i(Viya6)
+.save v(xr08c07.xcore.m) v(xr08c08.xcore.m) i(Vixa7) i(Viya7) v(xr09c08.xcore.m) v(xr09c09.xcore.m)
+.save i(Vixa8) i(Viya8) v(xr10c09.xcore.m) v(xr10c10.xcore.m) i(Vixa9) i(Viya9)
+.save v(xr11c10.xcore.m) v(xr11c11.xcore.m) i(Vixa10) i(Viya10) v(xr12c11.xcore.m) v(xr12c12.xcore.m)
+.save i(Vixa11) i(Viya11) v(xr13c12.xcore.m) v(xr13c13.xcore.m) i(Vixa12) i(Viya12)
+.save v(xr14c13.xcore.m) v(xr14c14.xcore.m) i(Vixa13) i(Viya13) v(xr15c14.xcore.m) v(xr15c15.xcore.m)
+.save i(Vixa14) i(Viya14) v(xr16c15.xcore.m) v(xr16c16.xcore.m) i(Vixa15) i(Viya15)
+.save v(xr17c16.xcore.m) v(xr17c17.xcore.m) i(Vixa16) i(Viya16) v(xr18c17.xcore.m) v(xr18c18.xcore.m)
+.save i(Vixa17) i(Viya17) v(xr19c18.xcore.m) v(xr19c19.xcore.m) i(Vixa18) i(Viya18)
+.save v(xr20c19.xcore.m) v(xr20c20.xcore.m) i(Vixa19) i(Viya19) v(xr21c20.xcore.m) v(xr21c21.xcore.m)
+.save i(Vixa20) i(Viya20) v(xr22c21.xcore.m) v(xr22c22.xcore.m) i(Vixa21) i(Viya21)
+.save v(xr23c22.xcore.m) v(xr23c23.xcore.m) i(Vixa22) i(Viya22) v(xr24c23.xcore.m) v(xr24c24.xcore.m)
+.save i(Vixa23) i(Viya23) v(xr25c24.xcore.m) v(xr25c25.xcore.m) i(Vixa24) i(Viya24)
+.save v(xr26c25.xcore.m) v(xr26c26.xcore.m) i(Vixa25) i(Viya25) v(xr27c26.xcore.m) v(xr27c27.xcore.m)
+.save i(Vixa26) i(Viya26) v(xr28c27.xcore.m) v(xr28c28.xcore.m) i(Vixa27) i(Viya27)
+.save v(xr29c28.xcore.m) v(xr29c29.xcore.m) i(Vixa28) i(Viya28) v(xr30c29.xcore.m) v(xr30c30.xcore.m)
+.save i(Vixa29) i(Viya29) v(xr31c30.xcore.m) v(xr31c31.xcore.m) i(Vixa30) i(Viya30)
+.save v(xr32c31.xcore.m) v(xr32c32.xcore.m) i(Vixa31) i(Viya31) v(xr33c32.xcore.m) v(xr33c33.xcore.m)
+.save i(Vixa32) i(Viya32) v(xr34c33.xcore.m) v(xr34c34.xcore.m) i(Vixa33) i(Viya33)
+.save v(xr35c34.xcore.m) v(xr35c35.xcore.m) i(Vixa34) i(Viya34) v(xr36c35.xcore.m) v(xr36c36.xcore.m)
+.save i(Vixa35) i(Viya35) v(xr37c36.xcore.m) v(xr37c37.xcore.m) i(Vixa36) i(Viya36)
+.save v(xr38c37.xcore.m) v(xr38c38.xcore.m) i(Vixa37) i(Viya37) v(xr39c38.xcore.m) v(xr39c39.xcore.m)
+.save i(Vixa38) i(Viya38) v(xr40c39.xcore.m) v(xr40c40.xcore.m) i(Vixa39) i(Viya39)
+.save v(xr41c40.xcore.m) v(xr41c41.xcore.m) i(Vixa40) i(Viya40) v(xr42c41.xcore.m) v(xr42c42.xcore.m)
+.save i(Vixa41) i(Viya41) v(xr43c42.xcore.m) v(xr43c43.xcore.m) i(Vixa42) i(Viya42)
+.save v(xr44c43.xcore.m) v(xr44c44.xcore.m) i(Vixa43) i(Viya43) v(xr45c44.xcore.m) v(xr45c45.xcore.m)
+.save i(Vixa44) i(Viya44) v(xr46c45.xcore.m) v(xr46c46.xcore.m) i(Vixa45) i(Viya45)
+.save v(xr47c46.xcore.m) v(xr47c47.xcore.m) i(Vixa46) i(Viya46) v(xr48c47.xcore.m) v(xr48c48.xcore.m)
+.save i(Vixa47) i(Viya47) v(xr49c48.xcore.m) v(xr49c49.xcore.m) i(Vixa48) i(Viya48)
+.save v(xr50c49.xcore.m) v(xr50c50.xcore.m) i(Vixa49) i(Viya49) v(xr51c50.xcore.m) v(xr51c51.xcore.m)
+.save i(Vixa50) i(Viya50) v(xr52c51.xcore.m) v(xr52c52.xcore.m) i(Vixa51) i(Viya51)
+.save v(xr53c52.xcore.m) v(xr53c53.xcore.m) i(Vixa52) i(Viya52) v(xr54c53.xcore.m) v(xr54c54.xcore.m)
+.save i(Vixa53) i(Viya53) v(xr55c54.xcore.m) v(xr55c55.xcore.m) i(Vixa54) i(Viya54)
+.save v(xr56c55.xcore.m) v(xr56c56.xcore.m) i(Vixa55) i(Viya55) v(xr57c56.xcore.m) v(xr57c57.xcore.m)
+.save i(Vixa56) i(Viya56) v(xr58c57.xcore.m) v(xr58c58.xcore.m) i(Vixa57) i(Viya57)
+.save v(xr59c58.xcore.m) v(xr59c59.xcore.m) i(Vixa58) i(Viya58) v(xr60c59.xcore.m) v(xr60c60.xcore.m)
+.save i(Vixa59) i(Viya59) v(xr61c60.xcore.m) v(xr61c61.xcore.m) i(Vixa60) i(Viya60)
+.save v(xr62c61.xcore.m) v(xr62c62.xcore.m) i(Vixa61) i(Viya61) v(xr63c62.xcore.m) v(xr63c63.xcore.m)
+.save i(Vixa62) i(Viya62) v(xr62c63.xcore.m) i(Vixa63) i(Viya63)
+.tran 200n 390u uic
+
+.control
+set nobreak
+set noaskquit
+run
+
+meas tran m_d0 FIND v(xr00c00.xcore.m) AT=6.5u
+meas tran m_n0 FIND v(xr01c00.xcore.m) AT=6.5u
+meas tran m_x0 FIND v(xr01c01.xcore.m) AT=6.5u
+meas tran smin_d0 MIN v(diff) FROM=3.2u TO=4.2u
+meas tran ix_d0 AVG i(Vixa0) FROM=4.2u TO=4.8u
+meas tran iy_d0 AVG i(Viya0) FROM=4.2u TO=4.8u
+meas tran m_d1 FIND v(xr01c01.xcore.m) AT=12.5u
+meas tran m_n1 FIND v(xr02c01.xcore.m) AT=12.5u
+meas tran m_x1 FIND v(xr02c02.xcore.m) AT=12.5u
+meas tran m_p1 FIND v(xr00c00.xcore.m) AT=12.5u
+meas tran smin_d1 MIN v(diff) FROM=9.2u TO=10.2u
+meas tran ix_d1 AVG i(Vixa1) FROM=10.2u TO=10.8u
+meas tran iy_d1 AVG i(Viya1) FROM=10.2u TO=10.8u
+meas tran m_d2 FIND v(xr02c02.xcore.m) AT=18.5u
+meas tran m_n2 FIND v(xr03c02.xcore.m) AT=18.5u
+meas tran m_x2 FIND v(xr03c03.xcore.m) AT=18.5u
+meas tran m_p2 FIND v(xr01c01.xcore.m) AT=18.5u
+meas tran smin_d2 MIN v(diff) FROM=15.2u TO=16.2u
+meas tran ix_d2 AVG i(Vixa2) FROM=16.2u TO=16.8u
+meas tran iy_d2 AVG i(Viya2) FROM=16.2u TO=16.8u
+meas tran m_d3 FIND v(xr03c03.xcore.m) AT=24.5u
+meas tran m_n3 FIND v(xr04c03.xcore.m) AT=24.5u
+meas tran m_x3 FIND v(xr04c04.xcore.m) AT=24.5u
+meas tran m_p3 FIND v(xr02c02.xcore.m) AT=24.5u
+meas tran smin_d3 MIN v(diff) FROM=21.2u TO=22.2u
+meas tran ix_d3 AVG i(Vixa3) FROM=22.2u TO=22.8u
+meas tran iy_d3 AVG i(Viya3) FROM=22.2u TO=22.8u
+meas tran m_d4 FIND v(xr04c04.xcore.m) AT=30.5u
+meas tran m_n4 FIND v(xr05c04.xcore.m) AT=30.5u
+meas tran m_x4 FIND v(xr05c05.xcore.m) AT=30.5u
+meas tran m_p4 FIND v(xr03c03.xcore.m) AT=30.5u
+meas tran smin_d4 MIN v(diff) FROM=27.2u TO=28.2u
+meas tran ix_d4 AVG i(Vixa4) FROM=28.2u TO=28.8u
+meas tran iy_d4 AVG i(Viya4) FROM=28.2u TO=28.8u
+meas tran m_d5 FIND v(xr05c05.xcore.m) AT=36.5u
+meas tran m_n5 FIND v(xr06c05.xcore.m) AT=36.5u
+meas tran m_x5 FIND v(xr06c06.xcore.m) AT=36.5u
+meas tran m_p5 FIND v(xr04c04.xcore.m) AT=36.5u
+meas tran smin_d5 MIN v(diff) FROM=33.2u TO=34.2u
+meas tran ix_d5 AVG i(Vixa5) FROM=34.2u TO=34.8u
+meas tran iy_d5 AVG i(Viya5) FROM=34.2u TO=34.8u
+meas tran m_d6 FIND v(xr06c06.xcore.m) AT=42.5u
+meas tran m_n6 FIND v(xr07c06.xcore.m) AT=42.5u
+meas tran m_x6 FIND v(xr07c07.xcore.m) AT=42.5u
+meas tran m_p6 FIND v(xr05c05.xcore.m) AT=42.5u
+meas tran smin_d6 MIN v(diff) FROM=39.2u TO=40.2u
+meas tran ix_d6 AVG i(Vixa6) FROM=40.2u TO=40.8u
+meas tran iy_d6 AVG i(Viya6) FROM=40.2u TO=40.8u
+meas tran m_d7 FIND v(xr07c07.xcore.m) AT=48.5u
+meas tran m_n7 FIND v(xr08c07.xcore.m) AT=48.5u
+meas tran m_x7 FIND v(xr08c08.xcore.m) AT=48.5u
+meas tran m_p7 FIND v(xr06c06.xcore.m) AT=48.5u
+meas tran smin_d7 MIN v(diff) FROM=45.2u TO=46.2u
+meas tran ix_d7 AVG i(Vixa7) FROM=46.2u TO=46.8u
+meas tran iy_d7 AVG i(Viya7) FROM=46.2u TO=46.8u
+meas tran m_d8 FIND v(xr08c08.xcore.m) AT=54.5u
+meas tran m_n8 FIND v(xr09c08.xcore.m) AT=54.5u
+meas tran m_x8 FIND v(xr09c09.xcore.m) AT=54.5u
+meas tran m_p8 FIND v(xr07c07.xcore.m) AT=54.5u
+meas tran smin_d8 MIN v(diff) FROM=51.2u TO=52.2u
+meas tran ix_d8 AVG i(Vixa8) FROM=52.2u TO=52.8u
+meas tran iy_d8 AVG i(Viya8) FROM=52.2u TO=52.8u
+meas tran m_d9 FIND v(xr09c09.xcore.m) AT=60.5u
+meas tran m_n9 FIND v(xr10c09.xcore.m) AT=60.5u
+meas tran m_x9 FIND v(xr10c10.xcore.m) AT=60.5u
+meas tran m_p9 FIND v(xr08c08.xcore.m) AT=60.5u
+meas tran smin_d9 MIN v(diff) FROM=57.2u TO=58.2u
+meas tran ix_d9 AVG i(Vixa9) FROM=58.2u TO=58.8u
+meas tran iy_d9 AVG i(Viya9) FROM=58.2u TO=58.8u
+meas tran m_d10 FIND v(xr10c10.xcore.m) AT=66.5u
+meas tran m_n10 FIND v(xr11c10.xcore.m) AT=66.5u
+meas tran m_x10 FIND v(xr11c11.xcore.m) AT=66.5u
+meas tran m_p10 FIND v(xr09c09.xcore.m) AT=66.5u
+meas tran smin_d10 MIN v(diff) FROM=63.2u TO=64.2u
+meas tran ix_d10 AVG i(Vixa10) FROM=64.2u TO=64.8u
+meas tran iy_d10 AVG i(Viya10) FROM=64.2u TO=64.8u
+meas tran m_d11 FIND v(xr11c11.xcore.m) AT=72.5u
+meas tran m_n11 FIND v(xr12c11.xcore.m) AT=72.5u
+meas tran m_x11 FIND v(xr12c12.xcore.m) AT=72.5u
+meas tran m_p11 FIND v(xr10c10.xcore.m) AT=72.5u
+meas tran smin_d11 MIN v(diff) FROM=69.2u TO=70.2u
+meas tran ix_d11 AVG i(Vixa11) FROM=70.2u TO=70.8u
+meas tran iy_d11 AVG i(Viya11) FROM=70.2u TO=70.8u
+meas tran m_d12 FIND v(xr12c12.xcore.m) AT=78.5u
+meas tran m_n12 FIND v(xr13c12.xcore.m) AT=78.5u
+meas tran m_x12 FIND v(xr13c13.xcore.m) AT=78.5u
+meas tran m_p12 FIND v(xr11c11.xcore.m) AT=78.5u
+meas tran smin_d12 MIN v(diff) FROM=75.2u TO=76.2u
+meas tran ix_d12 AVG i(Vixa12) FROM=76.2u TO=76.8u
+meas tran iy_d12 AVG i(Viya12) FROM=76.2u TO=76.8u
+meas tran m_d13 FIND v(xr13c13.xcore.m) AT=84.5u
+meas tran m_n13 FIND v(xr14c13.xcore.m) AT=84.5u
+meas tran m_x13 FIND v(xr14c14.xcore.m) AT=84.5u
+meas tran m_p13 FIND v(xr12c12.xcore.m) AT=84.5u
+meas tran smin_d13 MIN v(diff) FROM=81.2u TO=82.2u
+meas tran ix_d13 AVG i(Vixa13) FROM=82.2u TO=82.8u
+meas tran iy_d13 AVG i(Viya13) FROM=82.2u TO=82.8u
+meas tran m_d14 FIND v(xr14c14.xcore.m) AT=90.5u
+meas tran m_n14 FIND v(xr15c14.xcore.m) AT=90.5u
+meas tran m_x14 FIND v(xr15c15.xcore.m) AT=90.5u
+meas tran m_p14 FIND v(xr13c13.xcore.m) AT=90.5u
+meas tran smin_d14 MIN v(diff) FROM=87.2u TO=88.2u
+meas tran ix_d14 AVG i(Vixa14) FROM=88.2u TO=88.8u
+meas tran iy_d14 AVG i(Viya14) FROM=88.2u TO=88.8u
+meas tran m_d15 FIND v(xr15c15.xcore.m) AT=96.5u
+meas tran m_n15 FIND v(xr16c15.xcore.m) AT=96.5u
+meas tran m_x15 FIND v(xr16c16.xcore.m) AT=96.5u
+meas tran m_p15 FIND v(xr14c14.xcore.m) AT=96.5u
+meas tran smin_d15 MIN v(diff) FROM=93.2u TO=94.2u
+meas tran ix_d15 AVG i(Vixa15) FROM=94.2u TO=94.8u
+meas tran iy_d15 AVG i(Viya15) FROM=94.2u TO=94.8u
+meas tran m_d16 FIND v(xr16c16.xcore.m) AT=102.5u
+meas tran m_n16 FIND v(xr17c16.xcore.m) AT=102.5u
+meas tran m_x16 FIND v(xr17c17.xcore.m) AT=102.5u
+meas tran m_p16 FIND v(xr15c15.xcore.m) AT=102.5u
+meas tran smin_d16 MIN v(diff) FROM=99.2u TO=100.2u
+meas tran ix_d16 AVG i(Vixa16) FROM=100.2u TO=100.8u
+meas tran iy_d16 AVG i(Viya16) FROM=100.2u TO=100.8u
+meas tran m_d17 FIND v(xr17c17.xcore.m) AT=108.5u
+meas tran m_n17 FIND v(xr18c17.xcore.m) AT=108.5u
+meas tran m_x17 FIND v(xr18c18.xcore.m) AT=108.5u
+meas tran m_p17 FIND v(xr16c16.xcore.m) AT=108.5u
+meas tran smin_d17 MIN v(diff) FROM=105.2u TO=106.2u
+meas tran ix_d17 AVG i(Vixa17) FROM=106.2u TO=106.8u
+meas tran iy_d17 AVG i(Viya17) FROM=106.2u TO=106.8u
+meas tran m_d18 FIND v(xr18c18.xcore.m) AT=114.5u
+meas tran m_n18 FIND v(xr19c18.xcore.m) AT=114.5u
+meas tran m_x18 FIND v(xr19c19.xcore.m) AT=114.5u
+meas tran m_p18 FIND v(xr17c17.xcore.m) AT=114.5u
+meas tran smin_d18 MIN v(diff) FROM=111.2u TO=112.2u
+meas tran ix_d18 AVG i(Vixa18) FROM=112.2u TO=112.8u
+meas tran iy_d18 AVG i(Viya18) FROM=112.2u TO=112.8u
+meas tran m_d19 FIND v(xr19c19.xcore.m) AT=120.5u
+meas tran m_n19 FIND v(xr20c19.xcore.m) AT=120.5u
+meas tran m_x19 FIND v(xr20c20.xcore.m) AT=120.5u
+meas tran m_p19 FIND v(xr18c18.xcore.m) AT=120.5u
+meas tran smin_d19 MIN v(diff) FROM=117.2u TO=118.2u
+meas tran ix_d19 AVG i(Vixa19) FROM=118.2u TO=118.8u
+meas tran iy_d19 AVG i(Viya19) FROM=118.2u TO=118.8u
+meas tran m_d20 FIND v(xr20c20.xcore.m) AT=126.5u
+meas tran m_n20 FIND v(xr21c20.xcore.m) AT=126.5u
+meas tran m_x20 FIND v(xr21c21.xcore.m) AT=126.5u
+meas tran m_p20 FIND v(xr19c19.xcore.m) AT=126.5u
+meas tran smin_d20 MIN v(diff) FROM=123.2u TO=124.2u
+meas tran ix_d20 AVG i(Vixa20) FROM=124.2u TO=124.8u
+meas tran iy_d20 AVG i(Viya20) FROM=124.2u TO=124.8u
+meas tran m_d21 FIND v(xr21c21.xcore.m) AT=132.5u
+meas tran m_n21 FIND v(xr22c21.xcore.m) AT=132.5u
+meas tran m_x21 FIND v(xr22c22.xcore.m) AT=132.5u
+meas tran m_p21 FIND v(xr20c20.xcore.m) AT=132.5u
+meas tran smin_d21 MIN v(diff) FROM=129.2u TO=130.2u
+meas tran ix_d21 AVG i(Vixa21) FROM=130.2u TO=130.8u
+meas tran iy_d21 AVG i(Viya21) FROM=130.2u TO=130.8u
+meas tran m_d22 FIND v(xr22c22.xcore.m) AT=138.5u
+meas tran m_n22 FIND v(xr23c22.xcore.m) AT=138.5u
+meas tran m_x22 FIND v(xr23c23.xcore.m) AT=138.5u
+meas tran m_p22 FIND v(xr21c21.xcore.m) AT=138.5u
+meas tran smin_d22 MIN v(diff) FROM=135.2u TO=136.2u
+meas tran ix_d22 AVG i(Vixa22) FROM=136.2u TO=136.8u
+meas tran iy_d22 AVG i(Viya22) FROM=136.2u TO=136.8u
+meas tran m_d23 FIND v(xr23c23.xcore.m) AT=144.5u
+meas tran m_n23 FIND v(xr24c23.xcore.m) AT=144.5u
+meas tran m_x23 FIND v(xr24c24.xcore.m) AT=144.5u
+meas tran m_p23 FIND v(xr22c22.xcore.m) AT=144.5u
+meas tran smin_d23 MIN v(diff) FROM=141.2u TO=142.2u
+meas tran ix_d23 AVG i(Vixa23) FROM=142.2u TO=142.8u
+meas tran iy_d23 AVG i(Viya23) FROM=142.2u TO=142.8u
+meas tran m_d24 FIND v(xr24c24.xcore.m) AT=150.5u
+meas tran m_n24 FIND v(xr25c24.xcore.m) AT=150.5u
+meas tran m_x24 FIND v(xr25c25.xcore.m) AT=150.5u
+meas tran m_p24 FIND v(xr23c23.xcore.m) AT=150.5u
+meas tran smin_d24 MIN v(diff) FROM=147.2u TO=148.2u
+meas tran ix_d24 AVG i(Vixa24) FROM=148.2u TO=148.8u
+meas tran iy_d24 AVG i(Viya24) FROM=148.2u TO=148.8u
+meas tran m_d25 FIND v(xr25c25.xcore.m) AT=156.5u
+meas tran m_n25 FIND v(xr26c25.xcore.m) AT=156.5u
+meas tran m_x25 FIND v(xr26c26.xcore.m) AT=156.5u
+meas tran m_p25 FIND v(xr24c24.xcore.m) AT=156.5u
+meas tran smin_d25 MIN v(diff) FROM=153.2u TO=154.2u
+meas tran ix_d25 AVG i(Vixa25) FROM=154.2u TO=154.8u
+meas tran iy_d25 AVG i(Viya25) FROM=154.2u TO=154.8u
+meas tran m_d26 FIND v(xr26c26.xcore.m) AT=162.5u
+meas tran m_n26 FIND v(xr27c26.xcore.m) AT=162.5u
+meas tran m_x26 FIND v(xr27c27.xcore.m) AT=162.5u
+meas tran m_p26 FIND v(xr25c25.xcore.m) AT=162.5u
+meas tran smin_d26 MIN v(diff) FROM=159.2u TO=160.2u
+meas tran ix_d26 AVG i(Vixa26) FROM=160.2u TO=160.8u
+meas tran iy_d26 AVG i(Viya26) FROM=160.2u TO=160.8u
+meas tran m_d27 FIND v(xr27c27.xcore.m) AT=168.5u
+meas tran m_n27 FIND v(xr28c27.xcore.m) AT=168.5u
+meas tran m_x27 FIND v(xr28c28.xcore.m) AT=168.5u
+meas tran m_p27 FIND v(xr26c26.xcore.m) AT=168.5u
+meas tran smin_d27 MIN v(diff) FROM=165.2u TO=166.2u
+meas tran ix_d27 AVG i(Vixa27) FROM=166.2u TO=166.8u
+meas tran iy_d27 AVG i(Viya27) FROM=166.2u TO=166.8u
+meas tran m_d28 FIND v(xr28c28.xcore.m) AT=174.5u
+meas tran m_n28 FIND v(xr29c28.xcore.m) AT=174.5u
+meas tran m_x28 FIND v(xr29c29.xcore.m) AT=174.5u
+meas tran m_p28 FIND v(xr27c27.xcore.m) AT=174.5u
+meas tran smin_d28 MIN v(diff) FROM=171.2u TO=172.2u
+meas tran ix_d28 AVG i(Vixa28) FROM=172.2u TO=172.8u
+meas tran iy_d28 AVG i(Viya28) FROM=172.2u TO=172.8u
+meas tran m_d29 FIND v(xr29c29.xcore.m) AT=180.5u
+meas tran m_n29 FIND v(xr30c29.xcore.m) AT=180.5u
+meas tran m_x29 FIND v(xr30c30.xcore.m) AT=180.5u
+meas tran m_p29 FIND v(xr28c28.xcore.m) AT=180.5u
+meas tran smin_d29 MIN v(diff) FROM=177.2u TO=178.2u
+meas tran ix_d29 AVG i(Vixa29) FROM=178.2u TO=178.8u
+meas tran iy_d29 AVG i(Viya29) FROM=178.2u TO=178.8u
+meas tran m_d30 FIND v(xr30c30.xcore.m) AT=186.5u
+meas tran m_n30 FIND v(xr31c30.xcore.m) AT=186.5u
+meas tran m_x30 FIND v(xr31c31.xcore.m) AT=186.5u
+meas tran m_p30 FIND v(xr29c29.xcore.m) AT=186.5u
+meas tran smin_d30 MIN v(diff) FROM=183.2u TO=184.2u
+meas tran ix_d30 AVG i(Vixa30) FROM=184.2u TO=184.8u
+meas tran iy_d30 AVG i(Viya30) FROM=184.2u TO=184.8u
+meas tran m_d31 FIND v(xr31c31.xcore.m) AT=192.5u
+meas tran m_n31 FIND v(xr32c31.xcore.m) AT=192.5u
+meas tran m_x31 FIND v(xr32c32.xcore.m) AT=192.5u
+meas tran m_p31 FIND v(xr30c30.xcore.m) AT=192.5u
+meas tran smin_d31 MIN v(diff) FROM=189.2u TO=190.2u
+meas tran ix_d31 AVG i(Vixa31) FROM=190.2u TO=190.8u
+meas tran iy_d31 AVG i(Viya31) FROM=190.2u TO=190.8u
+meas tran m_d32 FIND v(xr32c32.xcore.m) AT=198.5u
+meas tran m_n32 FIND v(xr33c32.xcore.m) AT=198.5u
+meas tran m_x32 FIND v(xr33c33.xcore.m) AT=198.5u
+meas tran m_p32 FIND v(xr31c31.xcore.m) AT=198.5u
+meas tran smin_d32 MIN v(diff) FROM=195.2u TO=196.2u
+meas tran ix_d32 AVG i(Vixa32) FROM=196.2u TO=196.8u
+meas tran iy_d32 AVG i(Viya32) FROM=196.2u TO=196.8u
+meas tran m_d33 FIND v(xr33c33.xcore.m) AT=204.5u
+meas tran m_n33 FIND v(xr34c33.xcore.m) AT=204.5u
+meas tran m_x33 FIND v(xr34c34.xcore.m) AT=204.5u
+meas tran m_p33 FIND v(xr32c32.xcore.m) AT=204.5u
+meas tran smin_d33 MIN v(diff) FROM=201.2u TO=202.2u
+meas tran ix_d33 AVG i(Vixa33) FROM=202.2u TO=202.8u
+meas tran iy_d33 AVG i(Viya33) FROM=202.2u TO=202.8u
+meas tran m_d34 FIND v(xr34c34.xcore.m) AT=210.5u
+meas tran m_n34 FIND v(xr35c34.xcore.m) AT=210.5u
+meas tran m_x34 FIND v(xr35c35.xcore.m) AT=210.5u
+meas tran m_p34 FIND v(xr33c33.xcore.m) AT=210.5u
+meas tran smin_d34 MIN v(diff) FROM=207.2u TO=208.2u
+meas tran ix_d34 AVG i(Vixa34) FROM=208.2u TO=208.8u
+meas tran iy_d34 AVG i(Viya34) FROM=208.2u TO=208.8u
+meas tran m_d35 FIND v(xr35c35.xcore.m) AT=216.5u
+meas tran m_n35 FIND v(xr36c35.xcore.m) AT=216.5u
+meas tran m_x35 FIND v(xr36c36.xcore.m) AT=216.5u
+meas tran m_p35 FIND v(xr34c34.xcore.m) AT=216.5u
+meas tran smin_d35 MIN v(diff) FROM=213.2u TO=214.2u
+meas tran ix_d35 AVG i(Vixa35) FROM=214.2u TO=214.8u
+meas tran iy_d35 AVG i(Viya35) FROM=214.2u TO=214.8u
+meas tran m_d36 FIND v(xr36c36.xcore.m) AT=222.5u
+meas tran m_n36 FIND v(xr37c36.xcore.m) AT=222.5u
+meas tran m_x36 FIND v(xr37c37.xcore.m) AT=222.5u
+meas tran m_p36 FIND v(xr35c35.xcore.m) AT=222.5u
+meas tran smin_d36 MIN v(diff) FROM=219.2u TO=220.2u
+meas tran ix_d36 AVG i(Vixa36) FROM=220.2u TO=220.8u
+meas tran iy_d36 AVG i(Viya36) FROM=220.2u TO=220.8u
+meas tran m_d37 FIND v(xr37c37.xcore.m) AT=228.5u
+meas tran m_n37 FIND v(xr38c37.xcore.m) AT=228.5u
+meas tran m_x37 FIND v(xr38c38.xcore.m) AT=228.5u
+meas tran m_p37 FIND v(xr36c36.xcore.m) AT=228.5u
+meas tran smin_d37 MIN v(diff) FROM=225.2u TO=226.2u
+meas tran ix_d37 AVG i(Vixa37) FROM=226.2u TO=226.8u
+meas tran iy_d37 AVG i(Viya37) FROM=226.2u TO=226.8u
+meas tran m_d38 FIND v(xr38c38.xcore.m) AT=234.5u
+meas tran m_n38 FIND v(xr39c38.xcore.m) AT=234.5u
+meas tran m_x38 FIND v(xr39c39.xcore.m) AT=234.5u
+meas tran m_p38 FIND v(xr37c37.xcore.m) AT=234.5u
+meas tran smin_d38 MIN v(diff) FROM=231.2u TO=232.2u
+meas tran ix_d38 AVG i(Vixa38) FROM=232.2u TO=232.8u
+meas tran iy_d38 AVG i(Viya38) FROM=232.2u TO=232.8u
+meas tran m_d39 FIND v(xr39c39.xcore.m) AT=240.5u
+meas tran m_n39 FIND v(xr40c39.xcore.m) AT=240.5u
+meas tran m_x39 FIND v(xr40c40.xcore.m) AT=240.5u
+meas tran m_p39 FIND v(xr38c38.xcore.m) AT=240.5u
+meas tran smin_d39 MIN v(diff) FROM=237.2u TO=238.2u
+meas tran ix_d39 AVG i(Vixa39) FROM=238.2u TO=238.8u
+meas tran iy_d39 AVG i(Viya39) FROM=238.2u TO=238.8u
+meas tran m_d40 FIND v(xr40c40.xcore.m) AT=246.5u
+meas tran m_n40 FIND v(xr41c40.xcore.m) AT=246.5u
+meas tran m_x40 FIND v(xr41c41.xcore.m) AT=246.5u
+meas tran m_p40 FIND v(xr39c39.xcore.m) AT=246.5u
+meas tran smin_d40 MIN v(diff) FROM=243.2u TO=244.2u
+meas tran ix_d40 AVG i(Vixa40) FROM=244.2u TO=244.8u
+meas tran iy_d40 AVG i(Viya40) FROM=244.2u TO=244.8u
+meas tran m_d41 FIND v(xr41c41.xcore.m) AT=252.5u
+meas tran m_n41 FIND v(xr42c41.xcore.m) AT=252.5u
+meas tran m_x41 FIND v(xr42c42.xcore.m) AT=252.5u
+meas tran m_p41 FIND v(xr40c40.xcore.m) AT=252.5u
+meas tran smin_d41 MIN v(diff) FROM=249.2u TO=250.2u
+meas tran ix_d41 AVG i(Vixa41) FROM=250.2u TO=250.8u
+meas tran iy_d41 AVG i(Viya41) FROM=250.2u TO=250.8u
+meas tran m_d42 FIND v(xr42c42.xcore.m) AT=258.5u
+meas tran m_n42 FIND v(xr43c42.xcore.m) AT=258.5u
+meas tran m_x42 FIND v(xr43c43.xcore.m) AT=258.5u
+meas tran m_p42 FIND v(xr41c41.xcore.m) AT=258.5u
+meas tran smin_d42 MIN v(diff) FROM=255.2u TO=256.2u
+meas tran ix_d42 AVG i(Vixa42) FROM=256.2u TO=256.8u
+meas tran iy_d42 AVG i(Viya42) FROM=256.2u TO=256.8u
+meas tran m_d43 FIND v(xr43c43.xcore.m) AT=264.5u
+meas tran m_n43 FIND v(xr44c43.xcore.m) AT=264.5u
+meas tran m_x43 FIND v(xr44c44.xcore.m) AT=264.5u
+meas tran m_p43 FIND v(xr42c42.xcore.m) AT=264.5u
+meas tran smin_d43 MIN v(diff) FROM=261.2u TO=262.2u
+meas tran ix_d43 AVG i(Vixa43) FROM=262.2u TO=262.8u
+meas tran iy_d43 AVG i(Viya43) FROM=262.2u TO=262.8u
+meas tran m_d44 FIND v(xr44c44.xcore.m) AT=270.5u
+meas tran m_n44 FIND v(xr45c44.xcore.m) AT=270.5u
+meas tran m_x44 FIND v(xr45c45.xcore.m) AT=270.5u
+meas tran m_p44 FIND v(xr43c43.xcore.m) AT=270.5u
+meas tran smin_d44 MIN v(diff) FROM=267.2u TO=268.2u
+meas tran ix_d44 AVG i(Vixa44) FROM=268.2u TO=268.8u
+meas tran iy_d44 AVG i(Viya44) FROM=268.2u TO=268.8u
+meas tran m_d45 FIND v(xr45c45.xcore.m) AT=276.5u
+meas tran m_n45 FIND v(xr46c45.xcore.m) AT=276.5u
+meas tran m_x45 FIND v(xr46c46.xcore.m) AT=276.5u
+meas tran m_p45 FIND v(xr44c44.xcore.m) AT=276.5u
+meas tran smin_d45 MIN v(diff) FROM=273.2u TO=274.2u
+meas tran ix_d45 AVG i(Vixa45) FROM=274.2u TO=274.8u
+meas tran iy_d45 AVG i(Viya45) FROM=274.2u TO=274.8u
+meas tran m_d46 FIND v(xr46c46.xcore.m) AT=282.5u
+meas tran m_n46 FIND v(xr47c46.xcore.m) AT=282.5u
+meas tran m_x46 FIND v(xr47c47.xcore.m) AT=282.5u
+meas tran m_p46 FIND v(xr45c45.xcore.m) AT=282.5u
+meas tran smin_d46 MIN v(diff) FROM=279.2u TO=280.2u
+meas tran ix_d46 AVG i(Vixa46) FROM=280.2u TO=280.8u
+meas tran iy_d46 AVG i(Viya46) FROM=280.2u TO=280.8u
+meas tran m_d47 FIND v(xr47c47.xcore.m) AT=288.5u
+meas tran m_n47 FIND v(xr48c47.xcore.m) AT=288.5u
+meas tran m_x47 FIND v(xr48c48.xcore.m) AT=288.5u
+meas tran m_p47 FIND v(xr46c46.xcore.m) AT=288.5u
+meas tran smin_d47 MIN v(diff) FROM=285.2u TO=286.2u
+meas tran ix_d47 AVG i(Vixa47) FROM=286.2u TO=286.8u
+meas tran iy_d47 AVG i(Viya47) FROM=286.2u TO=286.8u
+meas tran m_d48 FIND v(xr48c48.xcore.m) AT=294.5u
+meas tran m_n48 FIND v(xr49c48.xcore.m) AT=294.5u
+meas tran m_x48 FIND v(xr49c49.xcore.m) AT=294.5u
+meas tran m_p48 FIND v(xr47c47.xcore.m) AT=294.5u
+meas tran smin_d48 MIN v(diff) FROM=291.2u TO=292.2u
+meas tran ix_d48 AVG i(Vixa48) FROM=292.2u TO=292.8u
+meas tran iy_d48 AVG i(Viya48) FROM=292.2u TO=292.8u
+meas tran m_d49 FIND v(xr49c49.xcore.m) AT=300.5u
+meas tran m_n49 FIND v(xr50c49.xcore.m) AT=300.5u
+meas tran m_x49 FIND v(xr50c50.xcore.m) AT=300.5u
+meas tran m_p49 FIND v(xr48c48.xcore.m) AT=300.5u
+meas tran smin_d49 MIN v(diff) FROM=297.2u TO=298.2u
+meas tran ix_d49 AVG i(Vixa49) FROM=298.2u TO=298.8u
+meas tran iy_d49 AVG i(Viya49) FROM=298.2u TO=298.8u
+meas tran m_d50 FIND v(xr50c50.xcore.m) AT=306.5u
+meas tran m_n50 FIND v(xr51c50.xcore.m) AT=306.5u
+meas tran m_x50 FIND v(xr51c51.xcore.m) AT=306.5u
+meas tran m_p50 FIND v(xr49c49.xcore.m) AT=306.5u
+meas tran smin_d50 MIN v(diff) FROM=303.2u TO=304.2u
+meas tran ix_d50 AVG i(Vixa50) FROM=304.2u TO=304.8u
+meas tran iy_d50 AVG i(Viya50) FROM=304.2u TO=304.8u
+meas tran m_d51 FIND v(xr51c51.xcore.m) AT=312.5u
+meas tran m_n51 FIND v(xr52c51.xcore.m) AT=312.5u
+meas tran m_x51 FIND v(xr52c52.xcore.m) AT=312.5u
+meas tran m_p51 FIND v(xr50c50.xcore.m) AT=312.5u
+meas tran smin_d51 MIN v(diff) FROM=309.2u TO=310.2u
+meas tran ix_d51 AVG i(Vixa51) FROM=310.2u TO=310.8u
+meas tran iy_d51 AVG i(Viya51) FROM=310.2u TO=310.8u
+meas tran m_d52 FIND v(xr52c52.xcore.m) AT=318.5u
+meas tran m_n52 FIND v(xr53c52.xcore.m) AT=318.5u
+meas tran m_x52 FIND v(xr53c53.xcore.m) AT=318.5u
+meas tran m_p52 FIND v(xr51c51.xcore.m) AT=318.5u
+meas tran smin_d52 MIN v(diff) FROM=315.2u TO=316.2u
+meas tran ix_d52 AVG i(Vixa52) FROM=316.2u TO=316.8u
+meas tran iy_d52 AVG i(Viya52) FROM=316.2u TO=316.8u
+meas tran m_d53 FIND v(xr53c53.xcore.m) AT=324.5u
+meas tran m_n53 FIND v(xr54c53.xcore.m) AT=324.5u
+meas tran m_x53 FIND v(xr54c54.xcore.m) AT=324.5u
+meas tran m_p53 FIND v(xr52c52.xcore.m) AT=324.5u
+meas tran smin_d53 MIN v(diff) FROM=321.2u TO=322.2u
+meas tran ix_d53 AVG i(Vixa53) FROM=322.2u TO=322.8u
+meas tran iy_d53 AVG i(Viya53) FROM=322.2u TO=322.8u
+meas tran m_d54 FIND v(xr54c54.xcore.m) AT=330.5u
+meas tran m_n54 FIND v(xr55c54.xcore.m) AT=330.5u
+meas tran m_x54 FIND v(xr55c55.xcore.m) AT=330.5u
+meas tran m_p54 FIND v(xr53c53.xcore.m) AT=330.5u
+meas tran smin_d54 MIN v(diff) FROM=327.2u TO=328.2u
+meas tran ix_d54 AVG i(Vixa54) FROM=328.2u TO=328.8u
+meas tran iy_d54 AVG i(Viya54) FROM=328.2u TO=328.8u
+meas tran m_d55 FIND v(xr55c55.xcore.m) AT=336.5u
+meas tran m_n55 FIND v(xr56c55.xcore.m) AT=336.5u
+meas tran m_x55 FIND v(xr56c56.xcore.m) AT=336.5u
+meas tran m_p55 FIND v(xr54c54.xcore.m) AT=336.5u
+meas tran smin_d55 MIN v(diff) FROM=333.2u TO=334.2u
+meas tran ix_d55 AVG i(Vixa55) FROM=334.2u TO=334.8u
+meas tran iy_d55 AVG i(Viya55) FROM=334.2u TO=334.8u
+meas tran m_d56 FIND v(xr56c56.xcore.m) AT=342.5u
+meas tran m_n56 FIND v(xr57c56.xcore.m) AT=342.5u
+meas tran m_x56 FIND v(xr57c57.xcore.m) AT=342.5u
+meas tran m_p56 FIND v(xr55c55.xcore.m) AT=342.5u
+meas tran smin_d56 MIN v(diff) FROM=339.2u TO=340.2u
+meas tran ix_d56 AVG i(Vixa56) FROM=340.2u TO=340.8u
+meas tran iy_d56 AVG i(Viya56) FROM=340.2u TO=340.8u
+meas tran m_d57 FIND v(xr57c57.xcore.m) AT=348.5u
+meas tran m_n57 FIND v(xr58c57.xcore.m) AT=348.5u
+meas tran m_x57 FIND v(xr58c58.xcore.m) AT=348.5u
+meas tran m_p57 FIND v(xr56c56.xcore.m) AT=348.5u
+meas tran smin_d57 MIN v(diff) FROM=345.2u TO=346.2u
+meas tran ix_d57 AVG i(Vixa57) FROM=346.2u TO=346.8u
+meas tran iy_d57 AVG i(Viya57) FROM=346.2u TO=346.8u
+meas tran m_d58 FIND v(xr58c58.xcore.m) AT=354.5u
+meas tran m_n58 FIND v(xr59c58.xcore.m) AT=354.5u
+meas tran m_x58 FIND v(xr59c59.xcore.m) AT=354.5u
+meas tran m_p58 FIND v(xr57c57.xcore.m) AT=354.5u
+meas tran smin_d58 MIN v(diff) FROM=351.2u TO=352.2u
+meas tran ix_d58 AVG i(Vixa58) FROM=352.2u TO=352.8u
+meas tran iy_d58 AVG i(Viya58) FROM=352.2u TO=352.8u
+meas tran m_d59 FIND v(xr59c59.xcore.m) AT=360.5u
+meas tran m_n59 FIND v(xr60c59.xcore.m) AT=360.5u
+meas tran m_x59 FIND v(xr60c60.xcore.m) AT=360.5u
+meas tran m_p59 FIND v(xr58c58.xcore.m) AT=360.5u
+meas tran smin_d59 MIN v(diff) FROM=357.2u TO=358.2u
+meas tran ix_d59 AVG i(Vixa59) FROM=358.2u TO=358.8u
+meas tran iy_d59 AVG i(Viya59) FROM=358.2u TO=358.8u
+meas tran m_d60 FIND v(xr60c60.xcore.m) AT=366.5u
+meas tran m_n60 FIND v(xr61c60.xcore.m) AT=366.5u
+meas tran m_x60 FIND v(xr61c61.xcore.m) AT=366.5u
+meas tran m_p60 FIND v(xr59c59.xcore.m) AT=366.5u
+meas tran smin_d60 MIN v(diff) FROM=363.2u TO=364.2u
+meas tran ix_d60 AVG i(Vixa60) FROM=364.2u TO=364.8u
+meas tran iy_d60 AVG i(Viya60) FROM=364.2u TO=364.8u
+meas tran m_d61 FIND v(xr61c61.xcore.m) AT=372.5u
+meas tran m_n61 FIND v(xr62c61.xcore.m) AT=372.5u
+meas tran m_x61 FIND v(xr62c62.xcore.m) AT=372.5u
+meas tran m_p61 FIND v(xr60c60.xcore.m) AT=372.5u
+meas tran smin_d61 MIN v(diff) FROM=369.2u TO=370.2u
+meas tran ix_d61 AVG i(Vixa61) FROM=370.2u TO=370.8u
+meas tran iy_d61 AVG i(Viya61) FROM=370.2u TO=370.8u
+meas tran m_d62 FIND v(xr62c62.xcore.m) AT=378.5u
+meas tran m_n62 FIND v(xr63c62.xcore.m) AT=378.5u
+meas tran m_x62 FIND v(xr63c63.xcore.m) AT=378.5u
+meas tran m_p62 FIND v(xr61c61.xcore.m) AT=378.5u
+meas tran smin_d62 MIN v(diff) FROM=375.2u TO=376.2u
+meas tran ix_d62 AVG i(Vixa62) FROM=376.2u TO=376.8u
+meas tran iy_d62 AVG i(Viya62) FROM=376.2u TO=376.8u
+meas tran m_d63 FIND v(xr63c63.xcore.m) AT=384.5u
+meas tran m_n63 FIND v(xr62c63.xcore.m) AT=384.5u
+meas tran m_p63 FIND v(xr62c62.xcore.m) AT=384.5u
+meas tran smin_d63 MIN v(diff) FROM=381.2u TO=382.2u
+meas tran ix_d63 AVG i(Vixa63) FROM=382.2u TO=382.8u
+meas tran iy_d63 AVG i(Viya63) FROM=382.2u TO=382.8u
+
+let fail = 0
+if m_d0 < 0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 did not set the addressed core
+end
+if m_n0 > -0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 flipped half-select X0/Y1
+end
+if m_x0 > -0.9
+  let fail = 1
+  echo FAIL X0/Y0 write 1 flipped X1/Y1
+end
+if smin_d0 > -15m
+  let fail = 1
+  echo FAIL X0/Y0 sense plateau above -15 mV
+end
+if smin_d0 < -80m
+  let fail = 1
+  echo FAIL X0/Y0 sense plateau below -80 mV
+end
+if ix_d0 < 0.34
+  let fail = 1
+  echo FAIL X0/Y0 X current low
+end
+if ix_d0 > 0.46
+  let fail = 1
+  echo FAIL X0/Y0 X current high
+end
+if iy_d0 < 0.34
+  let fail = 1
+  echo FAIL X0/Y0 Y current low
+end
+if iy_d0 > 0.46
+  let fail = 1
+  echo FAIL X0/Y0 Y current high
+end
+if m_d1 < 0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 did not set the addressed core
+end
+if m_n1 > -0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 flipped half-select X1/Y2
+end
+if m_x1 > -0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 flipped X2/Y2
+end
+if m_p1 < 0.9
+  let fail = 1
+  echo FAIL X1/Y1 write 1 disturbed X0/Y0
+end
+if smin_d1 > -15m
+  let fail = 1
+  echo FAIL X1/Y1 sense plateau above -15 mV
+end
+if smin_d1 < -80m
+  let fail = 1
+  echo FAIL X1/Y1 sense plateau below -80 mV
+end
+if ix_d1 < 0.34
+  let fail = 1
+  echo FAIL X1/Y1 X current low
+end
+if ix_d1 > 0.46
+  let fail = 1
+  echo FAIL X1/Y1 X current high
+end
+if iy_d1 < 0.34
+  let fail = 1
+  echo FAIL X1/Y1 Y current low
+end
+if iy_d1 > 0.46
+  let fail = 1
+  echo FAIL X1/Y1 Y current high
+end
+if m_d2 < 0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 did not set the addressed core
+end
+if m_n2 > -0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 flipped half-select X2/Y3
+end
+if m_x2 > -0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 flipped X3/Y3
+end
+if m_p2 < 0.9
+  let fail = 1
+  echo FAIL X2/Y2 write 1 disturbed X1/Y1
+end
+if smin_d2 > -15m
+  let fail = 1
+  echo FAIL X2/Y2 sense plateau above -15 mV
+end
+if smin_d2 < -80m
+  let fail = 1
+  echo FAIL X2/Y2 sense plateau below -80 mV
+end
+if ix_d2 < 0.34
+  let fail = 1
+  echo FAIL X2/Y2 X current low
+end
+if ix_d2 > 0.46
+  let fail = 1
+  echo FAIL X2/Y2 X current high
+end
+if iy_d2 < 0.34
+  let fail = 1
+  echo FAIL X2/Y2 Y current low
+end
+if iy_d2 > 0.46
+  let fail = 1
+  echo FAIL X2/Y2 Y current high
+end
+if m_d3 < 0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 did not set the addressed core
+end
+if m_n3 > -0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 flipped half-select X3/Y4
+end
+if m_x3 > -0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 flipped X4/Y4
+end
+if m_p3 < 0.9
+  let fail = 1
+  echo FAIL X3/Y3 write 1 disturbed X2/Y2
+end
+if smin_d3 > -15m
+  let fail = 1
+  echo FAIL X3/Y3 sense plateau above -15 mV
+end
+if smin_d3 < -80m
+  let fail = 1
+  echo FAIL X3/Y3 sense plateau below -80 mV
+end
+if ix_d3 < 0.34
+  let fail = 1
+  echo FAIL X3/Y3 X current low
+end
+if ix_d3 > 0.46
+  let fail = 1
+  echo FAIL X3/Y3 X current high
+end
+if iy_d3 < 0.34
+  let fail = 1
+  echo FAIL X3/Y3 Y current low
+end
+if iy_d3 > 0.46
+  let fail = 1
+  echo FAIL X3/Y3 Y current high
+end
+if m_d4 < 0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 did not set the addressed core
+end
+if m_n4 > -0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 flipped half-select X4/Y5
+end
+if m_x4 > -0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 flipped X5/Y5
+end
+if m_p4 < 0.9
+  let fail = 1
+  echo FAIL X4/Y4 write 1 disturbed X3/Y3
+end
+if smin_d4 > -15m
+  let fail = 1
+  echo FAIL X4/Y4 sense plateau above -15 mV
+end
+if smin_d4 < -80m
+  let fail = 1
+  echo FAIL X4/Y4 sense plateau below -80 mV
+end
+if ix_d4 < 0.34
+  let fail = 1
+  echo FAIL X4/Y4 X current low
+end
+if ix_d4 > 0.46
+  let fail = 1
+  echo FAIL X4/Y4 X current high
+end
+if iy_d4 < 0.34
+  let fail = 1
+  echo FAIL X4/Y4 Y current low
+end
+if iy_d4 > 0.46
+  let fail = 1
+  echo FAIL X4/Y4 Y current high
+end
+if m_d5 < 0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 did not set the addressed core
+end
+if m_n5 > -0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 flipped half-select X5/Y6
+end
+if m_x5 > -0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 flipped X6/Y6
+end
+if m_p5 < 0.9
+  let fail = 1
+  echo FAIL X5/Y5 write 1 disturbed X4/Y4
+end
+if smin_d5 > -15m
+  let fail = 1
+  echo FAIL X5/Y5 sense plateau above -15 mV
+end
+if smin_d5 < -80m
+  let fail = 1
+  echo FAIL X5/Y5 sense plateau below -80 mV
+end
+if ix_d5 < 0.34
+  let fail = 1
+  echo FAIL X5/Y5 X current low
+end
+if ix_d5 > 0.46
+  let fail = 1
+  echo FAIL X5/Y5 X current high
+end
+if iy_d5 < 0.34
+  let fail = 1
+  echo FAIL X5/Y5 Y current low
+end
+if iy_d5 > 0.46
+  let fail = 1
+  echo FAIL X5/Y5 Y current high
+end
+if m_d6 < 0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 did not set the addressed core
+end
+if m_n6 > -0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 flipped half-select X6/Y7
+end
+if m_x6 > -0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 flipped X7/Y7
+end
+if m_p6 < 0.9
+  let fail = 1
+  echo FAIL X6/Y6 write 1 disturbed X5/Y5
+end
+if smin_d6 > -15m
+  let fail = 1
+  echo FAIL X6/Y6 sense plateau above -15 mV
+end
+if smin_d6 < -80m
+  let fail = 1
+  echo FAIL X6/Y6 sense plateau below -80 mV
+end
+if ix_d6 < 0.34
+  let fail = 1
+  echo FAIL X6/Y6 X current low
+end
+if ix_d6 > 0.46
+  let fail = 1
+  echo FAIL X6/Y6 X current high
+end
+if iy_d6 < 0.34
+  let fail = 1
+  echo FAIL X6/Y6 Y current low
+end
+if iy_d6 > 0.46
+  let fail = 1
+  echo FAIL X6/Y6 Y current high
+end
+if m_d7 < 0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 did not set the addressed core
+end
+if m_n7 > -0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 flipped half-select X7/Y8
+end
+if m_x7 > -0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 flipped X8/Y8
+end
+if m_p7 < 0.9
+  let fail = 1
+  echo FAIL X7/Y7 write 1 disturbed X6/Y6
+end
+if smin_d7 > -15m
+  let fail = 1
+  echo FAIL X7/Y7 sense plateau above -15 mV
+end
+if smin_d7 < -80m
+  let fail = 1
+  echo FAIL X7/Y7 sense plateau below -80 mV
+end
+if ix_d7 < 0.34
+  let fail = 1
+  echo FAIL X7/Y7 X current low
+end
+if ix_d7 > 0.46
+  let fail = 1
+  echo FAIL X7/Y7 X current high
+end
+if iy_d7 < 0.34
+  let fail = 1
+  echo FAIL X7/Y7 Y current low
+end
+if iy_d7 > 0.46
+  let fail = 1
+  echo FAIL X7/Y7 Y current high
+end
+if m_d8 < 0.9
+  let fail = 1
+  echo FAIL X8/Y8 write 1 did not set the addressed core
+end
+if m_n8 > -0.9
+  let fail = 1
+  echo FAIL X8/Y8 write 1 flipped half-select X8/Y9
+end
+if m_x8 > -0.9
+  let fail = 1
+  echo FAIL X8/Y8 write 1 flipped X9/Y9
+end
+if m_p8 < 0.9
+  let fail = 1
+  echo FAIL X8/Y8 write 1 disturbed X7/Y7
+end
+if smin_d8 > -15m
+  let fail = 1
+  echo FAIL X8/Y8 sense plateau above -15 mV
+end
+if smin_d8 < -80m
+  let fail = 1
+  echo FAIL X8/Y8 sense plateau below -80 mV
+end
+if ix_d8 < 0.34
+  let fail = 1
+  echo FAIL X8/Y8 X current low
+end
+if ix_d8 > 0.46
+  let fail = 1
+  echo FAIL X8/Y8 X current high
+end
+if iy_d8 < 0.34
+  let fail = 1
+  echo FAIL X8/Y8 Y current low
+end
+if iy_d8 > 0.46
+  let fail = 1
+  echo FAIL X8/Y8 Y current high
+end
+if m_d9 < 0.9
+  let fail = 1
+  echo FAIL X9/Y9 write 1 did not set the addressed core
+end
+if m_n9 > -0.9
+  let fail = 1
+  echo FAIL X9/Y9 write 1 flipped half-select X9/Y10
+end
+if m_x9 > -0.9
+  let fail = 1
+  echo FAIL X9/Y9 write 1 flipped X10/Y10
+end
+if m_p9 < 0.9
+  let fail = 1
+  echo FAIL X9/Y9 write 1 disturbed X8/Y8
+end
+if smin_d9 > -15m
+  let fail = 1
+  echo FAIL X9/Y9 sense plateau above -15 mV
+end
+if smin_d9 < -80m
+  let fail = 1
+  echo FAIL X9/Y9 sense plateau below -80 mV
+end
+if ix_d9 < 0.34
+  let fail = 1
+  echo FAIL X9/Y9 X current low
+end
+if ix_d9 > 0.46
+  let fail = 1
+  echo FAIL X9/Y9 X current high
+end
+if iy_d9 < 0.34
+  let fail = 1
+  echo FAIL X9/Y9 Y current low
+end
+if iy_d9 > 0.46
+  let fail = 1
+  echo FAIL X9/Y9 Y current high
+end
+if m_d10 < 0.9
+  let fail = 1
+  echo FAIL X10/Y10 write 1 did not set the addressed core
+end
+if m_n10 > -0.9
+  let fail = 1
+  echo FAIL X10/Y10 write 1 flipped half-select X10/Y11
+end
+if m_x10 > -0.9
+  let fail = 1
+  echo FAIL X10/Y10 write 1 flipped X11/Y11
+end
+if m_p10 < 0.9
+  let fail = 1
+  echo FAIL X10/Y10 write 1 disturbed X9/Y9
+end
+if smin_d10 > -15m
+  let fail = 1
+  echo FAIL X10/Y10 sense plateau above -15 mV
+end
+if smin_d10 < -80m
+  let fail = 1
+  echo FAIL X10/Y10 sense plateau below -80 mV
+end
+if ix_d10 < 0.34
+  let fail = 1
+  echo FAIL X10/Y10 X current low
+end
+if ix_d10 > 0.46
+  let fail = 1
+  echo FAIL X10/Y10 X current high
+end
+if iy_d10 < 0.34
+  let fail = 1
+  echo FAIL X10/Y10 Y current low
+end
+if iy_d10 > 0.46
+  let fail = 1
+  echo FAIL X10/Y10 Y current high
+end
+if m_d11 < 0.9
+  let fail = 1
+  echo FAIL X11/Y11 write 1 did not set the addressed core
+end
+if m_n11 > -0.9
+  let fail = 1
+  echo FAIL X11/Y11 write 1 flipped half-select X11/Y12
+end
+if m_x11 > -0.9
+  let fail = 1
+  echo FAIL X11/Y11 write 1 flipped X12/Y12
+end
+if m_p11 < 0.9
+  let fail = 1
+  echo FAIL X11/Y11 write 1 disturbed X10/Y10
+end
+if smin_d11 > -15m
+  let fail = 1
+  echo FAIL X11/Y11 sense plateau above -15 mV
+end
+if smin_d11 < -80m
+  let fail = 1
+  echo FAIL X11/Y11 sense plateau below -80 mV
+end
+if ix_d11 < 0.34
+  let fail = 1
+  echo FAIL X11/Y11 X current low
+end
+if ix_d11 > 0.46
+  let fail = 1
+  echo FAIL X11/Y11 X current high
+end
+if iy_d11 < 0.34
+  let fail = 1
+  echo FAIL X11/Y11 Y current low
+end
+if iy_d11 > 0.46
+  let fail = 1
+  echo FAIL X11/Y11 Y current high
+end
+if m_d12 < 0.9
+  let fail = 1
+  echo FAIL X12/Y12 write 1 did not set the addressed core
+end
+if m_n12 > -0.9
+  let fail = 1
+  echo FAIL X12/Y12 write 1 flipped half-select X12/Y13
+end
+if m_x12 > -0.9
+  let fail = 1
+  echo FAIL X12/Y12 write 1 flipped X13/Y13
+end
+if m_p12 < 0.9
+  let fail = 1
+  echo FAIL X12/Y12 write 1 disturbed X11/Y11
+end
+if smin_d12 > -15m
+  let fail = 1
+  echo FAIL X12/Y12 sense plateau above -15 mV
+end
+if smin_d12 < -80m
+  let fail = 1
+  echo FAIL X12/Y12 sense plateau below -80 mV
+end
+if ix_d12 < 0.34
+  let fail = 1
+  echo FAIL X12/Y12 X current low
+end
+if ix_d12 > 0.46
+  let fail = 1
+  echo FAIL X12/Y12 X current high
+end
+if iy_d12 < 0.34
+  let fail = 1
+  echo FAIL X12/Y12 Y current low
+end
+if iy_d12 > 0.46
+  let fail = 1
+  echo FAIL X12/Y12 Y current high
+end
+if m_d13 < 0.9
+  let fail = 1
+  echo FAIL X13/Y13 write 1 did not set the addressed core
+end
+if m_n13 > -0.9
+  let fail = 1
+  echo FAIL X13/Y13 write 1 flipped half-select X13/Y14
+end
+if m_x13 > -0.9
+  let fail = 1
+  echo FAIL X13/Y13 write 1 flipped X14/Y14
+end
+if m_p13 < 0.9
+  let fail = 1
+  echo FAIL X13/Y13 write 1 disturbed X12/Y12
+end
+if smin_d13 > -15m
+  let fail = 1
+  echo FAIL X13/Y13 sense plateau above -15 mV
+end
+if smin_d13 < -80m
+  let fail = 1
+  echo FAIL X13/Y13 sense plateau below -80 mV
+end
+if ix_d13 < 0.34
+  let fail = 1
+  echo FAIL X13/Y13 X current low
+end
+if ix_d13 > 0.46
+  let fail = 1
+  echo FAIL X13/Y13 X current high
+end
+if iy_d13 < 0.34
+  let fail = 1
+  echo FAIL X13/Y13 Y current low
+end
+if iy_d13 > 0.46
+  let fail = 1
+  echo FAIL X13/Y13 Y current high
+end
+if m_d14 < 0.9
+  let fail = 1
+  echo FAIL X14/Y14 write 1 did not set the addressed core
+end
+if m_n14 > -0.9
+  let fail = 1
+  echo FAIL X14/Y14 write 1 flipped half-select X14/Y15
+end
+if m_x14 > -0.9
+  let fail = 1
+  echo FAIL X14/Y14 write 1 flipped X15/Y15
+end
+if m_p14 < 0.9
+  let fail = 1
+  echo FAIL X14/Y14 write 1 disturbed X13/Y13
+end
+if smin_d14 > -15m
+  let fail = 1
+  echo FAIL X14/Y14 sense plateau above -15 mV
+end
+if smin_d14 < -80m
+  let fail = 1
+  echo FAIL X14/Y14 sense plateau below -80 mV
+end
+if ix_d14 < 0.34
+  let fail = 1
+  echo FAIL X14/Y14 X current low
+end
+if ix_d14 > 0.46
+  let fail = 1
+  echo FAIL X14/Y14 X current high
+end
+if iy_d14 < 0.34
+  let fail = 1
+  echo FAIL X14/Y14 Y current low
+end
+if iy_d14 > 0.46
+  let fail = 1
+  echo FAIL X14/Y14 Y current high
+end
+if m_d15 < 0.9
+  let fail = 1
+  echo FAIL X15/Y15 write 1 did not set the addressed core
+end
+if m_n15 > -0.9
+  let fail = 1
+  echo FAIL X15/Y15 write 1 flipped half-select X15/Y16
+end
+if m_x15 > -0.9
+  let fail = 1
+  echo FAIL X15/Y15 write 1 flipped X16/Y16
+end
+if m_p15 < 0.9
+  let fail = 1
+  echo FAIL X15/Y15 write 1 disturbed X14/Y14
+end
+if smin_d15 > -15m
+  let fail = 1
+  echo FAIL X15/Y15 sense plateau above -15 mV
+end
+if smin_d15 < -80m
+  let fail = 1
+  echo FAIL X15/Y15 sense plateau below -80 mV
+end
+if ix_d15 < 0.34
+  let fail = 1
+  echo FAIL X15/Y15 X current low
+end
+if ix_d15 > 0.46
+  let fail = 1
+  echo FAIL X15/Y15 X current high
+end
+if iy_d15 < 0.34
+  let fail = 1
+  echo FAIL X15/Y15 Y current low
+end
+if iy_d15 > 0.46
+  let fail = 1
+  echo FAIL X15/Y15 Y current high
+end
+if m_d16 < 0.9
+  let fail = 1
+  echo FAIL X16/Y16 write 1 did not set the addressed core
+end
+if m_n16 > -0.9
+  let fail = 1
+  echo FAIL X16/Y16 write 1 flipped half-select X16/Y17
+end
+if m_x16 > -0.9
+  let fail = 1
+  echo FAIL X16/Y16 write 1 flipped X17/Y17
+end
+if m_p16 < 0.9
+  let fail = 1
+  echo FAIL X16/Y16 write 1 disturbed X15/Y15
+end
+if smin_d16 > -15m
+  let fail = 1
+  echo FAIL X16/Y16 sense plateau above -15 mV
+end
+if smin_d16 < -80m
+  let fail = 1
+  echo FAIL X16/Y16 sense plateau below -80 mV
+end
+if ix_d16 < 0.34
+  let fail = 1
+  echo FAIL X16/Y16 X current low
+end
+if ix_d16 > 0.46
+  let fail = 1
+  echo FAIL X16/Y16 X current high
+end
+if iy_d16 < 0.34
+  let fail = 1
+  echo FAIL X16/Y16 Y current low
+end
+if iy_d16 > 0.46
+  let fail = 1
+  echo FAIL X16/Y16 Y current high
+end
+if m_d17 < 0.9
+  let fail = 1
+  echo FAIL X17/Y17 write 1 did not set the addressed core
+end
+if m_n17 > -0.9
+  let fail = 1
+  echo FAIL X17/Y17 write 1 flipped half-select X17/Y18
+end
+if m_x17 > -0.9
+  let fail = 1
+  echo FAIL X17/Y17 write 1 flipped X18/Y18
+end
+if m_p17 < 0.9
+  let fail = 1
+  echo FAIL X17/Y17 write 1 disturbed X16/Y16
+end
+if smin_d17 > -15m
+  let fail = 1
+  echo FAIL X17/Y17 sense plateau above -15 mV
+end
+if smin_d17 < -80m
+  let fail = 1
+  echo FAIL X17/Y17 sense plateau below -80 mV
+end
+if ix_d17 < 0.34
+  let fail = 1
+  echo FAIL X17/Y17 X current low
+end
+if ix_d17 > 0.46
+  let fail = 1
+  echo FAIL X17/Y17 X current high
+end
+if iy_d17 < 0.34
+  let fail = 1
+  echo FAIL X17/Y17 Y current low
+end
+if iy_d17 > 0.46
+  let fail = 1
+  echo FAIL X17/Y17 Y current high
+end
+if m_d18 < 0.9
+  let fail = 1
+  echo FAIL X18/Y18 write 1 did not set the addressed core
+end
+if m_n18 > -0.9
+  let fail = 1
+  echo FAIL X18/Y18 write 1 flipped half-select X18/Y19
+end
+if m_x18 > -0.9
+  let fail = 1
+  echo FAIL X18/Y18 write 1 flipped X19/Y19
+end
+if m_p18 < 0.9
+  let fail = 1
+  echo FAIL X18/Y18 write 1 disturbed X17/Y17
+end
+if smin_d18 > -15m
+  let fail = 1
+  echo FAIL X18/Y18 sense plateau above -15 mV
+end
+if smin_d18 < -80m
+  let fail = 1
+  echo FAIL X18/Y18 sense plateau below -80 mV
+end
+if ix_d18 < 0.34
+  let fail = 1
+  echo FAIL X18/Y18 X current low
+end
+if ix_d18 > 0.46
+  let fail = 1
+  echo FAIL X18/Y18 X current high
+end
+if iy_d18 < 0.34
+  let fail = 1
+  echo FAIL X18/Y18 Y current low
+end
+if iy_d18 > 0.46
+  let fail = 1
+  echo FAIL X18/Y18 Y current high
+end
+if m_d19 < 0.9
+  let fail = 1
+  echo FAIL X19/Y19 write 1 did not set the addressed core
+end
+if m_n19 > -0.9
+  let fail = 1
+  echo FAIL X19/Y19 write 1 flipped half-select X19/Y20
+end
+if m_x19 > -0.9
+  let fail = 1
+  echo FAIL X19/Y19 write 1 flipped X20/Y20
+end
+if m_p19 < 0.9
+  let fail = 1
+  echo FAIL X19/Y19 write 1 disturbed X18/Y18
+end
+if smin_d19 > -15m
+  let fail = 1
+  echo FAIL X19/Y19 sense plateau above -15 mV
+end
+if smin_d19 < -80m
+  let fail = 1
+  echo FAIL X19/Y19 sense plateau below -80 mV
+end
+if ix_d19 < 0.34
+  let fail = 1
+  echo FAIL X19/Y19 X current low
+end
+if ix_d19 > 0.46
+  let fail = 1
+  echo FAIL X19/Y19 X current high
+end
+if iy_d19 < 0.34
+  let fail = 1
+  echo FAIL X19/Y19 Y current low
+end
+if iy_d19 > 0.46
+  let fail = 1
+  echo FAIL X19/Y19 Y current high
+end
+if m_d20 < 0.9
+  let fail = 1
+  echo FAIL X20/Y20 write 1 did not set the addressed core
+end
+if m_n20 > -0.9
+  let fail = 1
+  echo FAIL X20/Y20 write 1 flipped half-select X20/Y21
+end
+if m_x20 > -0.9
+  let fail = 1
+  echo FAIL X20/Y20 write 1 flipped X21/Y21
+end
+if m_p20 < 0.9
+  let fail = 1
+  echo FAIL X20/Y20 write 1 disturbed X19/Y19
+end
+if smin_d20 > -15m
+  let fail = 1
+  echo FAIL X20/Y20 sense plateau above -15 mV
+end
+if smin_d20 < -80m
+  let fail = 1
+  echo FAIL X20/Y20 sense plateau below -80 mV
+end
+if ix_d20 < 0.34
+  let fail = 1
+  echo FAIL X20/Y20 X current low
+end
+if ix_d20 > 0.46
+  let fail = 1
+  echo FAIL X20/Y20 X current high
+end
+if iy_d20 < 0.34
+  let fail = 1
+  echo FAIL X20/Y20 Y current low
+end
+if iy_d20 > 0.46
+  let fail = 1
+  echo FAIL X20/Y20 Y current high
+end
+if m_d21 < 0.9
+  let fail = 1
+  echo FAIL X21/Y21 write 1 did not set the addressed core
+end
+if m_n21 > -0.9
+  let fail = 1
+  echo FAIL X21/Y21 write 1 flipped half-select X21/Y22
+end
+if m_x21 > -0.9
+  let fail = 1
+  echo FAIL X21/Y21 write 1 flipped X22/Y22
+end
+if m_p21 < 0.9
+  let fail = 1
+  echo FAIL X21/Y21 write 1 disturbed X20/Y20
+end
+if smin_d21 > -15m
+  let fail = 1
+  echo FAIL X21/Y21 sense plateau above -15 mV
+end
+if smin_d21 < -80m
+  let fail = 1
+  echo FAIL X21/Y21 sense plateau below -80 mV
+end
+if ix_d21 < 0.34
+  let fail = 1
+  echo FAIL X21/Y21 X current low
+end
+if ix_d21 > 0.46
+  let fail = 1
+  echo FAIL X21/Y21 X current high
+end
+if iy_d21 < 0.34
+  let fail = 1
+  echo FAIL X21/Y21 Y current low
+end
+if iy_d21 > 0.46
+  let fail = 1
+  echo FAIL X21/Y21 Y current high
+end
+if m_d22 < 0.9
+  let fail = 1
+  echo FAIL X22/Y22 write 1 did not set the addressed core
+end
+if m_n22 > -0.9
+  let fail = 1
+  echo FAIL X22/Y22 write 1 flipped half-select X22/Y23
+end
+if m_x22 > -0.9
+  let fail = 1
+  echo FAIL X22/Y22 write 1 flipped X23/Y23
+end
+if m_p22 < 0.9
+  let fail = 1
+  echo FAIL X22/Y22 write 1 disturbed X21/Y21
+end
+if smin_d22 > -15m
+  let fail = 1
+  echo FAIL X22/Y22 sense plateau above -15 mV
+end
+if smin_d22 < -80m
+  let fail = 1
+  echo FAIL X22/Y22 sense plateau below -80 mV
+end
+if ix_d22 < 0.34
+  let fail = 1
+  echo FAIL X22/Y22 X current low
+end
+if ix_d22 > 0.46
+  let fail = 1
+  echo FAIL X22/Y22 X current high
+end
+if iy_d22 < 0.34
+  let fail = 1
+  echo FAIL X22/Y22 Y current low
+end
+if iy_d22 > 0.46
+  let fail = 1
+  echo FAIL X22/Y22 Y current high
+end
+if m_d23 < 0.9
+  let fail = 1
+  echo FAIL X23/Y23 write 1 did not set the addressed core
+end
+if m_n23 > -0.9
+  let fail = 1
+  echo FAIL X23/Y23 write 1 flipped half-select X23/Y24
+end
+if m_x23 > -0.9
+  let fail = 1
+  echo FAIL X23/Y23 write 1 flipped X24/Y24
+end
+if m_p23 < 0.9
+  let fail = 1
+  echo FAIL X23/Y23 write 1 disturbed X22/Y22
+end
+if smin_d23 > -15m
+  let fail = 1
+  echo FAIL X23/Y23 sense plateau above -15 mV
+end
+if smin_d23 < -80m
+  let fail = 1
+  echo FAIL X23/Y23 sense plateau below -80 mV
+end
+if ix_d23 < 0.34
+  let fail = 1
+  echo FAIL X23/Y23 X current low
+end
+if ix_d23 > 0.46
+  let fail = 1
+  echo FAIL X23/Y23 X current high
+end
+if iy_d23 < 0.34
+  let fail = 1
+  echo FAIL X23/Y23 Y current low
+end
+if iy_d23 > 0.46
+  let fail = 1
+  echo FAIL X23/Y23 Y current high
+end
+if m_d24 < 0.9
+  let fail = 1
+  echo FAIL X24/Y24 write 1 did not set the addressed core
+end
+if m_n24 > -0.9
+  let fail = 1
+  echo FAIL X24/Y24 write 1 flipped half-select X24/Y25
+end
+if m_x24 > -0.9
+  let fail = 1
+  echo FAIL X24/Y24 write 1 flipped X25/Y25
+end
+if m_p24 < 0.9
+  let fail = 1
+  echo FAIL X24/Y24 write 1 disturbed X23/Y23
+end
+if smin_d24 > -15m
+  let fail = 1
+  echo FAIL X24/Y24 sense plateau above -15 mV
+end
+if smin_d24 < -80m
+  let fail = 1
+  echo FAIL X24/Y24 sense plateau below -80 mV
+end
+if ix_d24 < 0.34
+  let fail = 1
+  echo FAIL X24/Y24 X current low
+end
+if ix_d24 > 0.46
+  let fail = 1
+  echo FAIL X24/Y24 X current high
+end
+if iy_d24 < 0.34
+  let fail = 1
+  echo FAIL X24/Y24 Y current low
+end
+if iy_d24 > 0.46
+  let fail = 1
+  echo FAIL X24/Y24 Y current high
+end
+if m_d25 < 0.9
+  let fail = 1
+  echo FAIL X25/Y25 write 1 did not set the addressed core
+end
+if m_n25 > -0.9
+  let fail = 1
+  echo FAIL X25/Y25 write 1 flipped half-select X25/Y26
+end
+if m_x25 > -0.9
+  let fail = 1
+  echo FAIL X25/Y25 write 1 flipped X26/Y26
+end
+if m_p25 < 0.9
+  let fail = 1
+  echo FAIL X25/Y25 write 1 disturbed X24/Y24
+end
+if smin_d25 > -15m
+  let fail = 1
+  echo FAIL X25/Y25 sense plateau above -15 mV
+end
+if smin_d25 < -80m
+  let fail = 1
+  echo FAIL X25/Y25 sense plateau below -80 mV
+end
+if ix_d25 < 0.34
+  let fail = 1
+  echo FAIL X25/Y25 X current low
+end
+if ix_d25 > 0.46
+  let fail = 1
+  echo FAIL X25/Y25 X current high
+end
+if iy_d25 < 0.34
+  let fail = 1
+  echo FAIL X25/Y25 Y current low
+end
+if iy_d25 > 0.46
+  let fail = 1
+  echo FAIL X25/Y25 Y current high
+end
+if m_d26 < 0.9
+  let fail = 1
+  echo FAIL X26/Y26 write 1 did not set the addressed core
+end
+if m_n26 > -0.9
+  let fail = 1
+  echo FAIL X26/Y26 write 1 flipped half-select X26/Y27
+end
+if m_x26 > -0.9
+  let fail = 1
+  echo FAIL X26/Y26 write 1 flipped X27/Y27
+end
+if m_p26 < 0.9
+  let fail = 1
+  echo FAIL X26/Y26 write 1 disturbed X25/Y25
+end
+if smin_d26 > -15m
+  let fail = 1
+  echo FAIL X26/Y26 sense plateau above -15 mV
+end
+if smin_d26 < -80m
+  let fail = 1
+  echo FAIL X26/Y26 sense plateau below -80 mV
+end
+if ix_d26 < 0.34
+  let fail = 1
+  echo FAIL X26/Y26 X current low
+end
+if ix_d26 > 0.46
+  let fail = 1
+  echo FAIL X26/Y26 X current high
+end
+if iy_d26 < 0.34
+  let fail = 1
+  echo FAIL X26/Y26 Y current low
+end
+if iy_d26 > 0.46
+  let fail = 1
+  echo FAIL X26/Y26 Y current high
+end
+if m_d27 < 0.9
+  let fail = 1
+  echo FAIL X27/Y27 write 1 did not set the addressed core
+end
+if m_n27 > -0.9
+  let fail = 1
+  echo FAIL X27/Y27 write 1 flipped half-select X27/Y28
+end
+if m_x27 > -0.9
+  let fail = 1
+  echo FAIL X27/Y27 write 1 flipped X28/Y28
+end
+if m_p27 < 0.9
+  let fail = 1
+  echo FAIL X27/Y27 write 1 disturbed X26/Y26
+end
+if smin_d27 > -15m
+  let fail = 1
+  echo FAIL X27/Y27 sense plateau above -15 mV
+end
+if smin_d27 < -80m
+  let fail = 1
+  echo FAIL X27/Y27 sense plateau below -80 mV
+end
+if ix_d27 < 0.34
+  let fail = 1
+  echo FAIL X27/Y27 X current low
+end
+if ix_d27 > 0.46
+  let fail = 1
+  echo FAIL X27/Y27 X current high
+end
+if iy_d27 < 0.34
+  let fail = 1
+  echo FAIL X27/Y27 Y current low
+end
+if iy_d27 > 0.46
+  let fail = 1
+  echo FAIL X27/Y27 Y current high
+end
+if m_d28 < 0.9
+  let fail = 1
+  echo FAIL X28/Y28 write 1 did not set the addressed core
+end
+if m_n28 > -0.9
+  let fail = 1
+  echo FAIL X28/Y28 write 1 flipped half-select X28/Y29
+end
+if m_x28 > -0.9
+  let fail = 1
+  echo FAIL X28/Y28 write 1 flipped X29/Y29
+end
+if m_p28 < 0.9
+  let fail = 1
+  echo FAIL X28/Y28 write 1 disturbed X27/Y27
+end
+if smin_d28 > -15m
+  let fail = 1
+  echo FAIL X28/Y28 sense plateau above -15 mV
+end
+if smin_d28 < -80m
+  let fail = 1
+  echo FAIL X28/Y28 sense plateau below -80 mV
+end
+if ix_d28 < 0.34
+  let fail = 1
+  echo FAIL X28/Y28 X current low
+end
+if ix_d28 > 0.46
+  let fail = 1
+  echo FAIL X28/Y28 X current high
+end
+if iy_d28 < 0.34
+  let fail = 1
+  echo FAIL X28/Y28 Y current low
+end
+if iy_d28 > 0.46
+  let fail = 1
+  echo FAIL X28/Y28 Y current high
+end
+if m_d29 < 0.9
+  let fail = 1
+  echo FAIL X29/Y29 write 1 did not set the addressed core
+end
+if m_n29 > -0.9
+  let fail = 1
+  echo FAIL X29/Y29 write 1 flipped half-select X29/Y30
+end
+if m_x29 > -0.9
+  let fail = 1
+  echo FAIL X29/Y29 write 1 flipped X30/Y30
+end
+if m_p29 < 0.9
+  let fail = 1
+  echo FAIL X29/Y29 write 1 disturbed X28/Y28
+end
+if smin_d29 > -15m
+  let fail = 1
+  echo FAIL X29/Y29 sense plateau above -15 mV
+end
+if smin_d29 < -80m
+  let fail = 1
+  echo FAIL X29/Y29 sense plateau below -80 mV
+end
+if ix_d29 < 0.34
+  let fail = 1
+  echo FAIL X29/Y29 X current low
+end
+if ix_d29 > 0.46
+  let fail = 1
+  echo FAIL X29/Y29 X current high
+end
+if iy_d29 < 0.34
+  let fail = 1
+  echo FAIL X29/Y29 Y current low
+end
+if iy_d29 > 0.46
+  let fail = 1
+  echo FAIL X29/Y29 Y current high
+end
+if m_d30 < 0.9
+  let fail = 1
+  echo FAIL X30/Y30 write 1 did not set the addressed core
+end
+if m_n30 > -0.9
+  let fail = 1
+  echo FAIL X30/Y30 write 1 flipped half-select X30/Y31
+end
+if m_x30 > -0.9
+  let fail = 1
+  echo FAIL X30/Y30 write 1 flipped X31/Y31
+end
+if m_p30 < 0.9
+  let fail = 1
+  echo FAIL X30/Y30 write 1 disturbed X29/Y29
+end
+if smin_d30 > -15m
+  let fail = 1
+  echo FAIL X30/Y30 sense plateau above -15 mV
+end
+if smin_d30 < -80m
+  let fail = 1
+  echo FAIL X30/Y30 sense plateau below -80 mV
+end
+if ix_d30 < 0.34
+  let fail = 1
+  echo FAIL X30/Y30 X current low
+end
+if ix_d30 > 0.46
+  let fail = 1
+  echo FAIL X30/Y30 X current high
+end
+if iy_d30 < 0.34
+  let fail = 1
+  echo FAIL X30/Y30 Y current low
+end
+if iy_d30 > 0.46
+  let fail = 1
+  echo FAIL X30/Y30 Y current high
+end
+if m_d31 < 0.9
+  let fail = 1
+  echo FAIL X31/Y31 write 1 did not set the addressed core
+end
+if m_n31 > -0.9
+  let fail = 1
+  echo FAIL X31/Y31 write 1 flipped half-select X31/Y32
+end
+if m_x31 > -0.9
+  let fail = 1
+  echo FAIL X31/Y31 write 1 flipped X32/Y32
+end
+if m_p31 < 0.9
+  let fail = 1
+  echo FAIL X31/Y31 write 1 disturbed X30/Y30
+end
+if smin_d31 > -15m
+  let fail = 1
+  echo FAIL X31/Y31 sense plateau above -15 mV
+end
+if smin_d31 < -80m
+  let fail = 1
+  echo FAIL X31/Y31 sense plateau below -80 mV
+end
+if ix_d31 < 0.34
+  let fail = 1
+  echo FAIL X31/Y31 X current low
+end
+if ix_d31 > 0.46
+  let fail = 1
+  echo FAIL X31/Y31 X current high
+end
+if iy_d31 < 0.34
+  let fail = 1
+  echo FAIL X31/Y31 Y current low
+end
+if iy_d31 > 0.46
+  let fail = 1
+  echo FAIL X31/Y31 Y current high
+end
+if m_d32 < 0.9
+  let fail = 1
+  echo FAIL X32/Y32 write 1 did not set the addressed core
+end
+if m_n32 > -0.9
+  let fail = 1
+  echo FAIL X32/Y32 write 1 flipped half-select X32/Y33
+end
+if m_x32 > -0.9
+  let fail = 1
+  echo FAIL X32/Y32 write 1 flipped X33/Y33
+end
+if m_p32 < 0.9
+  let fail = 1
+  echo FAIL X32/Y32 write 1 disturbed X31/Y31
+end
+if smin_d32 > -15m
+  let fail = 1
+  echo FAIL X32/Y32 sense plateau above -15 mV
+end
+if smin_d32 < -80m
+  let fail = 1
+  echo FAIL X32/Y32 sense plateau below -80 mV
+end
+if ix_d32 < 0.34
+  let fail = 1
+  echo FAIL X32/Y32 X current low
+end
+if ix_d32 > 0.46
+  let fail = 1
+  echo FAIL X32/Y32 X current high
+end
+if iy_d32 < 0.34
+  let fail = 1
+  echo FAIL X32/Y32 Y current low
+end
+if iy_d32 > 0.46
+  let fail = 1
+  echo FAIL X32/Y32 Y current high
+end
+if m_d33 < 0.9
+  let fail = 1
+  echo FAIL X33/Y33 write 1 did not set the addressed core
+end
+if m_n33 > -0.9
+  let fail = 1
+  echo FAIL X33/Y33 write 1 flipped half-select X33/Y34
+end
+if m_x33 > -0.9
+  let fail = 1
+  echo FAIL X33/Y33 write 1 flipped X34/Y34
+end
+if m_p33 < 0.9
+  let fail = 1
+  echo FAIL X33/Y33 write 1 disturbed X32/Y32
+end
+if smin_d33 > -15m
+  let fail = 1
+  echo FAIL X33/Y33 sense plateau above -15 mV
+end
+if smin_d33 < -80m
+  let fail = 1
+  echo FAIL X33/Y33 sense plateau below -80 mV
+end
+if ix_d33 < 0.34
+  let fail = 1
+  echo FAIL X33/Y33 X current low
+end
+if ix_d33 > 0.46
+  let fail = 1
+  echo FAIL X33/Y33 X current high
+end
+if iy_d33 < 0.34
+  let fail = 1
+  echo FAIL X33/Y33 Y current low
+end
+if iy_d33 > 0.46
+  let fail = 1
+  echo FAIL X33/Y33 Y current high
+end
+if m_d34 < 0.9
+  let fail = 1
+  echo FAIL X34/Y34 write 1 did not set the addressed core
+end
+if m_n34 > -0.9
+  let fail = 1
+  echo FAIL X34/Y34 write 1 flipped half-select X34/Y35
+end
+if m_x34 > -0.9
+  let fail = 1
+  echo FAIL X34/Y34 write 1 flipped X35/Y35
+end
+if m_p34 < 0.9
+  let fail = 1
+  echo FAIL X34/Y34 write 1 disturbed X33/Y33
+end
+if smin_d34 > -15m
+  let fail = 1
+  echo FAIL X34/Y34 sense plateau above -15 mV
+end
+if smin_d34 < -80m
+  let fail = 1
+  echo FAIL X34/Y34 sense plateau below -80 mV
+end
+if ix_d34 < 0.34
+  let fail = 1
+  echo FAIL X34/Y34 X current low
+end
+if ix_d34 > 0.46
+  let fail = 1
+  echo FAIL X34/Y34 X current high
+end
+if iy_d34 < 0.34
+  let fail = 1
+  echo FAIL X34/Y34 Y current low
+end
+if iy_d34 > 0.46
+  let fail = 1
+  echo FAIL X34/Y34 Y current high
+end
+if m_d35 < 0.9
+  let fail = 1
+  echo FAIL X35/Y35 write 1 did not set the addressed core
+end
+if m_n35 > -0.9
+  let fail = 1
+  echo FAIL X35/Y35 write 1 flipped half-select X35/Y36
+end
+if m_x35 > -0.9
+  let fail = 1
+  echo FAIL X35/Y35 write 1 flipped X36/Y36
+end
+if m_p35 < 0.9
+  let fail = 1
+  echo FAIL X35/Y35 write 1 disturbed X34/Y34
+end
+if smin_d35 > -15m
+  let fail = 1
+  echo FAIL X35/Y35 sense plateau above -15 mV
+end
+if smin_d35 < -80m
+  let fail = 1
+  echo FAIL X35/Y35 sense plateau below -80 mV
+end
+if ix_d35 < 0.34
+  let fail = 1
+  echo FAIL X35/Y35 X current low
+end
+if ix_d35 > 0.46
+  let fail = 1
+  echo FAIL X35/Y35 X current high
+end
+if iy_d35 < 0.34
+  let fail = 1
+  echo FAIL X35/Y35 Y current low
+end
+if iy_d35 > 0.46
+  let fail = 1
+  echo FAIL X35/Y35 Y current high
+end
+if m_d36 < 0.9
+  let fail = 1
+  echo FAIL X36/Y36 write 1 did not set the addressed core
+end
+if m_n36 > -0.9
+  let fail = 1
+  echo FAIL X36/Y36 write 1 flipped half-select X36/Y37
+end
+if m_x36 > -0.9
+  let fail = 1
+  echo FAIL X36/Y36 write 1 flipped X37/Y37
+end
+if m_p36 < 0.9
+  let fail = 1
+  echo FAIL X36/Y36 write 1 disturbed X35/Y35
+end
+if smin_d36 > -15m
+  let fail = 1
+  echo FAIL X36/Y36 sense plateau above -15 mV
+end
+if smin_d36 < -80m
+  let fail = 1
+  echo FAIL X36/Y36 sense plateau below -80 mV
+end
+if ix_d36 < 0.34
+  let fail = 1
+  echo FAIL X36/Y36 X current low
+end
+if ix_d36 > 0.46
+  let fail = 1
+  echo FAIL X36/Y36 X current high
+end
+if iy_d36 < 0.34
+  let fail = 1
+  echo FAIL X36/Y36 Y current low
+end
+if iy_d36 > 0.46
+  let fail = 1
+  echo FAIL X36/Y36 Y current high
+end
+if m_d37 < 0.9
+  let fail = 1
+  echo FAIL X37/Y37 write 1 did not set the addressed core
+end
+if m_n37 > -0.9
+  let fail = 1
+  echo FAIL X37/Y37 write 1 flipped half-select X37/Y38
+end
+if m_x37 > -0.9
+  let fail = 1
+  echo FAIL X37/Y37 write 1 flipped X38/Y38
+end
+if m_p37 < 0.9
+  let fail = 1
+  echo FAIL X37/Y37 write 1 disturbed X36/Y36
+end
+if smin_d37 > -15m
+  let fail = 1
+  echo FAIL X37/Y37 sense plateau above -15 mV
+end
+if smin_d37 < -80m
+  let fail = 1
+  echo FAIL X37/Y37 sense plateau below -80 mV
+end
+if ix_d37 < 0.34
+  let fail = 1
+  echo FAIL X37/Y37 X current low
+end
+if ix_d37 > 0.46
+  let fail = 1
+  echo FAIL X37/Y37 X current high
+end
+if iy_d37 < 0.34
+  let fail = 1
+  echo FAIL X37/Y37 Y current low
+end
+if iy_d37 > 0.46
+  let fail = 1
+  echo FAIL X37/Y37 Y current high
+end
+if m_d38 < 0.9
+  let fail = 1
+  echo FAIL X38/Y38 write 1 did not set the addressed core
+end
+if m_n38 > -0.9
+  let fail = 1
+  echo FAIL X38/Y38 write 1 flipped half-select X38/Y39
+end
+if m_x38 > -0.9
+  let fail = 1
+  echo FAIL X38/Y38 write 1 flipped X39/Y39
+end
+if m_p38 < 0.9
+  let fail = 1
+  echo FAIL X38/Y38 write 1 disturbed X37/Y37
+end
+if smin_d38 > -15m
+  let fail = 1
+  echo FAIL X38/Y38 sense plateau above -15 mV
+end
+if smin_d38 < -80m
+  let fail = 1
+  echo FAIL X38/Y38 sense plateau below -80 mV
+end
+if ix_d38 < 0.34
+  let fail = 1
+  echo FAIL X38/Y38 X current low
+end
+if ix_d38 > 0.46
+  let fail = 1
+  echo FAIL X38/Y38 X current high
+end
+if iy_d38 < 0.34
+  let fail = 1
+  echo FAIL X38/Y38 Y current low
+end
+if iy_d38 > 0.46
+  let fail = 1
+  echo FAIL X38/Y38 Y current high
+end
+if m_d39 < 0.9
+  let fail = 1
+  echo FAIL X39/Y39 write 1 did not set the addressed core
+end
+if m_n39 > -0.9
+  let fail = 1
+  echo FAIL X39/Y39 write 1 flipped half-select X39/Y40
+end
+if m_x39 > -0.9
+  let fail = 1
+  echo FAIL X39/Y39 write 1 flipped X40/Y40
+end
+if m_p39 < 0.9
+  let fail = 1
+  echo FAIL X39/Y39 write 1 disturbed X38/Y38
+end
+if smin_d39 > -15m
+  let fail = 1
+  echo FAIL X39/Y39 sense plateau above -15 mV
+end
+if smin_d39 < -80m
+  let fail = 1
+  echo FAIL X39/Y39 sense plateau below -80 mV
+end
+if ix_d39 < 0.34
+  let fail = 1
+  echo FAIL X39/Y39 X current low
+end
+if ix_d39 > 0.46
+  let fail = 1
+  echo FAIL X39/Y39 X current high
+end
+if iy_d39 < 0.34
+  let fail = 1
+  echo FAIL X39/Y39 Y current low
+end
+if iy_d39 > 0.46
+  let fail = 1
+  echo FAIL X39/Y39 Y current high
+end
+if m_d40 < 0.9
+  let fail = 1
+  echo FAIL X40/Y40 write 1 did not set the addressed core
+end
+if m_n40 > -0.9
+  let fail = 1
+  echo FAIL X40/Y40 write 1 flipped half-select X40/Y41
+end
+if m_x40 > -0.9
+  let fail = 1
+  echo FAIL X40/Y40 write 1 flipped X41/Y41
+end
+if m_p40 < 0.9
+  let fail = 1
+  echo FAIL X40/Y40 write 1 disturbed X39/Y39
+end
+if smin_d40 > -15m
+  let fail = 1
+  echo FAIL X40/Y40 sense plateau above -15 mV
+end
+if smin_d40 < -80m
+  let fail = 1
+  echo FAIL X40/Y40 sense plateau below -80 mV
+end
+if ix_d40 < 0.34
+  let fail = 1
+  echo FAIL X40/Y40 X current low
+end
+if ix_d40 > 0.46
+  let fail = 1
+  echo FAIL X40/Y40 X current high
+end
+if iy_d40 < 0.34
+  let fail = 1
+  echo FAIL X40/Y40 Y current low
+end
+if iy_d40 > 0.46
+  let fail = 1
+  echo FAIL X40/Y40 Y current high
+end
+if m_d41 < 0.9
+  let fail = 1
+  echo FAIL X41/Y41 write 1 did not set the addressed core
+end
+if m_n41 > -0.9
+  let fail = 1
+  echo FAIL X41/Y41 write 1 flipped half-select X41/Y42
+end
+if m_x41 > -0.9
+  let fail = 1
+  echo FAIL X41/Y41 write 1 flipped X42/Y42
+end
+if m_p41 < 0.9
+  let fail = 1
+  echo FAIL X41/Y41 write 1 disturbed X40/Y40
+end
+if smin_d41 > -15m
+  let fail = 1
+  echo FAIL X41/Y41 sense plateau above -15 mV
+end
+if smin_d41 < -80m
+  let fail = 1
+  echo FAIL X41/Y41 sense plateau below -80 mV
+end
+if ix_d41 < 0.34
+  let fail = 1
+  echo FAIL X41/Y41 X current low
+end
+if ix_d41 > 0.46
+  let fail = 1
+  echo FAIL X41/Y41 X current high
+end
+if iy_d41 < 0.34
+  let fail = 1
+  echo FAIL X41/Y41 Y current low
+end
+if iy_d41 > 0.46
+  let fail = 1
+  echo FAIL X41/Y41 Y current high
+end
+if m_d42 < 0.9
+  let fail = 1
+  echo FAIL X42/Y42 write 1 did not set the addressed core
+end
+if m_n42 > -0.9
+  let fail = 1
+  echo FAIL X42/Y42 write 1 flipped half-select X42/Y43
+end
+if m_x42 > -0.9
+  let fail = 1
+  echo FAIL X42/Y42 write 1 flipped X43/Y43
+end
+if m_p42 < 0.9
+  let fail = 1
+  echo FAIL X42/Y42 write 1 disturbed X41/Y41
+end
+if smin_d42 > -15m
+  let fail = 1
+  echo FAIL X42/Y42 sense plateau above -15 mV
+end
+if smin_d42 < -80m
+  let fail = 1
+  echo FAIL X42/Y42 sense plateau below -80 mV
+end
+if ix_d42 < 0.34
+  let fail = 1
+  echo FAIL X42/Y42 X current low
+end
+if ix_d42 > 0.46
+  let fail = 1
+  echo FAIL X42/Y42 X current high
+end
+if iy_d42 < 0.34
+  let fail = 1
+  echo FAIL X42/Y42 Y current low
+end
+if iy_d42 > 0.46
+  let fail = 1
+  echo FAIL X42/Y42 Y current high
+end
+if m_d43 < 0.9
+  let fail = 1
+  echo FAIL X43/Y43 write 1 did not set the addressed core
+end
+if m_n43 > -0.9
+  let fail = 1
+  echo FAIL X43/Y43 write 1 flipped half-select X43/Y44
+end
+if m_x43 > -0.9
+  let fail = 1
+  echo FAIL X43/Y43 write 1 flipped X44/Y44
+end
+if m_p43 < 0.9
+  let fail = 1
+  echo FAIL X43/Y43 write 1 disturbed X42/Y42
+end
+if smin_d43 > -15m
+  let fail = 1
+  echo FAIL X43/Y43 sense plateau above -15 mV
+end
+if smin_d43 < -80m
+  let fail = 1
+  echo FAIL X43/Y43 sense plateau below -80 mV
+end
+if ix_d43 < 0.34
+  let fail = 1
+  echo FAIL X43/Y43 X current low
+end
+if ix_d43 > 0.46
+  let fail = 1
+  echo FAIL X43/Y43 X current high
+end
+if iy_d43 < 0.34
+  let fail = 1
+  echo FAIL X43/Y43 Y current low
+end
+if iy_d43 > 0.46
+  let fail = 1
+  echo FAIL X43/Y43 Y current high
+end
+if m_d44 < 0.9
+  let fail = 1
+  echo FAIL X44/Y44 write 1 did not set the addressed core
+end
+if m_n44 > -0.9
+  let fail = 1
+  echo FAIL X44/Y44 write 1 flipped half-select X44/Y45
+end
+if m_x44 > -0.9
+  let fail = 1
+  echo FAIL X44/Y44 write 1 flipped X45/Y45
+end
+if m_p44 < 0.9
+  let fail = 1
+  echo FAIL X44/Y44 write 1 disturbed X43/Y43
+end
+if smin_d44 > -15m
+  let fail = 1
+  echo FAIL X44/Y44 sense plateau above -15 mV
+end
+if smin_d44 < -80m
+  let fail = 1
+  echo FAIL X44/Y44 sense plateau below -80 mV
+end
+if ix_d44 < 0.34
+  let fail = 1
+  echo FAIL X44/Y44 X current low
+end
+if ix_d44 > 0.46
+  let fail = 1
+  echo FAIL X44/Y44 X current high
+end
+if iy_d44 < 0.34
+  let fail = 1
+  echo FAIL X44/Y44 Y current low
+end
+if iy_d44 > 0.46
+  let fail = 1
+  echo FAIL X44/Y44 Y current high
+end
+if m_d45 < 0.9
+  let fail = 1
+  echo FAIL X45/Y45 write 1 did not set the addressed core
+end
+if m_n45 > -0.9
+  let fail = 1
+  echo FAIL X45/Y45 write 1 flipped half-select X45/Y46
+end
+if m_x45 > -0.9
+  let fail = 1
+  echo FAIL X45/Y45 write 1 flipped X46/Y46
+end
+if m_p45 < 0.9
+  let fail = 1
+  echo FAIL X45/Y45 write 1 disturbed X44/Y44
+end
+if smin_d45 > -15m
+  let fail = 1
+  echo FAIL X45/Y45 sense plateau above -15 mV
+end
+if smin_d45 < -80m
+  let fail = 1
+  echo FAIL X45/Y45 sense plateau below -80 mV
+end
+if ix_d45 < 0.34
+  let fail = 1
+  echo FAIL X45/Y45 X current low
+end
+if ix_d45 > 0.46
+  let fail = 1
+  echo FAIL X45/Y45 X current high
+end
+if iy_d45 < 0.34
+  let fail = 1
+  echo FAIL X45/Y45 Y current low
+end
+if iy_d45 > 0.46
+  let fail = 1
+  echo FAIL X45/Y45 Y current high
+end
+if m_d46 < 0.9
+  let fail = 1
+  echo FAIL X46/Y46 write 1 did not set the addressed core
+end
+if m_n46 > -0.9
+  let fail = 1
+  echo FAIL X46/Y46 write 1 flipped half-select X46/Y47
+end
+if m_x46 > -0.9
+  let fail = 1
+  echo FAIL X46/Y46 write 1 flipped X47/Y47
+end
+if m_p46 < 0.9
+  let fail = 1
+  echo FAIL X46/Y46 write 1 disturbed X45/Y45
+end
+if smin_d46 > -15m
+  let fail = 1
+  echo FAIL X46/Y46 sense plateau above -15 mV
+end
+if smin_d46 < -80m
+  let fail = 1
+  echo FAIL X46/Y46 sense plateau below -80 mV
+end
+if ix_d46 < 0.34
+  let fail = 1
+  echo FAIL X46/Y46 X current low
+end
+if ix_d46 > 0.46
+  let fail = 1
+  echo FAIL X46/Y46 X current high
+end
+if iy_d46 < 0.34
+  let fail = 1
+  echo FAIL X46/Y46 Y current low
+end
+if iy_d46 > 0.46
+  let fail = 1
+  echo FAIL X46/Y46 Y current high
+end
+if m_d47 < 0.9
+  let fail = 1
+  echo FAIL X47/Y47 write 1 did not set the addressed core
+end
+if m_n47 > -0.9
+  let fail = 1
+  echo FAIL X47/Y47 write 1 flipped half-select X47/Y48
+end
+if m_x47 > -0.9
+  let fail = 1
+  echo FAIL X47/Y47 write 1 flipped X48/Y48
+end
+if m_p47 < 0.9
+  let fail = 1
+  echo FAIL X47/Y47 write 1 disturbed X46/Y46
+end
+if smin_d47 > -15m
+  let fail = 1
+  echo FAIL X47/Y47 sense plateau above -15 mV
+end
+if smin_d47 < -80m
+  let fail = 1
+  echo FAIL X47/Y47 sense plateau below -80 mV
+end
+if ix_d47 < 0.34
+  let fail = 1
+  echo FAIL X47/Y47 X current low
+end
+if ix_d47 > 0.46
+  let fail = 1
+  echo FAIL X47/Y47 X current high
+end
+if iy_d47 < 0.34
+  let fail = 1
+  echo FAIL X47/Y47 Y current low
+end
+if iy_d47 > 0.46
+  let fail = 1
+  echo FAIL X47/Y47 Y current high
+end
+if m_d48 < 0.9
+  let fail = 1
+  echo FAIL X48/Y48 write 1 did not set the addressed core
+end
+if m_n48 > -0.9
+  let fail = 1
+  echo FAIL X48/Y48 write 1 flipped half-select X48/Y49
+end
+if m_x48 > -0.9
+  let fail = 1
+  echo FAIL X48/Y48 write 1 flipped X49/Y49
+end
+if m_p48 < 0.9
+  let fail = 1
+  echo FAIL X48/Y48 write 1 disturbed X47/Y47
+end
+if smin_d48 > -15m
+  let fail = 1
+  echo FAIL X48/Y48 sense plateau above -15 mV
+end
+if smin_d48 < -80m
+  let fail = 1
+  echo FAIL X48/Y48 sense plateau below -80 mV
+end
+if ix_d48 < 0.34
+  let fail = 1
+  echo FAIL X48/Y48 X current low
+end
+if ix_d48 > 0.46
+  let fail = 1
+  echo FAIL X48/Y48 X current high
+end
+if iy_d48 < 0.34
+  let fail = 1
+  echo FAIL X48/Y48 Y current low
+end
+if iy_d48 > 0.46
+  let fail = 1
+  echo FAIL X48/Y48 Y current high
+end
+if m_d49 < 0.9
+  let fail = 1
+  echo FAIL X49/Y49 write 1 did not set the addressed core
+end
+if m_n49 > -0.9
+  let fail = 1
+  echo FAIL X49/Y49 write 1 flipped half-select X49/Y50
+end
+if m_x49 > -0.9
+  let fail = 1
+  echo FAIL X49/Y49 write 1 flipped X50/Y50
+end
+if m_p49 < 0.9
+  let fail = 1
+  echo FAIL X49/Y49 write 1 disturbed X48/Y48
+end
+if smin_d49 > -15m
+  let fail = 1
+  echo FAIL X49/Y49 sense plateau above -15 mV
+end
+if smin_d49 < -80m
+  let fail = 1
+  echo FAIL X49/Y49 sense plateau below -80 mV
+end
+if ix_d49 < 0.34
+  let fail = 1
+  echo FAIL X49/Y49 X current low
+end
+if ix_d49 > 0.46
+  let fail = 1
+  echo FAIL X49/Y49 X current high
+end
+if iy_d49 < 0.34
+  let fail = 1
+  echo FAIL X49/Y49 Y current low
+end
+if iy_d49 > 0.46
+  let fail = 1
+  echo FAIL X49/Y49 Y current high
+end
+if m_d50 < 0.9
+  let fail = 1
+  echo FAIL X50/Y50 write 1 did not set the addressed core
+end
+if m_n50 > -0.9
+  let fail = 1
+  echo FAIL X50/Y50 write 1 flipped half-select X50/Y51
+end
+if m_x50 > -0.9
+  let fail = 1
+  echo FAIL X50/Y50 write 1 flipped X51/Y51
+end
+if m_p50 < 0.9
+  let fail = 1
+  echo FAIL X50/Y50 write 1 disturbed X49/Y49
+end
+if smin_d50 > -15m
+  let fail = 1
+  echo FAIL X50/Y50 sense plateau above -15 mV
+end
+if smin_d50 < -80m
+  let fail = 1
+  echo FAIL X50/Y50 sense plateau below -80 mV
+end
+if ix_d50 < 0.34
+  let fail = 1
+  echo FAIL X50/Y50 X current low
+end
+if ix_d50 > 0.46
+  let fail = 1
+  echo FAIL X50/Y50 X current high
+end
+if iy_d50 < 0.34
+  let fail = 1
+  echo FAIL X50/Y50 Y current low
+end
+if iy_d50 > 0.46
+  let fail = 1
+  echo FAIL X50/Y50 Y current high
+end
+if m_d51 < 0.9
+  let fail = 1
+  echo FAIL X51/Y51 write 1 did not set the addressed core
+end
+if m_n51 > -0.9
+  let fail = 1
+  echo FAIL X51/Y51 write 1 flipped half-select X51/Y52
+end
+if m_x51 > -0.9
+  let fail = 1
+  echo FAIL X51/Y51 write 1 flipped X52/Y52
+end
+if m_p51 < 0.9
+  let fail = 1
+  echo FAIL X51/Y51 write 1 disturbed X50/Y50
+end
+if smin_d51 > -15m
+  let fail = 1
+  echo FAIL X51/Y51 sense plateau above -15 mV
+end
+if smin_d51 < -80m
+  let fail = 1
+  echo FAIL X51/Y51 sense plateau below -80 mV
+end
+if ix_d51 < 0.34
+  let fail = 1
+  echo FAIL X51/Y51 X current low
+end
+if ix_d51 > 0.46
+  let fail = 1
+  echo FAIL X51/Y51 X current high
+end
+if iy_d51 < 0.34
+  let fail = 1
+  echo FAIL X51/Y51 Y current low
+end
+if iy_d51 > 0.46
+  let fail = 1
+  echo FAIL X51/Y51 Y current high
+end
+if m_d52 < 0.9
+  let fail = 1
+  echo FAIL X52/Y52 write 1 did not set the addressed core
+end
+if m_n52 > -0.9
+  let fail = 1
+  echo FAIL X52/Y52 write 1 flipped half-select X52/Y53
+end
+if m_x52 > -0.9
+  let fail = 1
+  echo FAIL X52/Y52 write 1 flipped X53/Y53
+end
+if m_p52 < 0.9
+  let fail = 1
+  echo FAIL X52/Y52 write 1 disturbed X51/Y51
+end
+if smin_d52 > -15m
+  let fail = 1
+  echo FAIL X52/Y52 sense plateau above -15 mV
+end
+if smin_d52 < -80m
+  let fail = 1
+  echo FAIL X52/Y52 sense plateau below -80 mV
+end
+if ix_d52 < 0.34
+  let fail = 1
+  echo FAIL X52/Y52 X current low
+end
+if ix_d52 > 0.46
+  let fail = 1
+  echo FAIL X52/Y52 X current high
+end
+if iy_d52 < 0.34
+  let fail = 1
+  echo FAIL X52/Y52 Y current low
+end
+if iy_d52 > 0.46
+  let fail = 1
+  echo FAIL X52/Y52 Y current high
+end
+if m_d53 < 0.9
+  let fail = 1
+  echo FAIL X53/Y53 write 1 did not set the addressed core
+end
+if m_n53 > -0.9
+  let fail = 1
+  echo FAIL X53/Y53 write 1 flipped half-select X53/Y54
+end
+if m_x53 > -0.9
+  let fail = 1
+  echo FAIL X53/Y53 write 1 flipped X54/Y54
+end
+if m_p53 < 0.9
+  let fail = 1
+  echo FAIL X53/Y53 write 1 disturbed X52/Y52
+end
+if smin_d53 > -15m
+  let fail = 1
+  echo FAIL X53/Y53 sense plateau above -15 mV
+end
+if smin_d53 < -80m
+  let fail = 1
+  echo FAIL X53/Y53 sense plateau below -80 mV
+end
+if ix_d53 < 0.34
+  let fail = 1
+  echo FAIL X53/Y53 X current low
+end
+if ix_d53 > 0.46
+  let fail = 1
+  echo FAIL X53/Y53 X current high
+end
+if iy_d53 < 0.34
+  let fail = 1
+  echo FAIL X53/Y53 Y current low
+end
+if iy_d53 > 0.46
+  let fail = 1
+  echo FAIL X53/Y53 Y current high
+end
+if m_d54 < 0.9
+  let fail = 1
+  echo FAIL X54/Y54 write 1 did not set the addressed core
+end
+if m_n54 > -0.9
+  let fail = 1
+  echo FAIL X54/Y54 write 1 flipped half-select X54/Y55
+end
+if m_x54 > -0.9
+  let fail = 1
+  echo FAIL X54/Y54 write 1 flipped X55/Y55
+end
+if m_p54 < 0.9
+  let fail = 1
+  echo FAIL X54/Y54 write 1 disturbed X53/Y53
+end
+if smin_d54 > -15m
+  let fail = 1
+  echo FAIL X54/Y54 sense plateau above -15 mV
+end
+if smin_d54 < -80m
+  let fail = 1
+  echo FAIL X54/Y54 sense plateau below -80 mV
+end
+if ix_d54 < 0.34
+  let fail = 1
+  echo FAIL X54/Y54 X current low
+end
+if ix_d54 > 0.46
+  let fail = 1
+  echo FAIL X54/Y54 X current high
+end
+if iy_d54 < 0.34
+  let fail = 1
+  echo FAIL X54/Y54 Y current low
+end
+if iy_d54 > 0.46
+  let fail = 1
+  echo FAIL X54/Y54 Y current high
+end
+if m_d55 < 0.9
+  let fail = 1
+  echo FAIL X55/Y55 write 1 did not set the addressed core
+end
+if m_n55 > -0.9
+  let fail = 1
+  echo FAIL X55/Y55 write 1 flipped half-select X55/Y56
+end
+if m_x55 > -0.9
+  let fail = 1
+  echo FAIL X55/Y55 write 1 flipped X56/Y56
+end
+if m_p55 < 0.9
+  let fail = 1
+  echo FAIL X55/Y55 write 1 disturbed X54/Y54
+end
+if smin_d55 > -15m
+  let fail = 1
+  echo FAIL X55/Y55 sense plateau above -15 mV
+end
+if smin_d55 < -80m
+  let fail = 1
+  echo FAIL X55/Y55 sense plateau below -80 mV
+end
+if ix_d55 < 0.34
+  let fail = 1
+  echo FAIL X55/Y55 X current low
+end
+if ix_d55 > 0.46
+  let fail = 1
+  echo FAIL X55/Y55 X current high
+end
+if iy_d55 < 0.34
+  let fail = 1
+  echo FAIL X55/Y55 Y current low
+end
+if iy_d55 > 0.46
+  let fail = 1
+  echo FAIL X55/Y55 Y current high
+end
+if m_d56 < 0.9
+  let fail = 1
+  echo FAIL X56/Y56 write 1 did not set the addressed core
+end
+if m_n56 > -0.9
+  let fail = 1
+  echo FAIL X56/Y56 write 1 flipped half-select X56/Y57
+end
+if m_x56 > -0.9
+  let fail = 1
+  echo FAIL X56/Y56 write 1 flipped X57/Y57
+end
+if m_p56 < 0.9
+  let fail = 1
+  echo FAIL X56/Y56 write 1 disturbed X55/Y55
+end
+if smin_d56 > -15m
+  let fail = 1
+  echo FAIL X56/Y56 sense plateau above -15 mV
+end
+if smin_d56 < -80m
+  let fail = 1
+  echo FAIL X56/Y56 sense plateau below -80 mV
+end
+if ix_d56 < 0.34
+  let fail = 1
+  echo FAIL X56/Y56 X current low
+end
+if ix_d56 > 0.46
+  let fail = 1
+  echo FAIL X56/Y56 X current high
+end
+if iy_d56 < 0.34
+  let fail = 1
+  echo FAIL X56/Y56 Y current low
+end
+if iy_d56 > 0.46
+  let fail = 1
+  echo FAIL X56/Y56 Y current high
+end
+if m_d57 < 0.9
+  let fail = 1
+  echo FAIL X57/Y57 write 1 did not set the addressed core
+end
+if m_n57 > -0.9
+  let fail = 1
+  echo FAIL X57/Y57 write 1 flipped half-select X57/Y58
+end
+if m_x57 > -0.9
+  let fail = 1
+  echo FAIL X57/Y57 write 1 flipped X58/Y58
+end
+if m_p57 < 0.9
+  let fail = 1
+  echo FAIL X57/Y57 write 1 disturbed X56/Y56
+end
+if smin_d57 > -15m
+  let fail = 1
+  echo FAIL X57/Y57 sense plateau above -15 mV
+end
+if smin_d57 < -80m
+  let fail = 1
+  echo FAIL X57/Y57 sense plateau below -80 mV
+end
+if ix_d57 < 0.34
+  let fail = 1
+  echo FAIL X57/Y57 X current low
+end
+if ix_d57 > 0.46
+  let fail = 1
+  echo FAIL X57/Y57 X current high
+end
+if iy_d57 < 0.34
+  let fail = 1
+  echo FAIL X57/Y57 Y current low
+end
+if iy_d57 > 0.46
+  let fail = 1
+  echo FAIL X57/Y57 Y current high
+end
+if m_d58 < 0.9
+  let fail = 1
+  echo FAIL X58/Y58 write 1 did not set the addressed core
+end
+if m_n58 > -0.9
+  let fail = 1
+  echo FAIL X58/Y58 write 1 flipped half-select X58/Y59
+end
+if m_x58 > -0.9
+  let fail = 1
+  echo FAIL X58/Y58 write 1 flipped X59/Y59
+end
+if m_p58 < 0.9
+  let fail = 1
+  echo FAIL X58/Y58 write 1 disturbed X57/Y57
+end
+if smin_d58 > -15m
+  let fail = 1
+  echo FAIL X58/Y58 sense plateau above -15 mV
+end
+if smin_d58 < -80m
+  let fail = 1
+  echo FAIL X58/Y58 sense plateau below -80 mV
+end
+if ix_d58 < 0.34
+  let fail = 1
+  echo FAIL X58/Y58 X current low
+end
+if ix_d58 > 0.46
+  let fail = 1
+  echo FAIL X58/Y58 X current high
+end
+if iy_d58 < 0.34
+  let fail = 1
+  echo FAIL X58/Y58 Y current low
+end
+if iy_d58 > 0.46
+  let fail = 1
+  echo FAIL X58/Y58 Y current high
+end
+if m_d59 < 0.9
+  let fail = 1
+  echo FAIL X59/Y59 write 1 did not set the addressed core
+end
+if m_n59 > -0.9
+  let fail = 1
+  echo FAIL X59/Y59 write 1 flipped half-select X59/Y60
+end
+if m_x59 > -0.9
+  let fail = 1
+  echo FAIL X59/Y59 write 1 flipped X60/Y60
+end
+if m_p59 < 0.9
+  let fail = 1
+  echo FAIL X59/Y59 write 1 disturbed X58/Y58
+end
+if smin_d59 > -15m
+  let fail = 1
+  echo FAIL X59/Y59 sense plateau above -15 mV
+end
+if smin_d59 < -80m
+  let fail = 1
+  echo FAIL X59/Y59 sense plateau below -80 mV
+end
+if ix_d59 < 0.34
+  let fail = 1
+  echo FAIL X59/Y59 X current low
+end
+if ix_d59 > 0.46
+  let fail = 1
+  echo FAIL X59/Y59 X current high
+end
+if iy_d59 < 0.34
+  let fail = 1
+  echo FAIL X59/Y59 Y current low
+end
+if iy_d59 > 0.46
+  let fail = 1
+  echo FAIL X59/Y59 Y current high
+end
+if m_d60 < 0.9
+  let fail = 1
+  echo FAIL X60/Y60 write 1 did not set the addressed core
+end
+if m_n60 > -0.9
+  let fail = 1
+  echo FAIL X60/Y60 write 1 flipped half-select X60/Y61
+end
+if m_x60 > -0.9
+  let fail = 1
+  echo FAIL X60/Y60 write 1 flipped X61/Y61
+end
+if m_p60 < 0.9
+  let fail = 1
+  echo FAIL X60/Y60 write 1 disturbed X59/Y59
+end
+if smin_d60 > -15m
+  let fail = 1
+  echo FAIL X60/Y60 sense plateau above -15 mV
+end
+if smin_d60 < -80m
+  let fail = 1
+  echo FAIL X60/Y60 sense plateau below -80 mV
+end
+if ix_d60 < 0.34
+  let fail = 1
+  echo FAIL X60/Y60 X current low
+end
+if ix_d60 > 0.46
+  let fail = 1
+  echo FAIL X60/Y60 X current high
+end
+if iy_d60 < 0.34
+  let fail = 1
+  echo FAIL X60/Y60 Y current low
+end
+if iy_d60 > 0.46
+  let fail = 1
+  echo FAIL X60/Y60 Y current high
+end
+if m_d61 < 0.9
+  let fail = 1
+  echo FAIL X61/Y61 write 1 did not set the addressed core
+end
+if m_n61 > -0.9
+  let fail = 1
+  echo FAIL X61/Y61 write 1 flipped half-select X61/Y62
+end
+if m_x61 > -0.9
+  let fail = 1
+  echo FAIL X61/Y61 write 1 flipped X62/Y62
+end
+if m_p61 < 0.9
+  let fail = 1
+  echo FAIL X61/Y61 write 1 disturbed X60/Y60
+end
+if smin_d61 > -15m
+  let fail = 1
+  echo FAIL X61/Y61 sense plateau above -15 mV
+end
+if smin_d61 < -80m
+  let fail = 1
+  echo FAIL X61/Y61 sense plateau below -80 mV
+end
+if ix_d61 < 0.34
+  let fail = 1
+  echo FAIL X61/Y61 X current low
+end
+if ix_d61 > 0.46
+  let fail = 1
+  echo FAIL X61/Y61 X current high
+end
+if iy_d61 < 0.34
+  let fail = 1
+  echo FAIL X61/Y61 Y current low
+end
+if iy_d61 > 0.46
+  let fail = 1
+  echo FAIL X61/Y61 Y current high
+end
+if m_d62 < 0.9
+  let fail = 1
+  echo FAIL X62/Y62 write 1 did not set the addressed core
+end
+if m_n62 > -0.9
+  let fail = 1
+  echo FAIL X62/Y62 write 1 flipped half-select X62/Y63
+end
+if m_x62 > -0.9
+  let fail = 1
+  echo FAIL X62/Y62 write 1 flipped X63/Y63
+end
+if m_p62 < 0.9
+  let fail = 1
+  echo FAIL X62/Y62 write 1 disturbed X61/Y61
+end
+if smin_d62 > -15m
+  let fail = 1
+  echo FAIL X62/Y62 sense plateau above -15 mV
+end
+if smin_d62 < -80m
+  let fail = 1
+  echo FAIL X62/Y62 sense plateau below -80 mV
+end
+if ix_d62 < 0.34
+  let fail = 1
+  echo FAIL X62/Y62 X current low
+end
+if ix_d62 > 0.46
+  let fail = 1
+  echo FAIL X62/Y62 X current high
+end
+if iy_d62 < 0.34
+  let fail = 1
+  echo FAIL X62/Y62 Y current low
+end
+if iy_d62 > 0.46
+  let fail = 1
+  echo FAIL X62/Y62 Y current high
+end
+if m_d63 < 0.9
+  let fail = 1
+  echo FAIL X63/Y63 write 1 did not set the addressed core
+end
+if m_n63 > -0.9
+  let fail = 1
+  echo FAIL X63/Y63 write 1 flipped half-select X63/Y62
+end
+if m_p63 < 0.9
+  let fail = 1
+  echo FAIL X63/Y63 write 1 disturbed X62/Y62
+end
+if smin_d63 > -15m
+  let fail = 1
+  echo FAIL X63/Y63 sense plateau above -15 mV
+end
+if smin_d63 < -80m
+  let fail = 1
+  echo FAIL X63/Y63 sense plateau below -80 mV
+end
+if ix_d63 < 0.34
+  let fail = 1
+  echo FAIL X63/Y63 X current low
+end
+if ix_d63 > 0.46
+  let fail = 1
+  echo FAIL X63/Y63 X current high
+end
+if iy_d63 < 0.34
+  let fail = 1
+  echo FAIL X63/Y63 Y current low
+end
+if iy_d63 > 0.46
+  let fail = 1
+  echo FAIL X63/Y63 Y current high
+end
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end
+

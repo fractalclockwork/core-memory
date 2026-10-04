@@ -1,5 +1,5 @@
 * 2x2 coincident-current testbench with the CCS on the shared return.
-* Weave matches magnetic_core_2x2.kicad_sch after Sim.Pins:
+* Weave matches kicad/core/reference/magnetic_core_2x2.kicad_sch after Sim.Pins:
 *   XA->XB and YA->YB are both +H (pin1->pin2 on the subcircuit).
 *   YA65->YB66 enters each core at S2 and leaves at S1, so Is is negative
 *   and inhibit current on that path opposes a +H write.

@@ -25,7 +25,7 @@ CORE = ROOT / "core"
 SCH = CORE / "core.kicad_sch"
 PRO = CORE / "core.kicad_pro"
 DRIVE_BLOCK = CORE / "drive_block.kicad_sch"
-STEER = CORE / "steer_2x2.kicad_sch"
+STEER = CORE / "steer_64.kicad_sch"
 OLD_DRIVE = CORE / "drive.kicad_sch"
 OLD_XY = CORE / "xy_drive.kicad_sch"
 SHORT = CORE / "xy_drive_short.kicad_sch"
@@ -80,7 +80,7 @@ for _gi, _g in enumerate(range(2, 8)):
 SHEET_ORDER = [
     (ROOT_UUID, "core"),
     *[(c[1], c[0]) for c in DRIVE_CALLS],
-    (STEER_UUID, "Steer 2x2"),
+    (STEER_UUID, "Steer 64"),
     ("a1b2c3d4-e5f6-4789-a012-333333333333", "X FWD"),
     ("a1b2c3d4-e5f6-4789-a012-333333333334", "Y FWD"),
     ("a1b2c3d4-e5f6-4789-a012-333333333335", "X REV"),
@@ -134,8 +134,10 @@ REFS = {
     "Chi": "C31",
 }
 
-TITLE = "DRIVE — eight drive_block calls (groups 0 and 1, X and Y, FWD and REV) plus steer_2x2"
+TITLE = "DRIVE — 32 drive_block calls (groups 0-7, X and Y, FWD and REV) plus steer_64"
 OLD_TITLES = (
+    "DRIVE — eight drive_block calls",
+    "DRIVE — 32 drive_block calls",
     "xy_drive REV:",
     "xy_drive:",
     "DRIVE — XY hierarchy",
@@ -317,7 +319,7 @@ def text(s, x, y, size=1.27):
 
 
 def half_bridge(o: list[str], *, qx: float, qy: float, ux: float, uy: float) -> None:
-    """One channel: FDS8958A + one TC4427A. Switch nodes leave the sheet; diodes are on steer_2x2."""
+    """One channel: FDS8958A + one TC4427A. Switch nodes leave the sheet; diodes are on steer_64."""
     o.append(symbol_inst("core_memory:FDS8958A", REFS["Q"], "FDS8958A", qx, qy, list("12345678"), footprint=FP_Q))
     s1 = pin_xy(qx, qy, -10.16, 5.08)
     g1 = pin_xy(qx, qy, -10.16, 2.54)
@@ -444,7 +446,7 @@ def half_bridge(o: list[str], *, qx: float, qy: float, ux: float, uy: float) -> 
 def build_drive_block_page(lib_syms: str) -> str:
     o: list[str] = [
         text("Drive Block — TC4427A (HS+LS) + FDS8958A; switch nodes N_HS_OUT / N_LS_OUT", 20, 12, 1.524),
-        text("N_HSn active-low (138); N_LSn active-high (238). SS14s are on steer_2x2.", 20, 18),
+        text("N_HSn active-low (138); N_LSn active-high (238). SS14s are on steer_64.", 20, 18),
     ]
     half_bridge(o, qx=160.0, qy=70.0, ux=75.0, uy=70.0)
     body = "\n".join(o)
@@ -490,7 +492,7 @@ def extract_blocks(text: str, tag: str):
 def is_drive_sheet(block: str) -> bool:
     return bool(
         re.search(
-            r'\(property "Sheetfile" "(?:xy_drive(?:_short)?|drive|drive_block|steer_2x2)\.kicad_sch"',
+            r'\(property "Sheetfile" "(?:xy_drive(?:_short)?|drive|drive_block|steer_64)\.kicad_sch"',
             block,
         )
     )
@@ -722,13 +724,13 @@ def steer_sheet_block() -> str:
 \t\t(stroke (width 0.1524) (type solid))
 \t\t(fill (color 0 0 0 0))
 \t\t(uuid "{STEER_UUID}")
-\t\t(property "Sheetname" "Steer 2x2"
+\t\t		(property "Sheetname" "Steer 64"
 \t\t\t(at {sx} {round(sy - 1.27, 2)} 0)
 \t\t\t(show_name no)
 \t\t\t(do_not_autoplace no)
 \t\t\t(effects (font (size 1.27 1.27) (thickness 0.254) (bold yes)) (justify left bottom))
 \t\t)
-\t\t(property "Sheetfile" "steer_2x2.kicad_sch"
+\t\t(property "Sheetfile" "steer_64.kicad_sch"
 \t\t\t(at {sx} {round(sy + STEER_H + 1.27, 2)} 0)
 \t\t\t(show_name no)
 \t\t\t(do_not_autoplace no)

@@ -6,11 +6,11 @@ Each core is **three-wire** (X, Y, sense)—there is no separate inhibit winding
 
 ## Documentation
 
-Start at [docs/README.md](docs/README.md) for theory of operation, board regions, design choices, component selection, the plane interface spec, and the chip-datasheet archive.
+Start at [docs/README.md](docs/README.md). Frozen contracts: [docs/icd.md](docs/icd.md). Process layers L0–L4: [docs/reimplementation.md](docs/reimplementation.md). Coverage: [docs/coverage_matrix.md](docs/coverage_matrix.md).
 
 ## KiCad
 
-Schematic and PCB live under [kicad/core/](kicad/core/). Custom symbols and card-edge footprints are in [kicad/libs/](kicad/libs/); generators are in [kicad/scripts/](kicad/scripts/).
+Schematic and PCB live under [kicad/core/](kicad/core/). Custom symbols and card-edge footprints are in [kicad/libs/](kicad/libs/); generators are in [kicad/scripts/](kicad/scripts/). Steer fabric: `steer_64.kicad_sch` (octal tiles: [docs/hierarchy_abi.md](docs/hierarchy_abi.md)).
 
 ## Python tooling
 
@@ -18,11 +18,28 @@ Dependencies (e.g. [kiutils](https://pypi.org/project/kiutils/)) are managed wit
 
 ```bash
 uv sync
-uv run python kicad/scripts/gen_xy_drive_page.py   # drive_block.kicad_sch (N/n pins; local VDRIVE bypass; X0 FWD)
-uv run python kicad/scripts/gen_xy_decode_page.py  # decode_block.kicad_sch (N/n pins; local +3V3 bypass; X FWD)
-uv run python kicad/scripts/gen_decoupling_pages.py  # shared Sense/Latch/CCS + Inhibit caps; regen blocks
-uv run python kicad/scripts/gen_ferrite_beads_page.py --phase 2  # 2×2 MCE page
-uv run python kicad/scripts/gen_core_element_sim.py  # isolated core-element SPICE testbench
+uv run python kicad/scripts/gen_pipeline.py              # SPICE decks + coverage + ABI check
+uv run python kicad/scripts/gen_pipeline.py --spice-only # ideal + behavioral decks only
+uv run python kicad/scripts/gen_pipeline.py --kicad      # also regen KiCad sheets
+uv run python kicad/scripts/gen_pipeline.py --check-abi  # octal tile pin budgets
 ```
 
-The core-element model is exercised on its own in [kicad/core_element_sim/](kicad/core_element_sim/). The driver places that model as MCE, four cores on the Magnetic Cores sheet. Parameters, the run, and the comparison with published sense pulses are in [docs/core_element_sim.md](docs/core_element_sim.md).
+Individual generators (also invoked by the pipeline `--kicad` path):
+
+```bash
+uv run python kicad/scripts/gen_xy_drive_page.py   # drive_block + steer_64
+uv run python kicad/scripts/gen_xy_decode_page.py  # decode_block
+uv run python kicad/scripts/gen_decoupling_pages.py
+uv run python kicad/scripts/gen_ferrite_beads_page.py --array 64
+uv run python kicad/scripts/gen_core_element_sim.py
+```
+
+## Simulation
+
+```bash
+kicad/core_element_sim/run_regression.sh          # L0 + L1
+kicad/core_element_sim/run_regression.sh --l2     # + L2 e2e ladder
+kicad/core_element_sim/run_regression.sh --ideal  # + L3 ideal n×n
+```
+
+The core-element model is exercised in [kicad/core_element_sim/](kicad/core_element_sim/). L0 detailed MCE and L3 `ideal_core` are separate — see [docs/core_element_sim.md](docs/core_element_sim.md).

@@ -1,0 +1,74 @@
+* L3 single ideal_core smoke: half-select hold, full-select flip, sense ~35 mV.
+* Batch: ngspice -b ideal_core_tb.cir
+* Prints RESULT PASS or RESULT FAIL.
+*
+* Same pin grounding as coremem_tb: X2 Y2 S2 grounded; sense is V(S1).
+
+.include ideal_core.cir
+
+Vx2 X2 0 0
+Vy2 Y2 0 0
+Vs2 S2 0 0
+Rx X1 X2 20
+Ry Y1 Y2 20
+
+Ix 0 X1 PWL(
++ 0 0
++ 1u 0 1.1u -0.4 3u -0.4 3.1u 0
++ 5u 0 5.1u -0.4 7u -0.4 7.1u 0
++ 9u 0 9.1u 0.4 11u 0.4 11.1u 0)
+Iy 0 Y1 PWL(
++ 0 0
++ 5u 0 5.1u -0.4 7u -0.4 7.1u 0
++ 9u 0 9.1u 0.4 11u 0.4 11.1u 0)
+
+X0 X1 X2 Y1 Y2 S1 S2 ideal_mce m0=1
+
+.save v(x0.xcore.m) v(S1)
+.tran 20n 12u uic
+
+.control
+set nobreak
+set noaskquit
+run
+let fail = 0
+meas tran m_hs FIND v(x0.xcore.m) AT=4u
+meas tran m_fs FIND v(x0.xcore.m) AT=8u
+meas tran m_rs FIND v(x0.xcore.m) AT=11.5u
+meas tran smin MIN v(S1) FROM=5.2u TO=7u
+meas tran smax MAX v(S1) FROM=9.2u TO=11u
+if m_hs < 0.9
+  let fail = 1
+  echo FAIL half-select disturbed remanence
+end
+if m_fs > -0.9
+  let fail = 1
+  echo FAIL full-select did not flip to -Br
+end
+if m_rs < 0.9
+  let fail = 1
+  echo FAIL restore did not return to +Br
+end
+if smin > -15m
+  let fail = 1
+  echo FAIL read-1 sense too small
+end
+if smin < -80m
+  let fail = 1
+  echo FAIL read-1 sense too large
+end
+if smax < 15m
+  let fail = 1
+  echo FAIL restore sense too small
+end
+if smax > 80m
+  let fail = 1
+  echo FAIL restore sense too large
+end
+if fail = 0
+  echo RESULT PASS
+else
+  echo RESULT FAIL
+end
+.endc
+.end

@@ -1,0 +1,34 @@
+* Idealized three-wire core for n×n / SIL (L3).
+*
+* Distinct from coremem: no reversible mur term, no Chan geometry.
+* Remanence m slews in about Tsw when |Ix+Iy+Is| exceeds Ifull.
+* Sense voltage is Aeff*dm/dt with Aeff chosen so a full flip is ~Vsense.
+*
+* Pins match mce / coremem: X1 X2 Y1 Y2 S1 S2.
+
+.subckt ideal_core X1 X2 Y1 Y2 S1 S2 params:
++ Ifull=0.55 Tsw=1u Vsense=35m m0=-1
+
+.param rate={2/Tsw}
+.param Aeff={Vsense*Tsw/2}
+
+Vx X1 nX 0
+Vy Y1 nY 0
+Vs S1 nS 0
+BH H 0 V = I(Vx)+I(Vy)+I(Vs)
+
+Cm m 0 1 IC={m0}
+Rm m 0 1e12
+
+* Toward +1 when H > Ifull; toward -1 when H < -Ifull. Clamp soft via (1±m).
+Bdm 0 m I = {rate}*(u(v(H)-{Ifull})*(1-v(m)) - u(-{Ifull}-v(H))*(v(m)+1))
+
+Bx nX X2 V = {Aeff}*I(Bdm)
+By nY Y2 V = {Aeff}*I(Bdm)
+Bsw nS S2 V = {Aeff}*I(Bdm)
+
+.ends
+
+.subckt ideal_mce X1 X2 Y1 Y2 S1 S2 params: m0=-1
+Xcore X1 X2 Y1 Y2 S1 S2 ideal_core m0={m0}
+.ends

@@ -1,6 +1,6 @@
 # Core-Element Simulation
 
-SPICE model of one three-wire memory core. The driver schematic uses it as the MCE (magnetic core element) symbol on [magnetic_core_2x2.kicad_sch](../kicad/core/magnetic_core_2x2.kicad_sch): the same six pins as the old ferrite-bead stand-in, with the flux probe kept inside the `mce` wrapper. This project remains the isolated testbench.
+SPICE model of one three-wire memory core. The driver schematic uses it as the MCE (magnetic core element) symbol on [magnetic_core_64x64.kicad_sch](../kicad/core/magnetic_core_64x64.kicad_sch): the same six pins as the old ferrite-bead stand-in, with the flux probe kept inside the `mce` wrapper. The 2×2 page that this model was first woven into is archived at [reference/magnetic_core_2x2.kicad_sch](../kicad/core/reference/magnetic_core_2x2.kicad_sch). This project remains the isolated testbench.
 
 KiCad project: [kicad/core_element_sim/](../kicad/core_element_sim/). Subcircuit: [models/coremem.cir](../kicad/core_element_sim/models/coremem.cir). Batch deck: [models/coremem_tb.cir](../kicad/core_element_sim/models/coremem_tb.cir).
 
@@ -88,7 +88,7 @@ The read-1 peak (−41 mV) is the ~35 mV remanence reversal plus the reversible 
 
 ## 2×2 addressing
 
-The Magnetic Cores sheet places four of these cores in the plane’s weave: YA loop through MCE11 and MCE00 (mirrored, top-left to bottom-right), YB loop through MCE10 and MCE01, ends at the XB end of each Y edge, fold `YA66`═`YB65`. The batch deck uses that netlist after the sheet’s `Sim.Pins` map, so current XA→XB and YA→YB both add to H, and current YA65→YB66 opposes a positive write.
+The archived 2×2 sheet places four of these cores in the plane’s weave: YA loop through MCE11 and MCE00 (mirrored, top-left to bottom-right), YB loop through MCE10 and MCE01, ends at the XB end of each Y edge, fold `YA66`═`YB65`. The batch deck uses that netlist after the sheet’s `Sim.Pins` map, so current XA→XB and YA→YB both add to H, and current YA65→YB66 opposes a positive write. The live sheet is that weave on a 64×64: `(x+y)` even on YA, odd on YB, 2,048 cores in each loop.
 
 This deck is the single-sink record. The return is one copy of the schematic CCS (`models/ccs.cir`): TL431 at 2.5 V, the 10 kΩ pot set for 400 mA, OPA192, IRLZ44N, and the 1 Ω sense resistor. Selected ends are switched from a 12 V testbench rail; the other end of each driven line, and the inhibit sink, all return through that one node. The schematic does not: X, Y, and inhibit each have their own sink. In the model the op-amp output is held at 2.39 V, just above the gate that regulates 400 mA, so an open return does not wind the MOSFET up to the +5 V rail between pulses.
 
@@ -137,12 +137,38 @@ python3 kicad/core_element_sim/plot_e2e.py                     # plots/array2x2_
 
 ![The same cycle, started from the address pins.](../kicad/core_element_sim/plots/array2x2_e2e.png)
 
+## 64×64 diagonal smoke
+
+### L3 idealized (scale gate)
+
+`array64x64_ideal_tb.cir` uses [`ideal_core.cir`](../kicad/core_element_sim/models/ideal_core.cir) (`ideal_mce`) with the same sparse diagonal plant (128 cores) but **one continuous** 0…63 write-1 transient. That is the n×n scale gate. A smaller `array_ideal_nxn_tb.cir` (n=8) is for fast SIL loops. Regenerate both with `uv run python kicad/scripts/gen_pipeline.py --spice-only`.
+
+```bash
+ngspice -b kicad/core_element_sim/models/ideal_core_tb.cir      # single ideal_core
+ngspice -b kicad/core_element_sim/models/array_ideal_nxn_tb.cir
+ngspice -b kicad/core_element_sim/models/array64x64_ideal_tb.cir
+kicad/core_element_sim/run_regression.sh --ideal
+```
+
+### Behavioral characterization (not the L3 gate)
+
+`array64x64_cycle.sh` runs two decks that share the live weave's pin map. Lines are 0-based, so the main diagonal is X0/Y0 through X63/Y63. There is no X64. Each of those 64 addresses gets one write 1. Both decks instance those 64 cores and one X half-select neighbor per address (128 `mce` devices), series-connected on the lines they share, with the same three 400 mA CCS copies. The other cores stay on the schematic. `array64x64_cycle_tb.cir` pulses X0/Y0 through X31/Y31. `array64x64_cycle_hi.cir` pulses X32/Y32 through X63/Y63 and starts the lower diagonal at \(+B_r\), the state those writes leave behind. One continuous transient of all 64 pulses of the **behavioral** `coremem` does not finish in a reasonable time — that is why L3 uses `ideal_mce`. The addressed core must reach about \(+B_r\). The next diagonal core, and that half-select neighbor, must stay at \(-B_r\). A core written earlier on the diagonal must stay high. Sense is the early flat (about −35 mV). X and Y sit near +400 mA.
+
+```bash
+kicad/core_element_sim/models/array64x64_cycle.sh   # RESULT PASS or RESULT FAIL
+```
+
 ## What each deck includes
 
-Magnetic Cores (four `mce` cores, the fold, and the 10 kΩ center tap) are in every array deck. `array2x2_tb.cir` is the one-sink record. Every other array deck instances the CCS subcircuit three times.
+The 2×2 decks each have four `mce` cores, the fold, and the 10 kΩ center tap. `array2x2_tb.cir` is the one-sink record. Every other array deck instances the CCS subcircuit three times. The 64×64 **behavioral** diagonal smoke is the pair `array64x64_cycle_tb.cir` and `array64x64_cycle_hi.cir`. L3 scale decks use `ideal_mce`.
 
 | Deck | Beyond cores and the CCS copies |
 |------|--------------------------------|
+| `ideal_core_tb.cir` | Single L3 ideal_core half-select / flip / restore |
+| `array_ideal_nxn_tb.cir` | L3 ideal diagonal, n=8, one transient |
+| `array64x64_ideal_tb.cir` | L3 ideal diagonal, n=64, one transient |
+| `array64x64_cycle_tb.cir` | Behavioral smoke, X0/Y0 … X31/Y31. 128 `mce`. |
+| `array64x64_cycle_hi.cir` | Behavioral smoke, X32/Y32 … X63/Y63. Lower diagonal starts at \(+B_r\). |
 | `array2x2_tb.cir` | One CCS. Ideal line switches. |
 | `array2x2_cycle_tb.cir` | Three CCS copies. Ideal line switches. Oracle for remanence, ±400 mA, and the sense plateau. |
 | `array2x2_drive_tb.cir` | `drive.cir` on the X0 pair. Other switches stay ideal. |
@@ -157,4 +183,4 @@ Magnetic Cores (four `mce` cores, the fold, and the 10 kΩ center tap) are in ev
 
 `array2x2_z_tb.cir` inserts one series R and one series L on each drive line and on the sense string. The default is 1 µΩ and 1 pH, and that run still passes. [theory_of_operation.md](theory_of_operation.md) records no numeric weave L or DCR, so there is no second run with a real plane impedance.
 
-Still out of every netlist: the decoupling caps, and C5/C6 inside `ccs.cir`. They sit on ideal rails. The root schematic now has drive groups 0–7, steer diodes for lines 0–63, an edge contact on each plane net, and an RP2040 header on the address and enable nets. The transient is still four cores.
+Still out of every netlist: the decoupling caps, and C5/C6 inside `ccs.cir`. They sit on ideal rails. The root schematic has drive groups 0–7, `steer_64` diodes for lines 0–63, an edge contact on each plane net, and an RP2040 header on the address and enable nets. L2 e2e transient remains four cores; n×n scale uses L3 ideal decks. Process layers: [reimplementation.md](reimplementation.md). Coverage: [coverage_matrix.md](coverage_matrix.md).
